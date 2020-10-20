@@ -1,10 +1,10 @@
 package com.wzz.controller;
 
 import com.wzz.Util.createVerificationCode;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.wzz.vo.CommonResult;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -15,17 +15,20 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/util")
+@Api(tags = "工具类接口")
 public class UtilController {
+
+    static String CODE;
 
     /**
      * 生成随机验证码图片
      *
-     * @param request
      * @param response
      * @throws IOException
      */
-    @RequestMapping("/getCode")
-    public void getIdentifyImage(@RequestParam(required = false) String id, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    @GetMapping("/getCodeImg")
+    @ApiOperation(value = "获取验证码图片流")
+    public void getIdentifyImage(@RequestParam(required = false) String id, HttpServletResponse response) throws IOException {
         //设置不缓存图片
         response.setHeader("Pragma", "No-cache");
         response.setHeader("Cache-Control", "No-cache");
@@ -34,12 +37,15 @@ public class UtilController {
         response.setContentType("image/jpeg");
         createVerificationCode code = new createVerificationCode();
         BufferedImage image = code.getIdentifyImg();
-        HttpSession session = request.getSession(true);
-        //存储验证码数据到Session中
-        session.setAttribute("code", code.getCode());
         code.getG().dispose();
         //将图形验证码IO流传输至前端
         ImageIO.write(image, "JPEG", response.getOutputStream());
+        CODE = code.getCode();
     }
 
+    @GetMapping("/getCode")
+    @ApiOperation(value = "获取验证码")
+    public CommonResult<String> getCode() {
+        return new CommonResult<>(200, CODE);
+    }
 }
