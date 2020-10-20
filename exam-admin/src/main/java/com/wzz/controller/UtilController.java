@@ -4,6 +4,7 @@ import com.wzz.Util.createVerificationCode;
 import com.wzz.vo.CommonResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
@@ -14,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 @RestController
+@Slf4j
 @RequestMapping("/util")
 @Api(tags = "工具类接口")
 public class UtilController {
@@ -29,6 +31,7 @@ public class UtilController {
     @GetMapping("/getCodeImg")
     @ApiOperation(value = "获取验证码图片流")
     public void getIdentifyImage(@RequestParam(required = false) String id, HttpServletResponse response) throws IOException {
+        log.info("执行了===>UtilController中的getIdentifyImage方法");
         //设置不缓存图片
         response.setHeader("Pragma", "No-cache");
         response.setHeader("Cache-Control", "No-cache");

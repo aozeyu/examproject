@@ -28,10 +28,10 @@ public class TokenUtils {//过期时间
      * @param **password**
      * @return
      */
-    public static String createToken(TokenVo token, long expireDate) {
+    public static String createToken(TokenVo token) {
         try {
             // 设置过期时间
-            Date date = new Date(System.currentTimeMillis() + expireDate);
+            Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
             // 私钥和加密算法
             Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
             // 设置头部信息
@@ -58,7 +58,7 @@ public class TokenUtils {//过期时间
      * @param **token**
      * @return
      */
-    public static String verifyToken(String token) {
+    public static TokenVo verifyToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
             JWTVerifier verifier = JWT.require(algorithm).build();
@@ -66,16 +66,16 @@ public class TokenUtils {//过期时间
             String roleId = jwt.getClaim("roleId").asString();
             String username = jwt.getClaim("username").asString();
             String password = jwt.getClaim("password").asString();
-            return roleId + " == " + username  + "==" + password ;
+            return new TokenVo(roleId, username, password);
         } catch (Exception e) {
             return null;
         }
     }
 
-//    public static void main(String[] args) {
-//        String token = TokenUtils.createToken(new TokenVo("1","wzz","123"), 3000);
-//        System.out.println("token == " + token);
-//        String userId = TokenUtils.verifyToken(token);
-//        System.out.println(userId);
-//    }
+    public static void main(String[] args) {
+        String token = TokenUtils.createToken(new TokenVo("1","wzz","123"));
+        System.out.println("token == " + token);
+        TokenVo tokenVo = TokenUtils.verifyToken(token);
+        System.out.println(tokenVo);
+    }
 }

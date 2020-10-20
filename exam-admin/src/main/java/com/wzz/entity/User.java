@@ -2,6 +2,7 @@ package com.wzz.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @ApiModel("用户实体")
+@TableName(value = "user")
 public class User implements Serializable {
 
     //  对应数据库的主键(uuid,自增id,雪花算法, redis,zookeeper)
