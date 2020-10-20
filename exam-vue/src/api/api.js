@@ -8,7 +8,9 @@ let API = {
     //校验用户名
     checkUsername: '/common/check',
     //登陆接口
-    login: '/common/login'
+    login: '/common/login',
+    //获取主页面的左侧menu数据
+    getMenuInfo: '/common/getMenu'
   },
 }
 

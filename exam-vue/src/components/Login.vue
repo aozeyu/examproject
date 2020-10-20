@@ -117,7 +117,7 @@
             data.append('password', this.loginForm.password)
             //发送登录请求
             this.$http.post(this.API.login, data).then((resp) => {
-              if (resp.data.code == 200) {
+              if (resp.data.code === 200) {
                 localStorage.setItem('authorization', resp.data.data)
                 this.$router.push('/index')
               }else {
