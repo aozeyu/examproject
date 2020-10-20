@@ -11,6 +11,10 @@ const routes = [
   {
     path: '/register',
     component: () => import('../components/Register')
+  },
+  {
+    path: '/index',
+    component: () => import('../components/Main')
   }
 ]
 

@@ -18,8 +18,9 @@
             </el-form-item>
 
             <el-form-item prop="code">
-              <el-input class="code" prefix-icon="el-icon-chat-line-round" v-model="loginForm.code" placeholder="验证码"></el-input>
-              <img src="http://localhost:8888/util/getCode" @click="changeCode" id="code"
+              <el-input class="code" prefix-icon="el-icon-chat-line-round" v-model="loginForm.code"
+                        placeholder="验证码"></el-input>
+              <img src="http://localhost:8888/util/getCodeImg" @click="changeCode" id="code"
                    style="float: right;margin-top: 4px;cursor: pointer" title="看不清,点击刷新"
                    alt="验证码"/>
             </el-form-item>
@@ -53,6 +54,14 @@
   export default {
     name: 'Login',
     data () {
+      //自定义验证码校验规则
+      var validateCode = (rule, value, callback) => {
+        if (value !== this.code) {
+          callback(new Error('验证码输入错误'))
+        } else {
+          callback()
+        }
+      }
       return {
         //登录表单数据信息
         loginForm: {
@@ -88,8 +97,14 @@
               message: '请输入验证码',
               trigger: 'blur'
             },
+            {
+              validator: validateCode,
+              trigger: 'blur'
+            }
           ],
-        }
+        },
+        //后台的验证码
+        code: window.onload = () => this.getCode(),
       }
     },
     methods: {
@@ -97,9 +112,20 @@
       submitForm () {
         this.$refs['loginForm'].validate((valid) => {
           if (valid) {//验证通过
-            alert('submit!')
+            const data = new FormData()
+            data.append('username', this.loginForm.username)
+            data.append('password', this.loginForm.password)
+            //发送登录请求
+            this.$http.post(this.API.login, data).then((resp) => {
+              if (resp.data.code == 200) {
+                localStorage.setItem('authorization', resp.data.data)
+                this.$router.push('/index')
+              }else {
+                this.$message.error(resp.data.message)
+              }
+            })
           } else {
-            console.log('error submit!!')
+            this.$message.error('请检查所填写信息是否正确')
             return false
           }
         })
@@ -111,8 +137,15 @@
       //点击图片刷新验证码
       changeCode () {
         const code = document.querySelector('#code')
-        code.src = 'http://localhost:8888/util/getCode?id=' + Math.random();
-      }
+        code.src = 'http://localhost:8888/util/getCodeImg?id=' + Math.random()
+        code.onload = () => this.getCode()
+      },
+      //获取后台验证码
+      getCode () {
+        this.$http.get(this.API.getCode).then((resp) => {
+          this.code = resp.data.message
+        })
+      },
     }
   }
 </script>
