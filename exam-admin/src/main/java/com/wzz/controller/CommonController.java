@@ -15,6 +15,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.security.NoSuchAlgorithmException;
@@ -86,10 +87,11 @@ public class CommonController {
 
     @GetMapping("/getMenu")
     @ApiOperation(value = "获取不同用户的权限菜单")
-    public CommonResult<String> getMenu(HttpServletRequest request, HttpServletResponse resp) {
+    public CommonResult<String> getMenu(HttpServletRequest request) {
         log.info("执行了===>CommonController中的getMenu方法");
         //工具类验证token是否有效 有效返回tokenVo对象,否则返回null
         TokenVo tokenVo = new CheckToken().checkToken(request, userService);
+        System.out.println(tokenVo);
         if (tokenVo != null) {//有效token
             String roleId = tokenVo.getRoleId();
             QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
@@ -98,6 +100,19 @@ public class CommonController {
             return new CommonResult<>(200, "success", userRole.getMenuInfo());
         } else {
             return new CommonResult<>(233, "认证信息有误,获取数据失败");
+        }
+    }
+
+    @GetMapping("/checkToken")
+    @ApiOperation("验证用户token接口")
+    public CommonResult<TokenVo> checkToken(HttpServletRequest request) {
+        log.info("执行了===>CommonController中的checkToken方法");
+        //工具类验证token是否有效 有效返回tokenVo对象,否则返回null
+        TokenVo tokenVo = new CheckToken().checkToken(request, userService);
+        if (tokenVo != null) {//有效token
+            return new CommonResult<>(200, "success", tokenVo);
+        } else {
+            return new CommonResult<>(233, "token无效");
         }
     }
 
