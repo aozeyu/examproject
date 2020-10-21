@@ -1,6 +1,8 @@
 <template>
-  <div style="animation: leftMoveIn 3s infinite;">
-    <p>欢迎使用追风考试系统</p>
+  <div>
+    <p>
+      欢迎使用追风考试系统
+    </p>
     数据绘图暂留
   </div>
 </template>
@@ -12,24 +14,18 @@
 </script>
 
 <style scoped lang="scss">
+  div {
+    animation: leftMoveIn .7s ease-in;
+  }
+
   @keyframes leftMoveIn {
     0% {
-      right: 400px;
-      background-color: red;
-    }
-    25% {
-      right: 300px;
-      background-color: blueviolet;
-
-    }
-    50% {
-      right: 200px;
-      background-color: yellow;
+      transform: translateX(-100%);
+      opacity: 0;
     }
     100% {
-      right: 100px;
-      background-color: gray;
-
+      transform: translateX(0%);
+      opacity: 1;
     }
   }
 </style>

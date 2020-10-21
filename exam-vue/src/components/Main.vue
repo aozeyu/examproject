@@ -2,20 +2,24 @@
   <el-container>
     <!--用户头部菜单-->
     <el-aside id="aside" width="210px">
-      <el-menu default-active="/index" :router="true" class="el-menu-vertical-demo"
+      <el-menu :default-active="activeMenu" @select="handleSelect" :router="true"
+
                background-color="rgb(48,65,86)"
                text-color="rgb(191,203,217)"
                active-text-color="rgb(64,158,255)"
                :collapse="isCollapse"
       >
-        <el-menu-item index="/index" style="text-align: center">
+        <el-menu-item index="/index" disabled style="text-align: center">
           <i class="el-icon-sunny"></i>
           <span slot="title">
             追风考试系统
           </span>
         </el-menu-item>
+
         <!-- 单独的导航 -->
-        <el-menu-item :index="menuInfo[0].url" v-if="!menuInfo[0].submenu">
+        <el-menu-item @click="changeBreadInfo(menuInfo[0].topMenuName,menuInfo[0].topMenuName,menuInfo[0].url)"
+                      :index="menuInfo[0].url"
+                      v-if="!menuInfo[0].submenu">
           <i :class="menuInfo[0].topIcon"></i>
           <span slot="title">{{ menuInfo[0].topMenuName }}</span>
         </el-menu-item>
@@ -29,7 +33,8 @@
 
           <!--子导航的分组-->
           <el-menu-item-group>
-            <el-menu-item :index="sub.url" v-for="(sub,index) in menu.submenu" :key="index">
+            <el-menu-item @click="changeBreadInfo(menu.topMenuName,sub.name,sub.url)" :index="sub.url"
+                          v-for="(sub,index) in menu.submenu" :key="index">
               <i :class="sub.icon"></i>
               <span slot="title">{{ sub.name }}</span>
             </el-menu-item>
@@ -55,10 +60,8 @@
 
               <!--面包屑-->
               <el-breadcrumb style="margin-left: 15px">
-                <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-                <el-breadcrumb-item>活动管理</el-breadcrumb-item>
-                <el-breadcrumb-item>活动列表</el-breadcrumb-item>
-                <el-breadcrumb-item>活动详情</el-breadcrumb-item>
+                <el-breadcrumb-item>{{ breadInfo.top }}</el-breadcrumb-item>
+                <el-breadcrumb-item>{{ breadInfo.sub }}</el-breadcrumb-item>
               </el-breadcrumb>
 
               <!--右侧的个人信息下拉框-->
@@ -83,11 +86,13 @@
 
             <!--卡片面板的主内容-->
             <div>
-              <el-tag @close="handleClose(tag)"
-                      type="info" :key="item" size="small"
-                      closable v-for="item in 2"
+              <el-tag @close="handleClose(index)" v-for="(item,index) in tags"
+                      type="info" size="small" :key="index" :class="item.highlight ? 'active' : ''"
+                      :closable="item.name !== '控制台'" @click="changeHighlightTag(item.name)"
                       effect="plain">
-                测试标签{{item}}
+                <i class="el-icon-s-opportunity" style="margin-right: 2px"
+                   v-if="item.highlight"></i>
+                {{ item.name }}
               </el-tag>
             </div>
           </el-card>
@@ -121,13 +126,30 @@
         //当前登录的用户信息
         currentUserInfo: {
           'username': ''
-        }
+        },
+        //当前激活的菜单
+        activeMenu: '',
+        //面包屑信息
+        breadInfo: {
+          'top': '控制台',//顶级菜单信息
+          'sub': '控制台'//当前的菜单信息
+        },
+        //面包屑下的标签数据
+        tags: [
+          {
+            'name': '控制台',
+            'url': '/dashboard',
+            'highlight': true
+          }
+        ]
       }
     },
     mounted () {
       this.getMenu()
       //获取登录用户信息
       this.getUserInfoByCheckToken()
+      //根据当前链接的hash设置对应高亮的菜单
+      this.activeMenu = window.location.hash.substring(1)
     },
     methods: {
       //根据token后台判断用户权限,传递相对应的菜单
@@ -234,8 +256,44 @@
         this.currentUserInfo = resp.data.data
       },
       //关闭tag标签
-      handleClose (tag) {
-
+      handleClose (index) {//当前点击的tag的下标
+        if (this.tags[index].highlight) {
+          this.tags[index-1].highlight = true;
+          this.$router.push(this.tags[index-1].url)
+        }
+        this.tags.splice(index, 1)
+      },
+      //菜单的高亮变化
+      handleSelect (currentMenu) {
+        this.activeMenu = currentMenu
+      },
+      //处理面包屑信息和面包屑下的标签信息
+      changeBreadInfo (curTopMenuName, curMenuName, url) {
+        //面包屑信息
+        this.breadInfo.top = curTopMenuName
+        this.breadInfo.sub = curMenuName
+        //标签信息
+        let flag = false//当前是否有此菜单信息(防止无限点击,无线生成)
+        this.tags.map(item => {
+          if (item.name === curMenuName) flag = true
+        })
+        if (!flag) {//不存在当前点击的菜单
+          this.tags.push({
+            'name': curMenuName,
+            'url': url,
+            'highlight': true
+          })
+        } //高亮菜单tag
+        this.changeHighlightTag(curMenuName)
+      },
+      //处理高亮的tag
+      changeHighlightTag (curMenuName) {//当前需要高亮的index
+        let curMenu
+        this.tags.map((item,i) => {
+          curMenu = item.name === curMenuName ? item : null
+          item.highlight = item.name === curMenuName
+        })
+        this.$router.push(curMenu.url)
       }
     }
   }
@@ -295,9 +353,22 @@
     font-weight: 400;
     text-align: center;
     margin-left: 10px;
+    cursor: pointer;
   }
 
   /deep/ .el-card__body {
     padding: 10px;
+  }
+
+  .el-menu-item.is-disabled {
+    opacity: 1;
+    cursor: pointer;
+    background-color: rgb(38, 52, 69) !important;
+  }
+
+  /*  tag的高亮*/
+  .active {
+    background-color: rgb(66, 185, 131);
+    color: white;
   }
 </style>
