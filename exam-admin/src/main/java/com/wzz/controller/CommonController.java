@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
@@ -83,6 +82,13 @@ public class CommonController {
                 return new CommonResult<>(233, "账号密码错误");
             }
         } else return new CommonResult<>(233, "用户不存在");
+    }
+
+    @GetMapping("/logout")
+    @ApiOperation(value = "用户主动退出登录")
+    public CommonResult<String> logout() {
+        log.info("执行了===>CommonController中的logout方法");
+        return new CommonResult<>(200,"退出成功");
     }
 
     @GetMapping("/getMenu")
