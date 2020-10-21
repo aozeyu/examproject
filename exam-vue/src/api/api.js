@@ -10,7 +10,9 @@ let API = {
     //登陆接口
     login: '/common/login',
     //获取主页面的左侧menu数据
-    getMenuInfo: '/common/getMenu'
+    getMenuInfo: '/common/getMenu',
+    //检验token合法(返回当前对象)
+    checkToken: '/common/checkToken'
   },
 }
 

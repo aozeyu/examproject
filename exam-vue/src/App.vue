@@ -16,6 +16,6 @@ export default {
     text-align: center;
     height: 50px !important;
     background-color: white;
-    opacity: 0.7;
+    opacity: 0.6;
   }
 </style>

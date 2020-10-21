@@ -107,6 +107,11 @@
         code: window.onload = () => this.getCode(),
       }
     },
+    mounted () {
+      this.changeCode()
+      //检验用户是否存在token,存在直接跳转主页
+      this.checkToken()
+    },
     methods: {
       //表单信息提交
       submitForm () {
@@ -120,7 +125,7 @@
               if (resp.data.code === 200) {
                 localStorage.setItem('authorization', resp.data.data)
                 this.$router.push('/index')
-              }else {
+              } else {
                 this.$message.error(resp.data.message)
               }
             })
@@ -146,6 +151,15 @@
           this.code = resp.data.message
         })
       },
+      //检验token
+      async checkToken () {
+        if (window.localStorage.getItem('authorization') !== null) {
+          const resp = await this.$http.get(this.API.checkToken)
+          if (resp.data.code === 200) {//如果token合法自动跳转主页
+            await this.$router.push('/index')
+          }
+        }
+      }
     }
   }
 </script>

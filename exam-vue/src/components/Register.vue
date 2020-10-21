@@ -132,6 +132,9 @@
         code: window.onload = () => this.getCode(),
       }
     },
+    created () {
+      this.changeCode()
+    },
     methods: {
       //表单信息提交
       submitForm () {
