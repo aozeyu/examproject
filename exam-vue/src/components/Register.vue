@@ -144,12 +144,22 @@
               if (resp.data.code === 200) {
                 localStorage.setItem('authorization', resp.data.data)
                 this.$router.push('/index')
-              } else {
-                this.$message.error('用户注册失败,请稍后重试')
+              } else {//请求出错
+                this.$notify({
+                  title: 'Tips',
+                  message: '用户注册失败,请稍后重试',
+                  type: 'error',
+                  duration: 2000
+                });
               }
             })
-          } else {
-            this.$message.error('请检查所填写信息是否正确')
+          } else {//验证失败
+            this.$notify({
+              title: 'Tips',
+              message: '请检查所填写信息是否正确',
+              type: 'error',
+              duration: 2000
+            });
             return false
           }
         })

@@ -12,7 +12,9 @@ let API = {
     //获取主页面的左侧menu数据
     getMenuInfo: '/common/getMenu',
     //检验token合法(返回当前对象)
-    checkToken: '/common/checkToken'
+    checkToken: '/common/checkToken',
+    //用户退出登录
+    logout: '/common/logout'
   },
 }
 

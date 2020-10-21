@@ -1,13 +1,16 @@
 import Vue from 'vue'
 import {
   Button, Container, Main, Row, Footer, Card, FormItem, Form, Input, Message, MessageBox, Aside, MenuItemGroup,
-  Menu, MenuItem,Submenu,Col,Header,Tooltip,Breadcrumb,BreadcrumbItem,Dropdown,DropdownItem,DropdownMenu
+  Menu, MenuItem,Submenu,Col,Header,Tooltip,Breadcrumb,BreadcrumbItem,Dropdown,DropdownItem,DropdownMenu,Notification,
+  Tag
 } from 'element-ui'
 
 Vue.prototype.$message = Message
+Vue.prototype.$notify = Notification
 Vue.prototype.$confirm = MessageBox.confirm
 
 Vue.use(Button)
+Vue.use(Tag)
 Vue.use(DropdownMenu)
 Vue.use(DropdownItem)
 Vue.use(Dropdown)
