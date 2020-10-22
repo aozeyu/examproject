@@ -3,7 +3,6 @@
     <!--用户头部菜单-->
     <el-aside id="aside" width="210px">
       <el-menu :default-active="activeMenu" @select="handleSelect" :router="true"
-
                background-color="rgb(48,65,86)"
                text-color="rgb(191,203,217)"
                active-text-color="rgb(64,158,255)"
@@ -18,7 +17,7 @@
 
         <!-- 单独的导航 -->
         <el-menu-item @click="changeBreadInfo(menuInfo[0].topMenuName,menuInfo[0].topMenuName,menuInfo[0].url)"
-                      :index="menuInfo[0].url"
+                      index="/dashboard"
                       v-if="!menuInfo[0].submenu">
           <i :class="menuInfo[0].topIcon"></i>
           <span slot="title">{{ menuInfo[0].topMenuName }}</span>
@@ -116,7 +115,13 @@
         //菜单信息
         menuInfo: [
           {
-            'topIcon': ''
+            'topIcon': '',
+            'url': '',
+            'children': [
+              {
+                'url': ''
+              }
+            ]
           }
         ],
         //面板是否收缩
@@ -144,12 +149,36 @@
         ]
       }
     },
-    mounted () {
+    created () {
       this.getMenu()
       //获取登录用户信息
       this.getUserInfoByCheckToken()
+    },
+    mounted () {
       //根据当前链接的hash设置对应高亮的菜单
       this.activeMenu = window.location.hash.substring(1)
+      //根据链接创建不存在的tag标签并高亮
+      window.onload = () => {
+        let menuName
+        this.menuInfo.map(item => {
+          if (item.submenu !== undefined) {
+            item.submenu.map(subItem => {
+              if (subItem.url === window.location.hash.substring(1)) menuName = subItem.name
+            })
+          }
+        })
+        if (menuName !== undefined) {
+          this.tags.push({
+            'name': menuName,
+            'url': window.location.hash.substring(1),
+            'highlight': true
+          })
+          this.tags.map(item => {
+            if (item.url === window.location.hash.substring(1)) this.changeHighlightTag(item.name)
+          })
+        }
+      }
+
     },
     methods: {
       //根据token后台判断用户权限,传递相对应的菜单
@@ -231,7 +260,6 @@
       async logout () {
         const resp = await this.$http.get(this.API.logout)
         if (resp.data.code === 200) {//退出成功
-          this.$message.success('注销成功')
           window.localStorage.removeItem('authorization')
           //右侧提示通知
           this.$notify({
@@ -258,8 +286,10 @@
       //关闭tag标签
       handleClose (index) {//当前点击的tag的下标
         if (this.tags[index].highlight) {
-          this.tags[index-1].highlight = true;
-          this.$router.push(this.tags[index-1].url)
+          this.tags[index - 1].highlight = true
+          //关闭之后,路由调跳转,高亮菜单和标签
+          this.$router.push(this.tags[index - 1].url)
+          this.handleSelect(this.tags[index - 1].url)
         }
         this.tags.splice(index, 1)
       },
@@ -287,10 +317,10 @@
         this.changeHighlightTag(curMenuName)
       },
       //处理高亮的tag
-      changeHighlightTag (curMenuName) {//当前需要高亮的index
+      changeHighlightTag (curMenuName) {//当前需要高亮的名字
         let curMenu
-        this.tags.map((item,i) => {
-          curMenu = item.name === curMenuName ? item : null
+        this.tags.map((item, i) => {
+          if (item.name === curMenuName) curMenu = item
           item.highlight = item.name === curMenuName
         })
         this.$router.push(curMenu.url)

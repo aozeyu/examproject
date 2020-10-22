@@ -14,7 +14,9 @@ let API = {
     //检验token合法(返回当前对象)
     checkToken: '/common/checkToken',
     //用户退出登录
-    logout: '/common/logout'
+    logout: '/common/logout',
+    //获取用户信息
+    getUserInfo: '/admin/getUser'
   },
 }
 
