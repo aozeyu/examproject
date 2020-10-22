@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @Date 2020/10/20 8:57
@@ -36,4 +37,8 @@ public class User implements Serializable {
     private String password;
     @ApiModelProperty(value = "加密盐值", example = "afada")
     private String salt;
+    @ApiModelProperty(value = "用户状态",example = "1正常 2禁用")
+    private Integer status;
+    @ApiModelProperty(value = "用户创建时间",example = "2020-10-22 10:35:44")
+    private Date createDate;
 }

@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * @Date 2020/10/20 19:44
  * @created by wzz
@@ -18,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @ApiModel("角色实体")
 @TableName(value = "user_role")
-public class UserRole {
+public class UserRole implements Serializable {
     //  对应数据库的主键(uuid,自增id,雪花算法, redis,zookeeper)
     @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "主键 id", example = "1")
