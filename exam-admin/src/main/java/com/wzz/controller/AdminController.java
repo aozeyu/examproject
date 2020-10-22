@@ -1,6 +1,7 @@
 package com.wzz.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wzz.entity.User;
@@ -10,10 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -48,5 +46,36 @@ public class AdminController {
         List<User> users = userPage.getRecords();
         return new CommonResult<List<User>>(200, "success", users);
     }
+
+    @GetMapping("/handleUser/{type}")
+    @ApiOperation("管理员操作用户: type=1(启用) 2(禁用) 3(删除) userIds(需要操作的用户id)")
+    public CommonResult<String> handleUser(@PathVariable("type")Integer type,String userIds){
+        log.info("执行了===>AdminController中的handleUser方法");
+        //转换成数组 需要操作的用户的id数组
+        String[] ids = userIds.split(",");
+        if (type == 1){//启用
+            for (String id : ids) {
+                //当前需要修改的用户
+                User user = userService.getById(Integer.parseInt(id));
+                user.setStatus(1);//设置为启用的用户
+                userService.update(user, new UpdateWrapper<User>().eq("id", Integer.parseInt(id)));
+            }
+            return new CommonResult<>(200,"操作成功");
+        }else if(type == 2) {//禁用
+            for (String id : ids) {
+                //当前需要修改的用户
+                User user = userService.getById(Integer.parseInt(id));
+                user.setStatus(2);//设置为禁用的用户
+                userService.update(user, new UpdateWrapper<User>().eq("id", Integer.parseInt(id)));
+            }
+            return new CommonResult<>(200,"操作成功");
+        }else if (type == 3){//删除
+            for (String id : ids) {
+                userService.removeById(Integer.parseInt(id));
+            }
+            return new CommonResult<>(200,"操作成功");
+        }else return new CommonResult<>(233,"操作有误");
+    }
+
 
 }
