@@ -157,28 +157,33 @@
     mounted () {
       //根据当前链接的hash设置对应高亮的菜单
       this.activeMenu = window.location.hash.substring(1)
-      //根据链接创建不存在的tag标签并高亮
-      window.onload = () => {
-        let menuName
-        this.menuInfo.map(item => {
-          if (item.submenu !== undefined) {
-            item.submenu.map(subItem => {
-              if (subItem.url === window.location.hash.substring(1)) menuName = subItem.name
-            })
+    },
+    watch: {
+      //监察路径变化,改变菜单的高亮
+      '$route.path': function (o, n) {
+        this.activeMenu = o
+        //如果没有该标签就创建改标签
+        let flag = false
+        //判断是否含有改标签
+        this.tags.map(item => {
+          if (item.url === this.activeMenu) {//如果有含有该标签
+            flag = true
           }
         })
-        if (menuName !== undefined) {
-          this.tags.push({
-            'name': menuName,
-            'url': window.location.hash.substring(1),
-            'highlight': true
-          })
+        if (!flag) {//对应链接的标签不存在
+          //先找到该标签的名字
+          this.createHighlightTag()
+        } else {//改标签存在,则高亮
           this.tags.map(item => {
-            if (item.url === window.location.hash.substring(1)) this.changeHighlightTag(item.name)
+            //取消高亮别的标签
+            item.highlight = false
+            //高亮当前标签
+            if (item.url === this.activeMenu) {
+              item.highlight = true
+            }
           })
         }
       }
-
     },
     methods: {
       //根据token后台判断用户权限,传递相对应的菜单
@@ -186,6 +191,8 @@
         this.$http.get(this.API.getMenuInfo).then((resp) => {
           if (resp.data.code === 200) {
             this.menuInfo = JSON.parse(resp.data.data)
+            //根据链接创建不存在的tag标签并高亮
+            this.createHighlightTag()
           } else {//后台认证失败,跳转登录页面
             this.$message.error('权限认证失败,获取菜单数据失败')
             this.$router.push('/')
@@ -324,6 +331,29 @@
           item.highlight = item.name === curMenuName
         })
         this.$router.push(curMenu.url)
+      },
+      //创建当前高亮的tags
+      createHighlightTag () {
+        //根据链接创建不存在的tag标签并高亮
+        let menuName
+        this.menuInfo.map(item => {
+          if (item.submenu !== undefined) {
+            item.submenu.map(subItem => {
+              if (subItem.url === this.activeMenu) menuName = subItem.name
+            })
+          }
+        })
+        if (menuName !== undefined && this.tags.indexOf(menuName) === -1) {
+          this.tags.push({
+            'name': menuName,
+            'url': this.activeMenu,
+            'highlight': true
+          })
+          //高亮对应的标签
+          this.tags.map(item => {
+            if (item.url === window.location.hash.substring(1)) this.changeHighlightTag(item.name)
+          })
+        }
       }
     }
   }
