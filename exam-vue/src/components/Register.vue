@@ -132,7 +132,7 @@
         code: window.onload = () => this.getCode(),
       }
     },
-    created () {
+    mounted () {
       this.changeCode()
     },
     methods: {

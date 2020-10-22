@@ -10,6 +10,17 @@
     </el-header>
 
     <el-main>
+      <!--操作的下拉框-->
+      <el-select @change="selectChange" v-if="selectedInTable.length !== 0" v-model="selected"
+                 :placeholder="'已选择' + selectedInTable.length + '项'" style="margin-bottom: 25px;">
+
+        <el-option v-for="(item,index) in optionInfo" :key="index" :value="item.desc">
+          <span style="float: left">{{ item.label }}</span>
+          <span style="float: right; color: #8492a6; font-size: 13px">{{ item.desc }}</span>
+        </el-option>
+
+      </el-select>
+
       <el-table
         ref="multipleTable"
         highlight-current-row
@@ -59,6 +70,17 @@
 
       </el-table>
 
+      <!--分页-->
+      <el-pagination style="margin-top: 25px"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="queryInfo.pageNo"
+        :page-sizes="[10, 20, 30, 50]"
+        :page-size="queryInfo.pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
+      </el-pagination>
+
     </el-main>
   </el-container>
 
@@ -77,11 +99,34 @@
           'pageSize': 10
         },
         //用户信息
-        userInfo: []
+        userInfo: [],
+        //下拉选择框的数据
+        optionInfo: [
+          {
+            'label': '启用',
+            'desc': 'on'
+          },
+          {
+            'label': '禁用',
+            'desc': 'off'
+          },
+          {
+            'label': '删除',
+            'desc': 'delete'
+          }
+        ],
+        //下拉框所选择的数据
+        selected: '',
+        //被选择的表格中的行数据
+        selectedInTable: [],
+        //所有用户的条数
+        total: 0,
       }
     },
     created () {
       this.getUserInfo()
+      //获取用户总数
+      this.getUserTotal()
     },
     methods: {
       //获取用户信息
@@ -100,10 +145,110 @@
         })
       },
       //表格某一行被选中
-      handleSelectionChange(row) {
-        console.log(row)
-        // this.multipleSelection = val;
-      }
+      handleSelectionChange (val) {
+        this.selectedInTable = val
+      },
+      //功能下拉框被选择
+      selectChange (val) {
+        //表格中所选中的用户的id
+        let userIds = []
+        this.selectedInTable.map(item => {
+          userIds.push(item.id)
+        })
+        if (val === 'on') {//状态设置为正常
+          this.$http.get(this.API.handleUser + '/' + 1, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
+            if (resp.data.code === 200) {
+              //删除成功后,回调更新用户数据
+              this.getUserInfo()
+              this.$notify({
+                title: 'Tips',
+                message: '操作成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: 'Tips',
+                message: '操作失败',
+                type: 'error',
+                duration: 2000
+              })
+            }
+          })
+        } else if (val === 'off') {//禁用用户
+          this.$http.get(this.API.handleUser + '/' + 2, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
+            if (resp.data.code === 200) {
+              //删除成功后,回调更新用户数据
+              this.getUserInfo()
+              this.$notify({
+                title: 'Tips',
+                message: '操作成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: 'Tips',
+                message: '操作失败',
+                type: 'error',
+                duration: 2000
+              })
+            }
+          })
+        } else if (val === 'delete') {//删除用户
+          this.$http.get(this.API.handleUser + '/' + 3, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
+            if (resp.data.code === 200) {
+              //删除成功后,回调更新用户数据
+              this.getUserInfo()
+              this.$notify({
+                title: 'Tips',
+                message: '操作成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: 'Tips',
+                message: '操作失败',
+                type: 'error',
+                duration: 2000
+              })
+            }
+          })
+        }
+      },
+      //分页插件的页数改变
+      handleSizeChange (val) {
+        this.queryInfo.pageSize = val
+        this.getUserInfo()
+      },
+      //分页插件的页面大小
+      handleCurrentChange (val) {
+        this.queryInfo.pageNo = val
+        this.getUserInfo()
+      },
+      //查询所有用户的数据
+      getUserTotal () {
+        this.$http.get(this.API.getUserInfo, {
+          params: {
+            'loginName': '',
+            'trueName': '',
+            'pageNo': 1,
+            'pageSize': 9999
+          }
+        }).then((resp) => {
+          if (resp.data.code === 200) {
+            this.total = resp.data.data.length
+          } else {
+            this.$notify({
+              title: 'Tips',
+              message: '获取信息失败',
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      },
     }
   }
 </script>
@@ -149,7 +294,7 @@
     line-height: 32px;
   }
 
-  .el-table{
+  .el-table {
     box-shadow: 0 0 1px 1px gainsboro;
   }
 </style>

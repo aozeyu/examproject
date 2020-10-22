@@ -16,7 +16,9 @@ let API = {
     //用户退出登录
     logout: '/common/logout',
     //获取用户信息
-    getUserInfo: '/admin/getUser'
+    getUserInfo: '/admin/getUser',
+    //管理员操作用户
+    handleUser: '/admin/handleUser'
   },
 }
 
