@@ -6,7 +6,7 @@
                 prefix-icon="el-icon-search"></el-input>
       <el-input v-model="queryInfo.trueName" @blur="getUserInfo" placeholder="搜索姓名" prefix-icon="el-icon-search"
                 style="margin-left: 5px"></el-input>
-      <el-button type="primary" style="margin-left: 5px" icon="el-icon-plus">添加</el-button>
+      <el-button type="primary" style="margin-left: 5px" icon="el-icon-plus" @click="showAddDialog">添加</el-button>
     </el-header>
 
     <el-main>
@@ -72,16 +72,49 @@
 
       <!--分页-->
       <el-pagination style="margin-top: 25px"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="queryInfo.pageNo"
-        :page-sizes="[10, 20, 30, 50]"
-        :page-size="queryInfo.pageSize"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total">
+                     @size-change="handleSizeChange"
+                     @current-change="handleCurrentChange"
+                     :current-page="queryInfo.pageNo"
+                     :page-sizes="[10, 20, 30, 50]"
+                     :page-size="queryInfo.pageSize"
+                     layout="total, sizes, prev, pager, next, jumper"
+                     :total="total">
       </el-pagination>
 
     </el-main>
+
+    <el-dialog title="添加用户" :visible.sync="addTableVisible" width="30%" @close="resetAddForm"
+               center>
+
+      <el-form :model="addForm" :rules="addFormRules" ref="addForm">
+
+        <el-form-item label="用户名" label-width="120px" prop="username">
+          <el-input v-model="addForm.username"></el-input>
+        </el-form-item>
+
+        <el-form-item label="密码" label-width="120px" prop="password">
+          <el-input v-model="addForm.password" type="password" show-password></el-input>
+        </el-form-item>
+
+        <el-form-item label="角色" label-width="120px" prop="roleId">
+          <el-select v-model="addForm.roleId" placeholder="请选择用户权限">
+            <el-option label="学生" value="1"></el-option>
+            <el-option label="教师" value="2"></el-option>
+            <el-option label="超级管理员" value="3"></el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="真实姓名" label-width="120px" prop="trueName">
+          <el-input v-model="addForm.trueName"></el-input>
+        </el-form-item>
+      </el-form>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="addTableVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUser">确 定</el-button>
+      </div>
+    </el-dialog>
+
   </el-container>
 
 </template>
@@ -90,6 +123,16 @@
   export default {
     name: 'UserManage',
     data () {
+      //自定义用户名校验规则
+      var validateUsername = (rule, value, callback) => {
+        this.$http.get(this.API.checkUsername + '/' + this.addForm.username).then((resp) => {
+          if (resp.data.code === 200) {
+            callback()
+          } else {
+            callback(new Error('用户名已存在'))
+          }
+        })
+      }
       return {
         //查询用户的参数
         queryInfo: {
@@ -121,6 +164,56 @@
         selectedInTable: [],
         //所有用户的条数
         total: 0,
+        //添加用户的对话框是否显示
+        addTableVisible: false,
+        //添加用户的表单信息
+        addForm: {
+          'username': '',
+          'password': '',
+          'roleId': '',
+          'trueName': ''
+        },
+        //添加用户表单的验证规则
+        addFormRules: {
+          username: [
+            {
+              required: true,
+              message: '请输入登录用户名',
+              trigger: 'blur'
+            },
+            {
+              validator: validateUsername,
+              trigger: 'blur'
+            }
+          ],
+          password: [
+            {
+              required: true,
+              message: '请输入密码',
+              trigger: 'blur'
+            },
+            {
+              min: 5,
+              message: '密码必须5位以上',
+              trigger: 'blur'
+            }
+          ],
+          trueName: [
+            {
+              required: true,
+              message: '请输入用户真实姓名',
+              trigger: 'blur'
+            },
+          ],
+          roleId: [
+            {
+              required: true,
+              message: '请选择用户权限',
+              trigger: 'blur'
+            },
+          ],
+        },
+
       }
     },
     created () {
@@ -249,6 +342,43 @@
           }
         })
       },
+      //点击添加按钮
+      showAddDialog () {
+        this.addTableVisible = true
+      },
+      //添加用户
+      addUser () {
+        this.$refs['addForm'].validate((valid) => {
+          if (valid) {
+            this.$http.post(this.API.addUser, this.addForm).then((resp) => {
+              if (resp.data.code === 200) {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'success',
+                  duration: 2000
+                })
+                this.addTableVisible = false
+              } else {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'error',
+                  duration: 2000
+                })
+              }
+            })
+          } else {
+            this.$message.error('请检查您所填写的信息是否有误')
+            return false
+          }
+        })
+      },
+      //表单信息重置
+      resetAddForm () {
+        //清空表格数据
+        this.$refs['addForm'].resetFields()
+      }
     }
   }
 </script>

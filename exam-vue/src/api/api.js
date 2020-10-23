@@ -18,7 +18,9 @@ let API = {
     //获取用户信息
     getUserInfo: '/admin/getUser',
     //管理员操作用户
-    handleUser: '/admin/handleUser'
+    handleUser: '/admin/handleUser',
+    //管理员新增用户
+    addUser: '/admin/addUser',
   },
 }
 

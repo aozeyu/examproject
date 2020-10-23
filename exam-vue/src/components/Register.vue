@@ -69,7 +69,7 @@
       //自定义用户名校验规则
       var validateUsername = (rule, value, callback) => {
         this.$http.get(this.API.checkUsername + '/' + this.registerForm.username).then((resp) => {
-          if (resp.data.code == 200){
+          if (resp.data.code === 200){
             callback()
           }else {
             callback(new Error('用户名已存在'))
