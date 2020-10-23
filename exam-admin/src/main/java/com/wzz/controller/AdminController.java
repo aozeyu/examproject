@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wzz.Util.RedisUtil;
+import com.wzz.Util.SaltEncryption;
 import com.wzz.entity.User;
 import com.wzz.service.impl.UserServiceImpl;
 import com.wzz.vo.CommonResult;
@@ -13,8 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * @Date 2020/10/20 19:07
@@ -29,6 +35,12 @@ public class AdminController {
     @Autowired
     private UserServiceImpl userService;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
+    //jackson
+    ObjectMapper mapper = new ObjectMapper();
+
     @GetMapping("/getUser")
     @ApiOperation("获取用户信息,可分页 ----> 查询条件(可无)(username,trueName),必须有的(pageNo,pageSize)")
     public CommonResult<List<User>> getUser(@RequestParam(required = false) String loginName,
@@ -41,10 +53,9 @@ public class AdminController {
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         if (!Objects.equals(loginName, "")) wrapper.like("username", loginName);
         if (!Objects.equals(trueName, "")) wrapper.like("true_name", trueName);
-
         userPage = userService.page(userPage, wrapper);
         List<User> users = userPage.getRecords();
-        return new CommonResult<List<User>>(200, "success", users);
+        return new CommonResult<>(200, "success", users);
     }
 
     @GetMapping("/handleUser/{type}")
@@ -77,5 +88,18 @@ public class AdminController {
         }else return new CommonResult<>(233,"操作有误");
     }
 
+    @PostMapping("/addUser")
+    @ApiOperation("管理员用户新增用户")
+    public CommonResult<String> addUser(@RequestBody User user) throws NoSuchAlgorithmException {
+        log.info("执行了===>AdminController中的addUser方法");
+        //盐值
+        String salt = UUID.randomUUID().toString().substring(0, 6);
+        String newPwd = SaltEncryption.saltEncryption(user.getPassword(), salt);
+        user.setPassword(newPwd);
+        user.setSalt(salt);
+        user.setCreateDate(new Date());
+        boolean save = userService.save(user);
+        return save ? new CommonResult<>(200,"操作成功") : new CommonResult<>(233,"操作失败");
+    }
 
 }
