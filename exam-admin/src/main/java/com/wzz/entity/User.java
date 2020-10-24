@@ -27,18 +27,25 @@ public class User implements Serializable {
     @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "主键 用户id", example = "1")
     private Integer id;
+
     @ApiModelProperty(value = "用户角色id", example = "1(学生) 2(教师) 3(管理员)")
     private Integer roleId;
+
     @ApiModelProperty(value = "登录用户名", example = "wzz")
     private String username;
+
     @ApiModelProperty(value = "真实姓名", example = "wzz")
     private String trueName;
+
     @ApiModelProperty(value = "密码", example = "wzzzz")
     private String password;
+
     @ApiModelProperty(value = "加密盐值", example = "afada")
     private String salt;
+
     @ApiModelProperty(value = "用户状态",example = "1正常 2禁用")
     private Integer status;
+
     @ApiModelProperty(value = "用户创建时间",example = "2020-10-22 10:35:44")
     private Date createDate;
 }

@@ -1,12 +1,16 @@
 package com.wzz;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.RedisUtil;
 import com.wzz.entity.User;
+import com.wzz.entity.UserRole;
+import com.wzz.service.impl.UserRoleServiceImpl;
 import com.wzz.service.impl.UserServiceImpl;
+import com.wzz.vo.CommonResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,4 +52,13 @@ class ExamAdminApplicationTests {
         System.out.println(mapper.readValue(redisUtil.get("user:1").toString(),User.class));
     }
 
+    @Autowired
+    private UserRoleServiceImpl userRoleService;
+
+    @Test
+    void t2(){
+        System.out.println(redisUtil.get("userRoles"));
+        List<UserRole> userRoles = userRoleService.list(new QueryWrapper<>());
+        redisUtil.set("userRoles",userRoles);
+    }
 }
