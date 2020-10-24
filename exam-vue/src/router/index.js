@@ -32,6 +32,11 @@ const routes = [
       {
         path: '/roleManage',
         component: () => import('../components/RoleManage')
+      },
+      //题库管理
+      {
+        path: '/questionManage',
+        component: () => import('../components/QuestionManage')
       }
     ]
   }
@@ -51,9 +56,21 @@ router.beforeEach((to, from, next) => {
   //属于超级管理员的功能
   if (to.path === '/userManage' || to.path === '/roleManage') {
     axios.get('/common/checkToken').then((resp) => {
-        if (resp.data.code === 200 && resp.data.data.roleId === '3') {//当前用户携带的token信息正确并且是管理员
-          next();
-        }else return next('/index');
+      if (resp.data.code === 200 && resp.data.data.roleId === '3') {//当前用户携带的token信息正确并且是管理员
+        next()
+      } else {
+        return next('/index')
+      }
+    })
+  }
+  //属于超级管理员又属于老师
+  if (to.path === '/questionManage') {
+    axios.get('/common/checkToken').then((resp) => {
+      if (resp.data.code === 200 && resp.data.data.roleId === '3' || resp.data.data.roleId === '2') {
+        next()
+      } else {
+        return next('/index')
+      }
     })
   }
   next()

@@ -11,7 +11,7 @@
 
     <el-main>
       <!--操作的下拉框-->
-      <el-select @change="selectChange" v-if="selectedInTable.length !== 0" v-model="selected"
+      <el-select @change="selectChange" clearable v-if="selectedInTable.length !== 0" v-model="selected"
                  :placeholder="'已选择' + selectedInTable.length + '项'" style="margin-bottom: 25px;">
 
         <el-option v-for="(item,index) in optionInfo" :key="index" :value="item.desc">
@@ -246,6 +246,8 @@
       },
       //功能下拉框被选择
       selectChange (val) {
+        //清空上一次的操作
+        this.selected = ''
         //表格中所选中的用户的id
         let userIds = []
         this.selectedInTable.map(item => {
@@ -313,12 +315,12 @@
           })
         }
       },
-      //分页插件的页数改变
+      //分页插件的大小改变
       handleSizeChange (val) {
         this.queryInfo.pageSize = val
         this.getUserInfo()
       },
-      //分页插件的页面大小
+      //分页插件的页数
       handleCurrentChange (val) {
         this.queryInfo.pageNo = val
         this.getUserInfo()
@@ -355,13 +357,14 @@
           if (valid) {
             this.$http.post(this.API.addUser, this.addForm).then((resp) => {
               if (resp.data.code === 200) {
+                this.getUserTotal()
+                this.getUserInfo()
                 this.$notify({
                   title: 'Tips',
                   message: resp.data.message,
                   type: 'success',
                   duration: 2000
                 })
-                this.addTableVisible = false
               } else {
                 this.$notify({
                   title: 'Tips',
@@ -370,6 +373,7 @@
                   duration: 2000
                 })
               }
+              this.addTableVisible = false
             })
           } else {
             this.$message.error('请检查您所填写的信息是否有误')
