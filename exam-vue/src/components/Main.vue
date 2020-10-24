@@ -194,7 +194,7 @@
             //根据链接创建不存在的tag标签并高亮
             this.createHighlightTag()
           } else {//后台认证失败,跳转登录页面
-            this.$message.error('权限认证失败,获取菜单数据失败')
+            this.$message.error('权限认证失败')
             this.$router.push('/')
           }
         })

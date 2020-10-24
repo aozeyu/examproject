@@ -21,6 +21,8 @@ let API = {
     handleUser: '/admin/handleUser',
     //管理员新增用户
     addUser: '/admin/addUser',
+    //获取角色信息
+    getRoleInfo: '/admin/getRole'
   },
 }
 

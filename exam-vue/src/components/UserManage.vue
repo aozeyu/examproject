@@ -24,6 +24,7 @@
       <el-table
         ref="multipleTable"
         highlight-current-row
+        v-loading="loading"
         :border="true"
         :data="userInfo"
         tooltip-effect="dark"
@@ -213,7 +214,8 @@
             },
           ],
         },
-
+        //表格信息加载
+        loading: true
       }
     },
     created () {
@@ -227,6 +229,7 @@
         this.$http.get(this.API.getUserInfo, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
             this.userInfo = resp.data.data
+            this.loading = false
           } else {
             this.$notify({
               title: 'Tips',
