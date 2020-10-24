@@ -7,8 +7,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.RedisUtil;
 import com.wzz.Util.SaltEncryption;
+import com.wzz.entity.QuestionBank;
 import com.wzz.entity.User;
 import com.wzz.entity.UserRole;
+import com.wzz.service.impl.QuestionBankServiceImpl;
+import com.wzz.service.impl.QuestionServiceImpl;
 import com.wzz.service.impl.UserRoleServiceImpl;
 import com.wzz.service.impl.UserServiceImpl;
 import com.wzz.vo.CommonResult;
@@ -37,6 +40,12 @@ public class AdminController {
 
     @Autowired
     private UserRoleServiceImpl userRoleService;
+
+    @Autowired
+    private QuestionServiceImpl questionService;
+
+    @Autowired
+    private QuestionBankServiceImpl questionBankService;
 
     //注入自己的redis工具类
     @Autowired
@@ -109,13 +118,15 @@ public class AdminController {
     @GetMapping("/getRole")
     @ApiOperation("查询系统存在的所有角色信息")
     public CommonResult<Object> getRole() {
-        if (redisUtil.get("userRoles") != null){//redis中有缓存
+        log.info("执行了===>AdminController中的getRole方法");
+        if (redisUtil.get("userRoles") != null) {//redis中有缓存
             return new CommonResult<>(200, "success", redisUtil.get("userRoles"));
-        }else {//redis无缓存
+        } else {//redis无缓存
             List<UserRole> userRoles = userRoleService.list(new QueryWrapper<>());
-            //设置默认缓存时间(1天) + 随机缓存时间(0-5小时 )  来防止缓存雪崩和击穿
-            redisUtil.set("userRoles",userRoles,60 * 60 * 12 + new Random().nextInt(5) * 60 *60);
+            //设置默认缓存时间(10分钟) + 随机缓存时间(0-5分钟 )  来防止缓存雪崩和击穿
+            redisUtil.set("userRoles", userRoles, 60 * 10 + new Random().nextInt(5) * 60);
             return new CommonResult<>(200, "success", userRoles);
         }
     }
+
 }

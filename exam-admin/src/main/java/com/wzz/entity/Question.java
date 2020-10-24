@@ -31,10 +31,10 @@ public class Question {
     @ApiModelProperty(value = "创建时间", example = "2020-10-24 14:58")
     private Date createTime;
 
-    @ApiModelProperty(value = "创建人的id", example = "1")
-    private Integer createPerson;
+    @ApiModelProperty(value = "创建人的username", example = "wzz")
+    private String createPerson;
 
-    @ApiModelProperty(value = "问题类型", example = "选择 多选 判断  简答")
+    @ApiModelProperty(value = "问题类型", example = " 1单选 2多选 3判断 4简答")
     private Integer quType;
 
     @ApiModelProperty(value = "问题难度", example = "1")
@@ -43,8 +43,11 @@ public class Question {
     @ApiModelProperty(value = "问题相关的图片", example = "imageUrl")
     private String image;
 
-    @ApiModelProperty(value = "所属题库的id", example = "1")
-    private Integer quBank;
+    @ApiModelProperty(value = "所属题库的id", example = "1,2")
+    private String quBankId;
+
+    @ApiModelProperty(value = "所属题库的名称", example = "小学题库")
+    private String quBankName;
 
     @ApiModelProperty(value = "题目解析", example = "题目解析")
     private String analysis;

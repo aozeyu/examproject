@@ -14,8 +14,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebAppConfigurer implements WebMvcConfigurer {
 
     @Bean
-    public AdminInterceptor getAdminInterceptor() {
+    public AdminInterceptor getAdminInterceptor() {//只属于管理员
         return  new AdminInterceptor();
+    }
+
+    @Bean
+    public TeacherInterceptor getTeacherInterceptor() {//属于老师 但是管理员也可以用
+        return  new TeacherInterceptor();
     }
 
     @Override
@@ -23,6 +28,7 @@ public class WebAppConfigurer implements WebMvcConfigurer {
         // 可添加多个
         //拦截未登录进入超级管理员的界面
         registry.addInterceptor(getAdminInterceptor()).addPathPatterns("/admin/**");
+        registry.addInterceptor(getTeacherInterceptor()).addPathPatterns("/teacher/**");
     }
 
 }
