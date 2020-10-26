@@ -61,4 +61,5 @@ class ExamAdminApplicationTests {
         List<UserRole> userRoles = userRoleService.list(new QueryWrapper<>());
         redisUtil.set("userRoles",userRoles);
     }
+
 }

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wzz.Util.OSSUtil;
 import com.wzz.Util.RedisUtil;
 import com.wzz.entity.Question;
 import com.wzz.entity.QuestionBank;
@@ -20,7 +21,9 @@ import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -166,7 +169,7 @@ public class TeacherController {
             String[] curHaveId = quBankId.split(",");
             //存储处理后的id
             Set<Integer> handleId = new HashSet<>();
-            if (!quBankId.equals("")){
+            if (!quBankId.equals("")) {
                 for (String s : curHaveId) {
                     handleId.add(Integer.parseInt(s));
                 }
@@ -181,7 +184,7 @@ public class TeacherController {
             //更新当前用户的题库id值
             question.setQuBankId(handleHaveBankIds);
 
-            if (!handleHaveBankIds.equals("")){//删除后还存在剩余的题库
+            if (!handleHaveBankIds.equals("")) {//删除后还存在剩余的题库
                 //将存放处理后的set集合遍历,然后替换数据库的题库名
                 StringBuilder bankNames = new StringBuilder();
                 for (Integer id : handleId) {
@@ -189,12 +192,21 @@ public class TeacherController {
                 }
                 //替换原来的仓库名称
                 question.setQuBankName(bankNames.toString().substring(0, bankNames.toString().length() - 1));
-            }else {//不剩题库了
+            } else {//不剩题库了
                 question.setQuBankName("");
             }
             //更新问题对象
             flag = questionService.update(question, new UpdateWrapper<Question>().eq("id", question.getId()));
         }
         return flag ? new CommonResult<>(200, "移除题库成功") : new CommonResult<>(233, "移除题库失败");
+    }
+
+
+    @PostMapping("/uploadQuestionImage")
+    @ApiOperation("接受新增题目中上传的图片,返回上传图片地址")
+    public CommonResult<String> uploadQuestionImage(MultipartFile file) throws Exception {
+        System.out.println(file.getOriginalFilename());
+        String url = OSSUtil.picOSS(file);
+        return new CommonResult<>(200, "上传成功", url);
     }
 }
