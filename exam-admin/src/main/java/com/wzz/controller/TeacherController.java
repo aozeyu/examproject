@@ -7,14 +7,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.OSSUtil;
 import com.wzz.Util.RedisUtil;
+import com.wzz.entity.Answer;
 import com.wzz.entity.Question;
 import com.wzz.entity.QuestionBank;
 import com.wzz.entity.User;
-import com.wzz.service.impl.QuestionBankServiceImpl;
-import com.wzz.service.impl.QuestionServiceImpl;
-import com.wzz.service.impl.UserRoleServiceImpl;
-import com.wzz.service.impl.UserServiceImpl;
+import com.wzz.service.impl.*;
 import com.wzz.vo.CommonResult;
+import com.wzz.vo.QuestionVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.models.auth.In;
@@ -48,6 +47,9 @@ public class TeacherController {
 
     @Autowired
     private QuestionBankServiceImpl questionBankService;
+
+    @Autowired
+    private AnswerServiceImpl answerService;
 
     //注入自己的redis工具类
     @Autowired
@@ -109,6 +111,7 @@ public class TeacherController {
     @GetMapping("/addBankQuestion")
     @ApiOperation("将问题加入题库")
     public CommonResult<String> addBankQuestion(String questionIds, String banks) {
+        log.info("执行了===>TeacherController中的addBankQuestion方法");
         boolean flag = false;
         //需要操作的问题
         String[] quIds = questionIds.split(",");
@@ -156,6 +159,7 @@ public class TeacherController {
     @GetMapping("/removeBankQuestion")
     @ApiOperation("将问题从题库移除")
     public CommonResult<String> removeBankQuestion(String questionIds, String banks) {
+        log.info("执行了===>TeacherController中的removeBankQuestion方法");
         boolean flag = false;
         //需要操作的问题
         String[] quIds = questionIds.split(",");
@@ -201,12 +205,85 @@ public class TeacherController {
         return flag ? new CommonResult<>(200, "移除题库成功") : new CommonResult<>(233, "移除题库失败");
     }
 
-
     @PostMapping("/uploadQuestionImage")
-    @ApiOperation("接受新增题目中上传的图片,返回上传图片地址")
+    @ApiOperation("接受前端上传的图片,返回上传图片地址")
     public CommonResult<String> uploadQuestionImage(MultipartFile file) throws Exception {
+        log.info("执行了===>TeacherController中的uploadQuestionImage方法");
         System.out.println(file.getOriginalFilename());
         String url = OSSUtil.picOSS(file);
         return new CommonResult<>(200, "上传成功", url);
     }
+
+    @PostMapping("/addQuestion")
+    @ApiOperation("添加试题")
+    public CommonResult<String> addQuestion(@RequestBody QuestionVo questionVo) {
+        log.info("执行了===>TeacherController中的addQuestion方法");
+        //查询所有的问题,然后就可以设置当前问题的id了
+        List<Question> qus = questionService.list(new QueryWrapper<>());
+        Integer currentQuId = qus.size() + 1;
+        Question question = new Question();
+        //设置基础字段
+        question.setQuType(questionVo.getQuestionType());
+        question.setId(currentQuId);
+        question.setCreateTime(new Date());
+        question.setLevel(questionVo.getQuestionLevel());
+        question.setAnalysis(questionVo.getAnalysis());
+        question.setQuContent(questionVo.getQuestionContent());
+        question.setCreatePerson(questionVo.getCreatePerson());
+        //设置所属题库
+        String bankIds = Arrays.toString(questionVo.getBankId());
+        question.setQuBankId(bankIds.substring(1, bankIds.length() - 1).replaceAll(" ", ""));
+        //设置题目插图
+        if (questionVo.getImages().length != 0) {
+            String QuImages = Arrays.toString(questionVo.getImages());
+            question.setImage(QuImages.substring(1, QuImages.length() - 1).replaceAll(" ", ""));
+        }
+        StringBuilder bankNames = new StringBuilder();
+        for (Integer integer : questionVo.getBankId()) {
+            bankNames.append(questionBankService.getById(integer).getBankName()).append(",");
+        }
+        String names = bankNames.toString();
+        names = names.substring(0, names.length() - 1);
+        question.setQuBankName(names);
+
+        questionService.save(question);
+        //设置答案对象
+        StringBuffer multipleChoice = new StringBuffer();
+        if (questionVo.getQuestionType() != 4) {//不为简答题
+            Answer answer = new Answer();
+            answer.setQuestionId(currentQuId);
+            StringBuffer imgs = new StringBuffer();
+            StringBuffer answers = new StringBuffer();
+            for (int i = 0; i < questionVo.getAnswer().length; i++) {
+                if (questionVo.getAnswer()[i].getImages().length > 0) {//如果该选项有一张图片信息
+                    imgs.append(questionVo.getAnswer()[i].getImages()[0]).append(",");
+                }
+                answers.append(questionVo.getAnswer()[i].getAnswer()).append(",");
+                //设置对的选项的下标值
+                if (questionVo.getQuestionType() == 2) {//多选
+                    if (questionVo.getAnswer()[i].getIsTrue().equals("true")) multipleChoice.append(i).append(",");
+                } else {//单选和判断 都是仅有一个答案
+                    if (questionVo.getAnswer()[i].getIsTrue().equals("true")) {
+                        answer.setTrueOption(i + "");
+                        answer.setAnalysis(questionVo.getAnswer()[i].getAnalysis());
+                    }
+                }
+            }
+            if (questionVo.getQuestionType() == 2)
+                answer.setTrueOption(multipleChoice.toString().substring(0, multipleChoice.toString().length() - 1));
+            String handleImgs = imgs.toString();
+            String handleAnswers = answers.toString();
+            if (handleImgs.length() != 0) handleImgs = handleImgs.substring(0, handleImgs.length() - 1);
+            if (handleAnswers.length() != 0) handleAnswers = handleAnswers.substring(0, handleAnswers.length() - 1);
+
+            //设置答案的图片
+            answer.setImages(handleImgs);
+            //设置所有的选项
+            answer.setAllOption(handleAnswers);
+            answerService.save(answer);
+        }
+        return new CommonResult<>(200, "新增题目成功");
+    }
+
+
 }
