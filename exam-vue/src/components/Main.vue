@@ -289,6 +289,7 @@
       async getUserInfoByCheckToken () {
         const resp = await this.$http.get(this.API.checkToken)
         this.currentUserInfo = resp.data.data
+        localStorage.setItem('username',this.currentUserInfo.username)
       },
       //关闭tag标签
       handleClose (index) {//当前点击的tag的下标

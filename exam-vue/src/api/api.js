@@ -35,6 +35,8 @@ let API = {
     removeBankQuestion: '/teacher/removeBankQuestion',
     //填加题目中的上传图片
     uploadQuestionImage: '/teacher/uploadQuestionImage',
+    //添加题目
+    addQuestion: '/teacher/addQuestion'
   },
 }
 

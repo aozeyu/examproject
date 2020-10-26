@@ -174,7 +174,8 @@
                       :rows="2"></el-input>
           </el-form-item>
 
-          <el-button v-if="addQuForm.questionType!==4" type="primary" plain size="small" icon="el-icon-plus" style="margin-left: 40px" @click="addAnswer">
+          <el-button v-if="addQuForm.questionType!==4" type="primary" plain size="small" icon="el-icon-plus"
+                     style="margin-left: 40px" @click="addAnswer">
             添加
           </el-button>
 
@@ -191,7 +192,7 @@
 
               <el-table-column label="答案图片">
                 <template slot-scope="scope">
-                  <el-upload id="answerUpload"
+                  <el-upload id="answerUpload" :limit="1"
                              action="http://localhost:8888/teacher/uploadQuestionImage"
                              :on-preview="uploadPreview"
                              :on-remove="handleAnswerRemove"
@@ -235,7 +236,7 @@
 
       <div slot="footer" class="dialog-footer">
         <el-button @click="addQuTableVisible = false">取 消</el-button>
-        <el-button type="primary">确 定</el-button>
+        <el-button type="primary" @click="addQuestion">确 定</el-button>
       </div>
     </el-dialog>
 
@@ -392,6 +393,7 @@
           questionContent: '',
           images: [],
           analysis: '',
+          createPerson: localStorage.getItem('username'),
           //答案对象
           answer: []
         },
@@ -701,8 +703,6 @@
       },
       //答案上传照片了
       uploadAnswerImgSuccess (response, id) {
-        console.log(response)
-        console.log(id)
         this.addQuForm.answer[id].images.push(response.data)
       },
       //答案上传成功后删除
@@ -733,6 +733,62 @@
           })
         }
       },
+      //新增题目
+      addQuestion () {
+        this.$refs['addQuForm'].validate((valid) => {
+          if (valid && this.addQuForm.answer.some(item => item.isTrue) && this.addQuForm.questionType !== 4) {//单选或者多选或者判断
+            this.$http.post(this.API.addQuestion, this.addQuForm).then((resp) => {
+              if (resp.data.code === 200){
+                this.addQuTableVisible = false
+                this.getQuestionInfo()
+                this.getQuestionTotal()
+                this.$notify({
+                  title: 'Tips',
+                  message: '新增题目成功',
+                  type: 'success',
+                  duration: 2000
+                })
+              }else {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'success',
+                  duration: 2000
+                })
+              }
+            })
+          } else if (valid && !this.addQuForm.answer.some(item => item.isTrue) && this.addQuForm.questionType !== 4) {//无答案
+            this.$message.error('必须有一个答案')
+            return false
+          } else if (valid && this.addQuForm.questionType === 4) {//简答题 无标准答案直接发请求
+            //当是简答题的时候需要清除answer
+            this.addQuForm.answer = []
+            this.$http.post(this.API.addQuestion, this.addQuForm).then((resp) => {
+              if (resp.data.code === 200){
+                this.addQuTableVisible = false
+                this.getQuestionInfo()
+                this.getQuestionTotal()
+                this.$notify({
+                  title: 'Tips',
+                  message: '新增题目成功',
+                  type: 'success',
+                  duration: 2000
+                })
+              }else {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'success',
+                  duration: 2000
+                })
+              }
+            })
+          } else if (!valid) {
+            this.$message.error('请填写必要信息')
+            return false
+          }
+        })
+      }
 
     },
     computed: {
