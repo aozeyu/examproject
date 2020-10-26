@@ -31,8 +31,10 @@ let API = {
     deleteQuestion: '/teacher/deleteQuestion',
     //将题目加入进题库
     addBankQuestion: '/teacher/addBankQuestion',
-    //讲题目从题库中移除
-    removeBankQuestion: '/teacher/removeBankQuestion'
+    //将题目从题库中移除
+    removeBankQuestion: '/teacher/removeBankQuestion',
+    //填加题目中的上传图片
+    uploadQuestionImage: '/teacher/uploadQuestionImage',
   },
 }
 

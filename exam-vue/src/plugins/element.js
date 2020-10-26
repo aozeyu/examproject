@@ -2,14 +2,17 @@ import Vue from 'vue'
 import {
   Button, Container, Main, Row, Footer, Card, FormItem, Form, Input, Message, MessageBox, Aside, MenuItemGroup,
   Menu, MenuItem,Submenu,Col,Header,Tooltip,Breadcrumb,BreadcrumbItem,Dropdown,DropdownItem,DropdownMenu,Notification,
-  Tag,TableColumn,Table,Select,Option,Pagination,Dialog,Loading
+  Tag,TableColumn,Table,Select,Option,Pagination,Dialog,Loading,Upload,Checkbox,Alert
 } from 'element-ui'
 
 Vue.prototype.$message = Message
+Vue.prototype.$alert = MessageBox.alert
 Vue.prototype.$notify = Notification
 Vue.prototype.$confirm = MessageBox.confirm
 
 Vue.use(Button)
+Vue.use(Checkbox)
+Vue.use(Upload)
 Vue.use(Dialog)
 Vue.use(Loading)
 Vue.use(Pagination)
