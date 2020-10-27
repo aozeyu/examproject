@@ -36,7 +36,12 @@ let API = {
     //填加题目中的上传图片
     uploadQuestionImage: '/teacher/uploadQuestionImage',
     //添加题目
-    addQuestion: '/teacher/addQuestion'
+    addQuestion: '/teacher/addQuestion',
+    //根据题目id查询题目信息
+    getQuestionById: '/teacher/getQuestionById',
+    //根据题目id更新题目信息
+    updateQuestion: '/teacher/updateQuestion'
+
   },
 }
 

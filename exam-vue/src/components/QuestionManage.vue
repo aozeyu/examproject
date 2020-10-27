@@ -68,9 +68,10 @@
           </template>
         </el-table-column>
 
-        <el-table-column align="center"
-                         prop="quContent"
-                         label="题目内容">
+        <el-table-column align="center" label="题目内容">
+          <template slot-scope="scope">
+            <span class="quContent" @click="updateQu(scope.row.id)">{{ scope.row.quContent }}</span>
+          </template>
         </el-table-column>
 
         <el-table-column align="center"
@@ -115,6 +116,133 @@
 
     </el-main>
 
+    <el-dialog title="更新题目" :visible.sync="updateQuTableVisible" width="50%" center
+               @close="$refs['updateQuForm'].resetFields()">
+      <el-card>
+
+        <el-form :model="updateQuForm" ref="updateQuForm" :rules="updateQuFormRules">
+
+          <el-form-item label="题目类型" label-width="120px" prop="questionType">
+            <el-select v-model="updateQuForm.questionType" disabled @change="updateQuForm.answer =  []"
+                       placeholder="请选择">
+              <el-option
+                v-for="item in questionType"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="难度等级" label-width="120px" prop="questionLevel">
+            <el-select v-model="updateQuForm.questionLevel" placeholder="请选择">
+              <el-option :value="parseInt(1)" label="简单"></el-option>
+              <el-option :value="parseInt(2)" label="中等"></el-option>
+              <el-option :value="parseInt(3)" label="困难"></el-option>
+            </el-select>
+          </el-form-item>
+
+
+          <el-form-item label="归属题库" label-width="120px" prop="bankId">
+            <el-select multiple v-model="updateQuForm.bankId" placeholder="请选择">
+              <el-option v-for="item in allBank" :key="item.bankId"
+                         :label="item.bankName" :value="item.bankId"></el-option>
+            </el-select>
+          </el-form-item>
+
+
+          <el-form-item label="题目内容" label-width="120px" prop="questionContent">
+            <el-input v-model="updateQuForm.questionContent" style="margin-left: 5px" type="textarea"
+                      :rows="2"></el-input>
+          </el-form-item>
+
+          <el-form-item label="题目图片" label-width="120px">
+            <el-upload
+              action="http://localhost:8888/teacher/uploadQuestionImage"
+              :on-preview="uploadPreview"
+              :on-remove="handleUpdateRemove"
+              :headers="headers"
+              :before-upload="beforeAvatarUpload"
+              list-type="picture"
+              :on-success="updateUploadImgSuccess"
+              name="file">
+              <el-button size="small" type="primary">点击上传</el-button>
+              <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过10M</div>
+            </el-upload>
+          </el-form-item>
+
+          <el-form-item label="整题解析" label-width="120px" prop="analysis">
+            <el-input v-model="updateQuForm.analysis" style="margin-left: 5px" type="textarea"
+                      :rows="2"></el-input>
+          </el-form-item>
+
+          <el-button v-if="updateQuForm.questionType!==4" type="primary" plain size="small" icon="el-icon-plus"
+                     style="margin-left: 40px" @click="addUpdateAnswer">
+            添加
+          </el-button>
+
+          <!--存放答案表单的信息-->
+          <el-form-item prop="answer" v-if="updateQuForm.questionType !== 4">
+            <el-table :data="updateQuForm.answer" border style="width: 96%;margin-left: 40px;margin-top: 10px">
+
+              <el-table-column label="是否答案" width="80" align="center">
+                <template slot-scope="scope">
+                  <el-checkbox v-model="scope.row.isTrue" @change="checked=>checkUpdateAnswer(checked,scope.row.id)">答案
+                  </el-checkbox>
+                </template>
+              </el-table-column>
+
+              <el-table-column label="答案图片">
+                <template slot-scope="scope">
+                  <el-upload id="answerUpload" :limit="1"
+                             action="http://localhost:8888/teacher/uploadQuestionImage"
+                             :on-preview="uploadPreview"
+                             :on-remove="handleUpdateAnswerRemove"
+                             :headers="headers"
+                             :before-upload="beforeAvatarUpload"
+                             list-type="picture"
+                             :on-success="(res) => { return uploadUpdateAnswerImgSuccess(res,scope.row.id)}"
+                             name="file">
+                    <el-button size="small" type="primary">点击上传</el-button>
+                  </el-upload>
+                </template>
+
+              </el-table-column>
+
+              <el-table-column label="答案内容">
+                <template slot-scope="scope">
+                  <el-input v-model="scope.row.answer" style="margin-left: 5px" type="textarea"
+                            :rows="2"></el-input>
+                </template>
+              </el-table-column>
+
+              <el-table-column label="答案解析">
+                <template slot-scope="scope">
+                  <el-input v-model="scope.row.analysis" style="margin-left: 5px" type="textarea"
+                            :rows="2"></el-input>
+                </template>
+              </el-table-column>
+
+              <el-table-column label="操作" width="80" align="center">
+                <template slot-scope="scope">
+                  <el-button type="danger" icon="el-icon-delete" circle
+                             @click="delUpdateAnswer(scope.row.id)"></el-button>
+                </template>
+              </el-table-column>
+
+            </el-table>
+          </el-form-item>
+
+        </el-form>
+
+      </el-card>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="updateQuTableVisible = false">取 消</el-button>
+        <el-button type="primary" @click="updateQuestion">确 定</el-button>
+      </div>
+    </el-dialog>
+
     <el-dialog title="新增题目" :visible.sync="addQuTableVisible" width="50%" @close="resetAddQuForm" center>
 
       <el-card>
@@ -122,7 +250,7 @@
         <el-form :model="addQuForm" ref="addQuForm" :rules="addQuFormRules">
 
           <el-form-item label="题目类型" label-width="120px" prop="questionType">
-            <el-select v-model="addQuForm.questionType" placeholder="请选择">
+            <el-select v-model="addQuForm.questionType" @change="addQuForm.answer =  []" placeholder="请选择">
               <el-option
                 v-for="item in questionType"
                 :key="item.id"
@@ -154,7 +282,7 @@
                       :rows="2"></el-input>
           </el-form-item>
 
-          <el-form-item label="题目图片" label-width="120px">
+          <el-form-item label="题目图片" label-width="120px" prop="image">
             <el-upload
               action="http://localhost:8888/teacher/uploadQuestionImage"
               :on-preview="uploadPreview"
@@ -192,7 +320,7 @@
 
               <el-table-column label="答案图片">
                 <template slot-scope="scope">
-                  <el-upload id="answerUpload" :limit="1"
+                  <el-upload :limit="1"
                              action="http://localhost:8888/teacher/uploadQuestionImage"
                              :on-preview="uploadPreview"
                              :on-remove="handleAnswerRemove"
@@ -428,10 +556,56 @@
             }
           ],
         },
+        //更新题目表单的验证规则
+        updateQuFormRules: {
+          questionType: [
+            {
+              required: true,
+              message: '请选择问题类型',
+              trigger: 'blur'
+            }
+          ],
+          questionLevel: [
+            {
+              required: true,
+              message: '请选择问题难度',
+              trigger: 'blur'
+            }
+          ],
+          bankId: [
+            {
+              required: true,
+              message: '请选择题库',
+              trigger: 'blur'
+            }
+          ],
+          questionContent: [
+            {
+              required: true,
+              message: '请输入题库内容',
+              trigger: 'blur'
+            }
+          ],
+        },
         //图片回显的样式
         backShowImgVisible: false,
         //图片回显的图片地址
-        backShowImgUrl: ''
+        backShowImgUrl: '',
+        //更新题目的数据信息
+        updateQuForm: {
+          questionId: '',
+          questionType: 1,
+          questionLevel: 1,
+          bankId: '',
+          questionContent: '',
+          images: [],
+          analysis: '',
+          createPerson: localStorage.getItem('username'),
+          //答案对象
+          answer: []
+        },
+        //是否显示更新题目的对话框
+        updateQuTableVisible: false,
       }
     },
     created () {
@@ -665,6 +839,12 @@
           if (item === file.response.data) this.addQuForm.images.splice(index, 1)
         })
       },
+      //更新题目中的上传图片的移除
+      handleUpdateRemove (file, fileList) {
+        this.updateQuForm.images.map((item, index) => {//移除图片在表单中的数据
+          if (item === file.response.data) this.updateQuForm.images.splice(index, 1)
+        })
+      },
       //新增题目中的上传图片的格式大小限制
       beforeAvatarUpload (file) {
         const isImg = file.type === 'image/jpeg' ||
@@ -685,10 +865,24 @@
       uploadImgSuccess (response, file, fileList) {
         this.addQuForm.images.push(response.data)
       },
+      //更新题目中的上传图片成功后的钩子函数
+      updateUploadImgSuccess (response, file, fileList) {
+        this.updateQuForm.images.push(response.data)
+      },
       //新增题目中的新增答案填写框
       addAnswer () {
         this.addQuForm.answer.push({
           id: this.addQuForm.answer.length,
+          isTrue: false,
+          answer: '',
+          images: [],
+          analysis: ''
+        })
+      },
+      //更新时新增题目中的新增答案填写框
+      addUpdateAnswer () {
+        this.updateQuForm.answer.push({
+          id: this.updateQuForm.answer.length,
           isTrue: false,
           answer: '',
           images: [],
@@ -701,14 +895,30 @@
           if (item.id === id) this.addQuForm.answer.splice(index, 1)
         })
       },
+      //新增题目中的删除答案填写框
+      delUpdateAnswer (id) {//当前答案的id
+        this.updateQuForm.answer.map((item, index) => {
+          if (item.id === id) this.updateQuForm.answer.splice(index, 1)
+        })
+      },
       //答案上传照片了
       uploadAnswerImgSuccess (response, id) {
         this.addQuForm.answer[id].images.push(response.data)
+      },
+      //更新的答案上传图片了
+      uploadUpdateAnswerImgSuccess (response, id) {
+        this.updateQuForm.answer[id].images.push(response.data)
       },
       //答案上传成功后删除
       handleAnswerRemove (file) {
         this.addQuForm.answer.images.map((item, index) => {//移除图片在表单中的数据
           if (item === file.response.data) this.addQuForm.images.splice(index, 1)
+        })
+      },
+      //更新的时候答案上传成功后删除
+      handleUpdateAnswerRemove (file) {
+        this.updateQuForm.answer.images.map((item, index) => {//移除图片在表单中的数据
+          if (item === file.response.data) this.updateQuForm.images.splice(index, 1)
         })
       },
       //选择正确答案的按钮变化事件
@@ -733,12 +943,34 @@
           })
         }
       },
+      //更新时选择正确答案的按钮变化事件
+      checkUpdateAnswer (checked, id) {
+        if (checked) {
+          if (this.updateQuForm.questionType === 1 || this.updateQuForm.questionType === 3) {//单选或者判断
+            //当前已经有一个正确的选择了
+            this.updateQuForm.answer.map(item => {
+              item.isTrue = false
+            })
+            this.updateQuForm.answer.map(item => {
+              if (item.id === id) item.isTrue = true
+            })
+          } else {//多选 可以有多个答案
+            this.updateQuForm.answer.map(item => {
+              if (item.id === id) item.isTrue = true
+            })
+          }
+        } else {
+          this.updateQuForm.answer.map(item => {
+            if (item.id === id) item.isTrue = false
+          })
+        }
+      },
       //新增题目
       addQuestion () {
         this.$refs['addQuForm'].validate((valid) => {
           if (valid && this.addQuForm.answer.some(item => item.isTrue) && this.addQuForm.questionType !== 4) {//单选或者多选或者判断
             this.$http.post(this.API.addQuestion, this.addQuForm).then((resp) => {
-              if (resp.data.code === 200){
+              if (resp.data.code === 200) {
                 this.addQuTableVisible = false
                 this.getQuestionInfo()
                 this.getQuestionTotal()
@@ -748,7 +980,7 @@
                   type: 'success',
                   duration: 2000
                 })
-              }else {
+              } else {
                 this.$notify({
                   title: 'Tips',
                   message: resp.data.message,
@@ -764,7 +996,7 @@
             //当是简答题的时候需要清除answer
             this.addQuForm.answer = []
             this.$http.post(this.API.addQuestion, this.addQuForm).then((resp) => {
-              if (resp.data.code === 200){
+              if (resp.data.code === 200) {
                 this.addQuTableVisible = false
                 this.getQuestionInfo()
                 this.getQuestionTotal()
@@ -774,7 +1006,7 @@
                   type: 'success',
                   duration: 2000
                 })
-              }else {
+              } else {
                 this.$notify({
                   title: 'Tips',
                   message: resp.data.message,
@@ -788,8 +1020,96 @@
             return false
           }
         })
-      }
-
+      },
+      //更新题目
+      updateQu (id) {
+        this.$http.get(this.API.getQuestionById + '/' + id).then((resp) => {
+          if (resp.data.code === 200) {
+            this.updateQuForm = resp.data.data
+            if (this.updateQuForm.questionType !== 4) {
+              this.updateQuForm.answer.map(item => {
+                item.isTrue = item.isTrue === 'true'
+              })
+            }
+            //处理图片那个参数是个数组
+            if (this.updateQuForm.images === null) this.updateQuForm.images = []
+            this.updateQuForm.answer.map(item => {
+              if (item.images === null) {
+                item.images = []
+              }
+            })
+          } else {
+            this.$notify({
+              title: 'Tips',
+              type: 'error',
+              message: '获取信息失败'
+            })
+          }
+        })
+        this.updateQuTableVisible = true
+      },
+      //提交更新表单
+      updateQuestion () {
+        this.$refs['updateQuForm'].validate((valid) => {
+          if (valid && this.updateQuForm.questionType !== 4 && this.updateQuForm.answer.some(item => item.isTrue)) {//单选或者多选或者判断
+            //保证答案的图片只有一张
+            this.updateQuForm.answer.map(item => {
+              if (item.images.length > 1){
+                item.images.splice(0,item.images.length - 1);
+              }
+            })
+            this.$http.post(this.API.updateQuestion, this.updateQuForm).then((resp) => {
+              if (resp.data.code === 200) {
+                this.updateQuTableVisible = false
+                this.getQuestionInfo()
+                this.getQuestionTotal()
+                this.$notify({
+                  title: 'Tips',
+                  message: '更新题目成功',
+                  type: 'success',
+                  duration: 2000
+                })
+              } else {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'success',
+                  duration: 2000
+                })
+              }
+            })
+          } else if (valid && this.updateQuForm.questionType !== 4 && !this.updateQuForm.answer.some(item => item.isTrue)) {//无答案
+            this.$message.error('必须有一个答案')
+            return false
+          } else if (valid && this.updateQuForm.questionType === 4) {//简答题 无标准答案直接发请求
+            //当是简答题的时候需要清除answer
+            this.addQuForm.answer = []
+            this.$http.post(this.API.updateQuestion, this.updateQuForm).then((resp) => {
+              if (resp.data.code === 200) {
+                this.updateQuTableVisible = false
+                this.getQuestionInfo()
+                this.getQuestionTotal()
+                this.$notify({
+                  title: 'Tips',
+                  message: '更新题目成功',
+                  type: 'success',
+                  duration: 2000
+                })
+              } else {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'success',
+                  duration: 2000
+                })
+              }
+            })
+          } else if (!valid) {
+            this.$message.error('请填写必要信息')
+            return false
+          }
+        })
+      },
     },
     computed: {
       //监测头部信息的token变化
@@ -845,5 +1165,10 @@
 
   .el-table {
     box-shadow: 0 0 1px 1px gainsboro;
+  }
+
+  .quContent {
+    color: #4d99de;
+    cursor: pointer;
   }
 </style>
