@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class QuestionVo {
     private Integer questionType;
+    private Integer questionId;
     private Integer questionLevel;
     private Integer[] bankId;
     private String questionContent;

@@ -21,7 +21,7 @@ import java.util.Date;
 @ApiModel("题目实体")
 @TableName(value = "question")
 public class Question {
-    @TableId(type = IdType.AUTO)
+//    @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "主键 题目id", example = "1")
     private Integer id;
 
