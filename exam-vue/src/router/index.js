@@ -37,6 +37,11 @@ const routes = [
       {
         path: '/questionManage',
         component: () => import('../components/QuestionManage')
+      },
+      //题库管理
+      {
+        path: '/questionBankMange',
+        component: () => import('../components/QuestionBankManage')
       }
     ]
   }
@@ -64,7 +69,7 @@ router.beforeEach((to, from, next) => {
     })
   }
   //属于超级管理员又属于老师
-  if (to.path === '/questionManage') {
+  if (to.path === '/questionManage' || to.path === '/questionBankMange') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId === '3' || resp.data.data.roleId === '2') {
         next()

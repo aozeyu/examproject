@@ -40,7 +40,9 @@ let API = {
     //根据题目id查询题目信息
     getQuestionById: '/teacher/getQuestionById',
     //根据题目id更新题目信息
-    updateQuestion: '/teacher/updateQuestion'
+    updateQuestion: '/teacher/updateQuestion',
+    //查询所有题库信息和里面含有的题目类型的数量
+    getBankHaveQuestionSumByType: '/teacher/getBankHaveQuestionSumByType'
 
   },
 }

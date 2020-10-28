@@ -1025,19 +1025,23 @@
       updateQu (id) {
         this.$http.get(this.API.getQuestionById + '/' + id).then((resp) => {
           if (resp.data.code === 200) {
-            this.updateQuForm = resp.data.data
-            if (this.updateQuForm.questionType !== 4) {
-              this.updateQuForm.answer.map(item => {
+            if (resp.data.data.questionType !== 4) {
+                resp.data.data.answer.map(item => {
                 item.isTrue = item.isTrue === 'true'
               })
             }
+            this.updateQuForm = resp.data.data
             //处理图片那个参数是个数组
             if (this.updateQuForm.images === null) this.updateQuForm.images = []
-            this.updateQuForm.answer.map(item => {
-              if (item.images === null) {
-                item.images = []
-              }
-            })
+
+            if (resp.data.data.questionType !== 4){
+              this.updateQuForm.answer.map(item => {
+                if (item.images === null) {
+                  item.images = []
+                }
+              })
+            }
+
           } else {
             this.$notify({
               title: 'Tips',
@@ -1054,8 +1058,8 @@
           if (valid && this.updateQuForm.questionType !== 4 && this.updateQuForm.answer.some(item => item.isTrue)) {//单选或者多选或者判断
             //保证答案的图片只有一张
             this.updateQuForm.answer.map(item => {
-              if (item.images.length > 1){
-                item.images.splice(0,item.images.length - 1);
+              if (item.images.length > 1) {
+                item.images.splice(0, item.images.length - 1)
               }
             })
             this.$http.post(this.API.updateQuestion, this.updateQuForm).then((resp) => {
