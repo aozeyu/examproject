@@ -518,4 +518,11 @@ public class TeacherController {
         boolean flag = questionBankService.save(questionBank);
         return flag ? new CommonResult<>(200,"添加题库成功") : new CommonResult<>(200,"添加题库失败");
     }
+
+    @GetMapping("/getBankById")
+    @ApiOperation("通过题库id获取题库信息")
+    public CommonResult<QuestionBank> getBankById(Integer id){
+        return new CommonResult<>(200,"查询题库信息成功",questionBankService.getById(id));
+    }
+
 }
