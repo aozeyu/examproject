@@ -461,4 +461,61 @@ public class TeacherController {
         return new CommonResult<>(200, "查询题库和所属题目信息成功", bankHaveQuestionSums);
     }
 
+    @GetMapping("/deleteQuestionBank")
+    @ApiOperation("删除题库并去除所有题目中的包含此题库的信息")
+    public CommonResult<String> deleteQuestionBank(String ids) {
+        String[] bankId = ids.split(",");
+        for (String s : bankId) {
+            //找到题库
+            QuestionBank questionBank = questionBankService.getById(s);
+            //找到与此题库相关的所有问题信息
+            List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", questionBank.getBankName()));
+            //移除与此题库相关的信息
+            for (Question question : questions) {
+                String quBankName = question.getQuBankName();
+                String quBankId = question.getQuBankId();
+                String[] name = quBankName.split(",");
+                String[] id = quBankId.split(",");
+                //新的题库名
+                String[] newName = new String[name.length - 1];
+                //新的题库id数据
+                String[] newId = new String[id.length - 1];
+
+                for (int i = 0,j = 0; i < name.length; i++) {
+                    if (!name[i].equals(questionBank.getBankName())) {
+                        newName[j] = name[i];
+                        j++;
+                    }
+                }
+                for (int i = 0,j = 0; i < id.length; i++) {
+                    if (!id[i].equals(String.valueOf(questionBank.getBankId()))) {
+                        newId[j] = id[i];
+                        j++;
+                    }
+                }
+                String handleName = Arrays.toString(newName)
+                        .replaceAll(" ", "")
+                        .replaceAll("]", "")
+                        .replace("[", "");
+                String handleId = Arrays.toString(newId).replaceAll(" ", "")
+                        .replaceAll("]", "")
+                        .replace("[", "");
+                //设置删除题库后的新字段
+                question.setQuBankName(handleName);
+                question.setQuBankId(handleId);
+                //更新题目
+                questionService.update(question, new UpdateWrapper<Question>().eq("id", question.getId()));
+            }
+            //删除题库
+            questionBankService.removeById(Integer.parseInt(s));
+        }
+        return new CommonResult<>(200, "删除题库成功");
+    }
+
+    @PostMapping("/addQuestionBank")
+    @ApiOperation("添加题库信息")
+    public CommonResult<String> addQuestionBank(@RequestBody QuestionBank questionBank){
+        boolean flag = questionBankService.save(questionBank);
+        return flag ? new CommonResult<>(200,"添加题库成功") : new CommonResult<>(200,"添加题库失败");
+    }
 }
