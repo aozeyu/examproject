@@ -33,15 +33,20 @@ const routes = [
         path: '/roleManage',
         component: () => import('../components/RoleManage')
       },
-      //题库管理
+      //题库管理(老师和超级管理员)
       {
         path: '/questionManage',
         component: () => import('../components/QuestionManage')
       },
-      //题库管理
+      //题库管理(老师和超级管理员)
       {
         path: '/questionBankMange',
         component: () => import('../components/QuestionBankManage')
+      },
+      //我的题库(all)
+      {
+        path: '/myQuestionBank',
+        component: () => import('../components/MyQuestionBank')
       }
     ]
   }
@@ -72,6 +77,17 @@ router.beforeEach((to, from, next) => {
   if (to.path === '/questionManage' || to.path === '/questionBankMange') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId === '3' || resp.data.data.roleId === '2') {
+        next()
+      } else {
+        return next('/index')
+      }
+    })
+  }
+
+  //超级管理员 + 学生
+  if (to.path === '/myQuestionBank') {
+    axios.get('/common/checkToken').then((resp) => {
+      if (resp.data.code === 200 && resp.data.data.roleId !== '2') {
         next()
       } else {
         return next('/index')

@@ -2,26 +2,11 @@
   <el-container>
     <el-header>
       <el-input v-model="queryInfo.bankName" @blur="contentChange" placeholder="题库名称"
-                style="width: 220px"
+                style="width: 220px;margin-top: 14px;"
                 prefix-icon="el-icon-search"></el-input>
-      <br>
-      <el-button type="primary" style="margin-top: 10px" icon="el-icon-plus" @click="addTableVisible = true">添加
-      </el-button>
-
     </el-header>
 
-    <el-main style="margin-top: 20px">
-
-      <!--操作的下拉框-->
-      <el-select @change="operationChange" clearable v-if="selectedTable.length !== 0" v-model="operation"
-                 :placeholder="'已选择' + selectedTable.length + '项'" style="margin-bottom: 25px;">
-
-        <el-option value="delete">
-          <span style="float: left">删除</span>
-          <span style="float: right; color: #8492a6; font-size: 13px">delete</span>
-        </el-option>
-
-      </el-select>
+    <el-main>
 
       <el-table
         ref="questionTable"
@@ -31,11 +16,6 @@
         :data="questionBankInfo"
         tooltip-effect="dark"
         style="width: 100%;" @selection-change="handleTableSectionChange">
-
-        <el-table-column align="center"
-                         type="selection"
-                         width="55">
-        </el-table-column>
 
         <el-table-column align="center"
                          prop="questionBank.bankName"
@@ -62,6 +42,14 @@
                          label="简答题数量">
         </el-table-column>
 
+        <el-table-column align="center"
+                         label="操作">
+          <template slot-scope="scope">
+            <el-button type="primary" icon="el-icon-wind-power" size="small"
+                       @click="toTrain(scope.row.questionBank.bankId)">开始训练
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <!--分页-->
       <el-pagination style="margin-top: 25px"
@@ -74,31 +62,86 @@
                      :total="total">
       </el-pagination>
 
-      <!--添加题库信息-->
-      <el-dialog title="添加题库" :visible.sync="addTableVisible" width="30%" @close="$refs['addForm'].resetFields()"
-                 center>
-
-        <el-form :model="addForm" :rules="addFormRules" ref="addForm">
-
-          <el-form-item label="题库名称" label-width="120px" prop="bankName">
-            <el-input v-model="addForm.bankName"></el-input>
-          </el-form-item>
-
-        </el-form>
-
-        <div slot="footer" class="dialog-footer">
-          <el-button @click="addTableVisible = false">取 消</el-button>
-          <el-button type="primary" @click="addQuestionBank">确 定</el-button>
-        </div>
-      </el-dialog>
-
     </el-main>
+
+
+    <el-dialog title="开始训练" :visible.sync="trainVisible" center>
+      <h1>题库简介</h1>
+      <el-card style="height: 60px;position: relative">
+        <span style="position: absolute;font-size: 16px;font-weight: 400;top: 20px;">{{ questionBankInfo[currentBankId].questionBank.bankName }}</span>
+      </el-card>
+
+      <h1>练习模式</h1>
+      <el-card>
+
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+          <div class="img-btn">
+            <img src="../assets/imgs/order.png">
+            <div>
+              顺序练习
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+          <div class="img-btn">
+            <img src="../assets/imgs/random.png">
+            <div>
+              随机训练
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+          <div class="img-btn">
+            <img src="../assets/imgs/memory.png">
+            <div>
+              背题模式
+            </div>
+          </div>
+        </div>
+
+      </el-card>
+
+      <h1>题型训练</h1>
+      <el-card>
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+          <div class="img-btn">
+            <img src="../assets/imgs/single.png">
+            <div>
+              单选题({{ questionBankInfo[currentBankIndex].singleChoice }}题)
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+          <div class="img-btn">
+            <img src="../assets/imgs/multiple.png">
+            <div>
+              多选题({{ questionBankInfo[currentBankIndex].multipleChoice }}题)
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+          <div class="img-btn">
+            <img src="../assets/imgs/judge.png">
+            <div>
+              判断题({{ questionBankInfo[currentBankIndex].judge }}题)
+            </div>
+          </div>
+        </div>
+
+      </el-card>
+
+    </el-dialog>
+
   </el-container>
 </template>
 
 <script>
   export default {
-    name: 'QuestionBankManage',
+    name: 'MyQuestionBank',
     data () {
       return {
         queryInfo: {
@@ -109,7 +152,11 @@
         //被选中的表格的信息
         selectedTable: [],
         //所有题库信息
-        questionBankInfo: [],
+        questionBankInfo: [
+          {
+            questionBank: {}
+          }
+        ],
         //当前被选中的操作
         operation: '',
         loading: true,
@@ -131,7 +178,12 @@
             },
           ]
         },
-
+        //开始训练的模式选择的对话框
+        trainVisible: false,
+        //当前被点击训练的题库id
+        currentBankId: 0,
+        //当前被点击训练的题库在当前页面中数据的索引下标值
+        currentBankIndex: 0
       }
     },
     created () {
@@ -235,36 +287,16 @@
           }
         })
       },
-      //添加题库
-      addQuestionBank () {
-        this.$refs['addForm'].validate((valid) => {
-          if (valid) {
-            this.$http.post(this.API.addQuestionBank, this.addForm).then((resp) => {
-              if (resp.data.code === 200) {
-                this.getBankInfo()
-                this.getBankTotal()
-                this.$notify({
-                  title: 'Tips',
-                  message: resp.data.message,
-                  type: 'success',
-                  duration: 2000
-                })
-              } else {
-                this.$notify({
-                  title: 'Tips',
-                  message: resp.data.message,
-                  type: 'error',
-                  duration: 2000
-                })
-              }
-              this.addTableVisible = false
-            })
-          } else {
-            this.$message.error('请检查您所填写的信息是否有误')
-            return false
-          }
+      //跳转到训练页面
+      toTrain (bankId) {
+        this.trainVisible = true
+        this.currentBankId = bankId
+        //找到数据对应的索引
+        this.questionBankInfo.map((item, index) => {
+          if (item.questionBank.bankId === bankId) this.currentBankIndex = index
         })
-      },
+
+      }
     }
   }
 </script>
@@ -313,4 +345,46 @@
   .el-table {
     box-shadow: 0 0 1px 1px gainsboro;
   }
+
+  h1 {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .btn-item {
+    border: 1px solid rgb(239, 239, 239);
+    margin-bottom: 10px;
+    margin-left: 35px;
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  .btn-item:hover {
+    background-color: rgb(239, 239, 239);
+  }
+
+  .btn-item:first-child {
+    margin-left: 18px;
+  }
+
+  .img-btn {
+    position: relative;
+    margin-left: 20%;
+
+    img {
+      width: 40px;
+      height: 40px;
+      display: inline-block;
+    }
+
+    div {
+      display: inline-block;
+      position: absolute;
+      top: 6px;
+      margin-left: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  }
 </style>
+

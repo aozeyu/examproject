@@ -331,6 +331,8 @@
           if (item.name === curMenuName) curMenu = item
           item.highlight = item.name === curMenuName
         })
+        //调用改变面包屑的方法
+        this.changeTopBreakInfo(curMenu.name)
         this.$router.push(curMenu.url)
       },
       //创建当前高亮的tags
@@ -355,6 +357,19 @@
             if (item.url === window.location.hash.substring(1)) this.changeHighlightTag(item.name)
           })
         }
+      },
+      //改变头部的面包屑信息
+      changeTopBreakInfo (subMenuName) {
+        let topMenuName
+        this.menuInfo.map(item => {
+          if (item.submenu !== undefined) {
+            item.submenu.map(i2 => {
+              if (i2.name === subMenuName) topMenuName = item.topMenuName
+            })
+          }
+        })
+        this.breadInfo.top = topMenuName
+        this.breadInfo.sub = subMenuName
       }
     }
   }
