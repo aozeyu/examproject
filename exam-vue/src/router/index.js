@@ -47,6 +47,12 @@ const routes = [
       {
         path: '/myQuestionBank',
         component: () => import('../components/MyQuestionBank')
+      },
+      //题库训练页
+      {
+        path: '/train/:bankId/:trainType',
+        name: 'trainPage',
+        component: () => import('../components/TrainPage')
       }
     ]
   }
@@ -85,7 +91,7 @@ router.beforeEach((to, from, next) => {
   }
 
   //超级管理员 + 学生
-  if (to.path === '/myQuestionBank') {
+  if (to.path === '/myQuestionBank' || to.name === 'trainPage') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId !== '2') {
         next()

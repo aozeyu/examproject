@@ -46,7 +46,9 @@ let API = {
     //删除题库及去除所有包含题库信息的题目
     deleteQuestionBank: '/teacher/deleteQuestionBank',
     //添加题库信息
-    addQuestionBank: '/teacher/addQuestionBank'
+    addQuestionBank: '/teacher/addQuestionBank',
+    //根据题库id查询题库信息
+    getBankById: '/teacher/getBankById'
 
   },
 }

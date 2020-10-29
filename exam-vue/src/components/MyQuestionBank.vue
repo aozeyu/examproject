@@ -46,7 +46,7 @@
                          label="操作">
           <template slot-scope="scope">
             <el-button type="primary" icon="el-icon-wind-power" size="small"
-                       @click="toTrain(scope.row.questionBank.bankId)">开始训练
+                       @click="showTrainDialog(scope.row.questionBank.bankId)">开始训练
             </el-button>
           </template>
         </el-table-column>
@@ -68,13 +68,13 @@
     <el-dialog title="开始训练" :visible.sync="trainVisible" center>
       <h1>题库简介</h1>
       <el-card style="height: 60px;position: relative">
-        <span style="position: absolute;font-size: 16px;font-weight: 400;top: 20px;">{{ questionBankInfo[currentBankId].questionBank.bankName }}</span>
+        <span style="position: absolute;font-size: 16px;font-weight: 400;top: 20px;">{{ questionBankInfo[currentBankIndex].questionBank.bankName }}</span>
       </el-card>
 
       <h1>练习模式</h1>
       <el-card>
 
-        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;" @click="toTrainPage(1)">
           <div class="img-btn">
             <img src="../assets/imgs/order.png">
             <div>
@@ -287,15 +287,23 @@
           }
         })
       },
-      //跳转到训练页面
-      toTrain (bankId) {
+      //显示练习对话框
+      showTrainDialog (bankId) {
         this.trainVisible = true
         this.currentBankId = bankId
         //找到数据对应的索引
         this.questionBankInfo.map((item, index) => {
           if (item.questionBank.bankId === bankId) this.currentBankIndex = index
         })
-
+      },
+      //跳转练习页面
+      toTrainPage (trainType) {//trainType (1顺序,2随机,3背题,4单选,5多选,6判断)
+        switch (trainType) {
+          case 1: {
+            this.$router.push('/train/'+ this.currentBankId + '/' + trainType)
+            break;
+          }
+        }
       }
     }
   }

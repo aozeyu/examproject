@@ -98,7 +98,8 @@
         </el-header>
 
         <el-main style="margin-top: 25px;">
-          <router-view></router-view>
+          <router-view @giveChildChangeBreakInfo="giveChildChangeBreakInfo"
+                       @giveChildAddTag="giveChildAddTag" :tagInfo="tags" @updateTagInfo="updateTagInfo"></router-view>
         </el-main>
 
       </el-container>
@@ -370,6 +371,36 @@
         })
         this.breadInfo.top = topMenuName
         this.breadInfo.sub = subMenuName
+      },
+      //提供给子组件改变面包屑最后的信息
+      giveChildChangeBreakInfo (subMenuName,topMenuName) {
+        this.breadInfo.sub = subMenuName
+        this.breadInfo.top = topMenuName
+      },
+      //提供给子组件创建tag标签使用
+      giveChildAddTag (menuName, url) {
+        this.tags.map(item => {
+          item.highlight = false
+        })
+        this.tags.push({
+          'name': menuName,
+          'url': url,
+          'highlight': true
+        })
+      },
+      //提供给子组件修改tag标签使用
+      updateTagInfo (menuName, url) {
+        this.tags.map((item, index) => {
+          item.highlight = false
+          if (item.name === menuName) {
+            this.tags.splice(index, 1)
+          }
+        })
+        this.tags.push({
+          'name': menuName,
+          'url': url,
+          'highlight': true
+        })
       }
     }
   }
