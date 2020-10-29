@@ -42,7 +42,11 @@ let API = {
     //根据题目id更新题目信息
     updateQuestion: '/teacher/updateQuestion',
     //查询所有题库信息和里面含有的题目类型的数量
-    getBankHaveQuestionSumByType: '/teacher/getBankHaveQuestionSumByType'
+    getBankHaveQuestionSumByType: '/teacher/getBankHaveQuestionSumByType',
+    //删除题库及去除所有包含题库信息的题目
+    deleteQuestionBank: '/teacher/deleteQuestionBank',
+    //添加题库信息
+    addQuestionBank: '/teacher/addQuestionBank'
 
   },
 }

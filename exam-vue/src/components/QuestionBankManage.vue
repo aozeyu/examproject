@@ -2,11 +2,16 @@
   <el-container>
     <el-header>
       <el-input v-model="queryInfo.bankName" @blur="contentChange" placeholder="题库内容"
-                style="margin-left: 5px;width: 220px"
+                style="width: 220px"
                 prefix-icon="el-icon-search"></el-input>
+      <br>
+      <el-button type="primary" style="margin-top: 10px" icon="el-icon-plus" @click="addTableVisible = true">添加
+      </el-button>
+
     </el-header>
 
-    <el-main>
+    <el-main style="margin-top: 20px">
+
       <!--操作的下拉框-->
       <el-select @change="operationChange" clearable v-if="selectedTable.length !== 0" v-model="operation"
                  :placeholder="'已选择' + selectedTable.length + '项'" style="margin-bottom: 25px;">
@@ -38,7 +43,7 @@
         </el-table-column>
 
         <el-table-column align="center"
-                         prop="questionBank.bankName"
+                         prop="singleChoice"
                          label="单选题数量">
         </el-table-column>
 
@@ -68,6 +73,25 @@
                      layout="total, sizes, prev, pager, next, jumper"
                      :total="total">
       </el-pagination>
+
+      <!--添加题库信息-->
+      <el-dialog title="添加题库" :visible.sync="addTableVisible" width="30%" @close="$refs['addForm'].resetFields()"
+                 center>
+
+        <el-form :model="addForm" :rules="addFormRules" ref="addForm">
+
+          <el-form-item label="题库名称" label-width="120px" prop="bankName">
+            <el-input v-model="addForm.bankName"></el-input>
+          </el-form-item>
+
+        </el-form>
+
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="addTableVisible = false">取 消</el-button>
+          <el-button type="primary" @click="addQuestionBank">确 定</el-button>
+        </div>
+      </el-dialog>
+
     </el-main>
   </el-container>
 </template>
@@ -91,6 +115,23 @@
         loading: true,
         //所有的题库条数
         total: 0,
+        //添加题库的对话框
+        addTableVisible: false,
+        //添加题库的表单信息
+        addForm: {
+          bankName: ''
+        },
+        //添加表单的数据校验规则
+        addFormRules: {
+          bankName: [
+            {
+              required: true,
+              message: '请输入题库名称',
+              trigger: 'blur'
+            },
+          ]
+        },
+
       }
     },
     created () {
@@ -121,7 +162,43 @@
       },
       //操作选项的被触发
       operationChange (val) {
-        console.log(val)
+        if (val === 'delete') {
+          this.$confirm('此操作将永久删除该题库, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            let ids = []
+            this.selectedTable.map(item => {
+              ids.push(item.questionBank.bankId)
+            })
+            //发起删除请求
+            this.$http.get(this.API.deleteQuestionBank, { params: { 'ids': ids.join(',') } }).then((resp) => {
+              if (resp.data.code === 200) {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'success',
+                  duration: 2000
+                })
+                this.getBankInfo()
+                this.getBankTotal()
+              } else {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'error',
+                  duration: 2000
+                })
+              }
+            })
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消删除'
+            })
+          })
+        }
       },
       //表格部分行被选中
       handleTableSectionChange (row) {
@@ -146,9 +223,9 @@
             'bankname': ''
           }
         }).then((resp) => {
-          if (resp.data.code === 200){
+          if (resp.data.code === 200) {
             this.total = resp.data.data.length
-          }else {
+          } else {
             this.$notify({
               title: 'Tips',
               message: resp.data.message,
@@ -158,10 +235,82 @@
           }
         })
       },
+      //添加题库
+      addQuestionBank () {
+        this.$refs['addForm'].validate((valid) => {
+          if (valid) {
+            this.$http.post(this.API.addQuestionBank, this.addForm).then((resp) => {
+              if (resp.data.code === 200) {
+                this.getBankInfo()
+                this.getBankTotal()
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'success',
+                  duration: 2000
+                })
+              } else {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'error',
+                  duration: 2000
+                })
+              }
+              this.addTableVisible = false
+            })
+          } else {
+            this.$message.error('请检查您所填写的信息是否有误')
+            return false
+          }
+        })
+      },
     }
   }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+  .el-container {
+    width: 100%;
+    height: 100%;
+  }
 
+  .el-input {
+    width: 200px;
+  }
+
+  .el-container {
+    animation: leftMoveIn .7s ease-in;
+  }
+
+  @keyframes leftMoveIn {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0%);
+      opacity: 1;
+    }
+  }
+
+  .role {
+    color: #606266;
+  }
+
+  /deep/ .el-table thead {
+    color: rgb(85, 85, 85) !important;
+  }
+
+  /*表格的头部样式*/
+  /deep/ .has-gutter tr th {
+    background: rgb(242, 243, 244);
+    color: rgb(85, 85, 85);
+    font-weight: bold;
+    line-height: 32px;
+  }
+
+  .el-table {
+    box-shadow: 0 0 1px 1px gainsboro;
+  }
 </style>
