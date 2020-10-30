@@ -48,7 +48,9 @@ let API = {
     //添加题库信息
     addQuestionBank: '/teacher/addQuestionBank',
     //根据题库id查询题库信息
-    getBankById: '/teacher/getBankById'
+    getBankById: '/teacher/getBankById',
+    //根据题库id查询题库中所有单选 多选 判断题
+    getQuestionByBank: '/teacher/getQuestionByBank'
 
   },
 }

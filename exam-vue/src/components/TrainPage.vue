@@ -1,8 +1,86 @@
 <template>
-  <div>
-    {{ $route.params }}
-    {{tagInfo}}
-  </div>
+  <el-container v-loading="loading">
+    <el-main>
+      <el-row>
+        <el-card style="padding: 15px">
+          <!--题目信息-->
+          <div>
+            <span v-if="currentBankQuestion[curIndex].questionType === 1">【单选题】</span>
+            <span v-else-if="currentBankQuestion[curIndex].questionType === 2">【多选题】</span>
+            <span v-else>【判断题】</span>
+            {{ curIndex+1 + '/' + currentBankQuestion.length + '、' }}
+            <span>{{ currentBankQuestion[curIndex].questionContent}}:</span>
+          </div>
+
+          <!--题目中的配图-->
+          <img v-for="url in currentBankQuestion[curIndex].images" :src="url" title="点击查看大图" alt="题目图片"
+               style="width: 200px;height: 200px;cursor: pointer" @click="showBigImg(url)">
+
+          <!--单选的答案列表-->
+          <div style="margin-top: 25px" v-show="currentBankQuestion[curIndex].questionType === 1">
+            <div class="el-radio-group">
+              <label v-for="(item,index) in currentBankQuestion[curIndex].answer"
+                     @click="checkSingleAnswer(index)"
+                     :class="index === userAnswer[curIndex] ? 'active' : ''">
+                <span>{{ optionName[index] + '、' + item.answer}}</span>
+                <img style="position: absolute;left:100%;top:50%;transform: translateY(-50%);
+                  width: 40px;height: 40px;float: right;cursor: pointer;" title="点击查看大图"
+                     v-if="item.images !== null"
+                     v-for="i2 in item.images" :src="i2" alt="" @mouseover="showBigImg(i2)">
+              </label>
+            </div>
+          </div>
+
+          <div v-if="currentBankQuestion[curIndex].questionType === 1 && userAnswer[curIndex] && (userAnswer[curIndex]+'') !== trueAnswer[curIndex]">
+            <span style="color: #1f90ff" v-text="'正确答案：' + optionName[trueAnswerIndex]"></span>
+          </div>
+
+          <div style="margin-top: 25px">
+            <el-button type="primary" :disabled="curIndex<1" @click="curIndex--">上一题</el-button>
+            <el-button type="primary" :disabled="curIndex>=currentBankQuestion.length-1" @click="curIndex++">下一题
+            </el-button>
+            <el-button style="float: right" @click="showAnswerCard = !showAnswerCard">{{ showAnswerCard ? '隐藏答题卡' :
+              '显示答题卡' }}
+            </el-button>
+          </div>
+
+
+        </el-card>
+      </el-row>
+
+      <el-row>
+        <el-card style="position:relative;height: 60px;margin-top: 25px;">
+          <span
+            style="position: absolute;color: #32cd32;font-size: 16px;left: 10%;top: 50%;transform: translateY(-50%)">
+            答对: {{ trueSum }}题
+          </span>
+          <span
+            style="position: absolute;color: #ff0000;font-size: 16px;left: 40%;top: 50%;transform: translateY(-50%)">
+            答错: {{ wrongSum }}题
+          </span>
+          <span
+            style="position: absolute;font-size: 16px;left: 60%;top: 50%;transform: translateY(-50%)">
+            正确率:{{(trueSum+wrongSum) !== 0 ? ((trueSum / (wrongSum+trueSum)) * 100).toFixed(0) + '%' : '0%' }}
+          </span>
+        </el-card>
+      </el-row>
+
+      <el-row v-show="showAnswerCard">
+        <el-card>
+          <el-button style="margin-top: 10px;" :class="userAnswer[item-1] !== undefined && (userAnswer[item-1]+'') === trueAnswer[item-1]
+          ? 'true': userAnswer[item-1] === undefined ? '' : 'wrong'"
+                     v-for="item in currentBankQuestion.length" :key="item" @click="curIndex = item-1">{{ item }}
+          </el-button>
+        </el-card>
+      </el-row>
+
+    </el-main>
+
+    <!--图片回显-->
+    <el-dialog :visible.sync="bigImgDialog" @close="bigImgDialog = false">
+      <img style="width: 100%" :src="bigImgUrl">
+    </el-dialog>
+  </el-container>
 </template>
 
 <script>
@@ -13,13 +91,41 @@
         //当前题库id
         bankId: this.$route.params.bankId,
         //当前训练类型(1顺序,2随机,3背题,4单选,5多选,6判断)
-        trainType: this.$route.params.trainType
+        trainType: this.$route.params.trainType,
+        //当前题库的所有题目信息
+        currentBankQuestion: [
+          {
+            questionType: ''
+          }
+        ],
+        //当前题目的索引值
+        curIndex: 0,
+        //控制大图的对话框
+        bigImgDialog: false,
+        //当前要展示的大图的url
+        bigImgUrl: '',
+        //页面加载题库数据
+        loading: true,
+        //答案的选项名abcd数据
+        optionName: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+        //单选的答案确定,
+        singleAnswer: '',
+        //用户选择的答案
+        userAnswer: [],
+        //正确答案
+        trueAnswer: [],
+        //是否显示答题卡
+        showAnswerCard: false,
+        //用户答对几题
+        trueSum: 0,
+        //用户答错几题
+        wrongSum: 0
       }
     },
     props: ['tagInfo'],
     created () {
       //一创建就改变头部的面包屑
-      this.$emit('giveChildChangeBreakInfo', '开始训练','在线考试')
+      this.$emit('giveChildChangeBreakInfo', '开始训练', '在线考试')
       this.createTagsInParent()
       this.getQuestionInfo()
     },
@@ -44,17 +150,128 @@
       getQuestionInfo () {
         switch (parseInt(this.$route.params.trainType)) {
           case 1: {//顺序生成题目
+            this.$http.get(this.API.getQuestionByBank, { params: this.bankId }).then((resp) => {
+              if (resp.data.code === 200) {
+                this.currentBankQuestion = resp.data.data
+                this.loading = false
+                //获取正确答案
+                this.getTrueAnswer()
+                console.log(resp.data.data)
+              }
+            })
             break
           }
-          case 2:{
+          case 2: {
             break
           }
         }
+      },
+      //点击展示高清大图
+      showBigImg (url) {
+        this.bigImgUrl = url
+        this.bigImgDialog = true
+      },
+      //检验单选题的用户选择的答案
+      checkSingleAnswer (index) {
+        if (this.userAnswer[this.curIndex] === undefined && (index+'') === this.trueAnswer[this.curIndex]) {//答题并且是对的
+          this.userAnswer[this.curIndex] = index
+          this.trueSum++
+          if (this.curIndex < this.trueAnswer.length -1) this.curIndex++
+        } else if (this.userAnswer[this.curIndex] === undefined && (index+'') !== this.trueAnswer[this.curIndex]) {//答题是错误的答案
+          this.userAnswer[this.curIndex] = index
+          this.wrongSum++
+        }
+      },
+      //当前题库的正确答案的数据
+      getTrueAnswer () {
+        let x = []
+        this.currentBankQuestion.forEach((item,index) => {
+          x = []
+          item.answer.map((i2,index2) => {
+            if (i2.isTrue === 'true') x.push(index2)
+          })
+          //放入正确答案中
+          this.trueAnswer[index] = x.join(',')
+        })
+      }
+    },
+    computed: {
+      //题目正确的下标
+      trueAnswerIndex () {
+        let answer = []
+        this.currentBankQuestion[this.curIndex].answer.forEach((item, index) => {
+          if (item.isTrue === 'true') answer.push(index)
+        })
+        return answer.join(',')
       },
     }
   }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+  .el-container {
+    width: 100%;
+    height: 100%;
+  }
 
+  .el-container {
+    animation: leftMoveIn .7s ease-in;
+  }
+
+  @keyframes leftMoveIn {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0%);
+      opacity: 1;
+    }
+  }
+
+  .el-row {
+    width: 100%;
+  }
+
+  span {
+    font-weight: 400;
+    font-size: 18px;
+  }
+
+  .el-radio-group label {
+    display: block;
+    width: 400px;
+    padding: 48px 20px 10px 20px;
+    border-radius: 4px;
+    border: 1px solid #dcdfe6;
+    margin-bottom: 10px;
+    cursor: pointer;
+    position: relative;
+
+    span {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+    }
+  }
+
+  .el-radio-group label:hover {
+    background-color: rgb(245, 247, 250);
+  }
+
+  /*当前选中的答案*/
+  .active {
+    border: 1px solid #1f90ff !important;
+    opacity: .5;
+  }
+
+  /*答题卡的正确的颜色*/
+  .true {
+    background-color: rgb(19, 206, 102);;
+  }
+
+  .wrong {
+    background-color: rgb(255, 73, 73);
+  }
 </style>
