@@ -6,11 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.RedisUtil;
-import com.wzz.entity.User;
-import com.wzz.entity.UserRole;
-import com.wzz.service.impl.UserRoleServiceImpl;
-import com.wzz.service.impl.UserServiceImpl;
+import com.wzz.entity.*;
+import com.wzz.service.impl.*;
 import com.wzz.vo.CommonResult;
+import com.wzz.vo.QuestionVo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,6 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -26,6 +27,15 @@ class ExamAdminApplicationTests {
 
     @Autowired
     private UserServiceImpl userService;
+
+    @Autowired
+    private QuestionServiceImpl questionService;
+
+    @Autowired
+    private QuestionBankServiceImpl questionBankService;
+
+    @Autowired
+    private AnswerServiceImpl answerService;
 
     @Test
     void contextLoads() {
@@ -60,6 +70,54 @@ class ExamAdminApplicationTests {
         System.out.println(redisUtil.get("userRoles"));
         List<UserRole> userRoles = userRoleService.list(new QueryWrapper<>());
         redisUtil.set("userRoles",userRoles);
+    }
+
+    @Test
+    void t3(){
+        QuestionBank bank = questionBankService.getById(1);
+        //在题库中的(单选,多选,判断题)题目
+        List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", bank.getBankName()).in("qu_type", "1,2,3"));
+        //构造前端需要的vo对象
+        List<QuestionVo> questionVos = new ArrayList<>();
+        for (Question question : questions) {
+            QuestionVo questionVo = new QuestionVo();
+
+            questionVo.setQuestionId(question.getId());
+            questionVo.setQuestionLevel(question.getLevel());
+            if (question.getImage() != null && !question.getImage().equals("")) //防止没有图片对象
+                questionVo.setImages(question.getImage().split(","));
+            questionVo.setCreatePerson(question.getCreatePerson());
+            questionVo.setAnalysis(question.getAnalysis());
+            questionVo.setQuestionContent(question.getQuContent());
+            questionVo.setQuestionType(question.getQuType());
+
+            Answer answer = answerService.getOne(new QueryWrapper<Answer>().eq("question_id", question.getId()));
+            //选项个数
+            String[] options = answer.getAllOption().split(",");
+            //构造答案对象
+            QuestionVo.Answer[] handleAnswer = new QuestionVo.Answer[options.length];
+            //字段处理
+            for (int i = 0; i < options.length; i++) {
+                QuestionVo.Answer answer1 = new QuestionVo.Answer();
+                answer1.setAnswer(options[i]);
+                answer1.setId(i);
+                handleAnswer[i] = answer1;
+            }
+            if (question.getQuType() != 2) {//单选和判断
+                int trueOption = Integer.parseInt(answer.getTrueOption());
+                handleAnswer[trueOption].setIsTrue("true");
+                handleAnswer[trueOption].setAnalysis(answer.getAnalysis());
+            } else {//多选
+                String[] trueOptions = answer.getTrueOption().split(",");
+                for (String trueOption : trueOptions) {
+                    handleAnswer[Integer.parseInt(trueOption)].setIsTrue("true");
+                    handleAnswer[Integer.parseInt(trueOption)].setAnalysis(answer.getAnalysis());
+                }
+            }
+            questionVo.setAnswer(handleAnswer);
+            questionVos.add(questionVo);
+        }
+        System.out.println(questionVos);
     }
 
 }
