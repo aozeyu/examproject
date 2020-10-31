@@ -74,7 +74,7 @@
       <h1>练习模式</h1>
       <el-card>
 
-        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;" @click="toTrainPage(1)">
+        <div class="btn-item el-col el-col-10" style="padding-left: 10px; padding-right: 10px;" @click="toTrainPage(1)">
           <div class="img-btn">
             <img src="../assets/imgs/order.png">
             <div>
@@ -83,7 +83,7 @@
           </div>
         </div>
 
-        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+        <div class="btn-item el-col el-col-10" style="padding-left: 10px; padding-right: 10px;" @click="toTrainPage(2)">
           <div class="img-btn">
             <img src="../assets/imgs/random.png">
             <div>
@@ -92,20 +92,11 @@
           </div>
         </div>
 
-        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
-          <div class="img-btn">
-            <img src="../assets/imgs/memory.png">
-            <div>
-              背题模式
-            </div>
-          </div>
-        </div>
-
       </el-card>
 
       <h1>题型训练</h1>
       <el-card>
-        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+        <div class="btn-item el-col el-col-7" style="margin-left: 18px;padding-left: 10px; padding-right: 10px;">
           <div class="img-btn">
             <img src="../assets/imgs/single.png">
             <div>
@@ -297,12 +288,24 @@
         })
       },
       //跳转练习页面
-      toTrainPage (trainType) {//trainType (1顺序,2随机,3背题,4单选,5多选,6判断)
-        switch (trainType) {
-          case 1: {
-            this.$router.push('/train/'+ this.currentBankId + '/' + trainType)
-            break;
+      toTrainPage (trainType) {//trainType (1顺序,2随机,3单选,4多选,5判断)
+        let bankInfo = this.questionBankInfo[this.currentBankIndex]
+        if (bankInfo.multipleChoice > 0 || bankInfo.judge > 0 || bankInfo.singleChoice > 0) {//当前题库有题目
+          switch (trainType) {
+            case 1: {
+              this.$router.push('/train/' + this.currentBankId + '/' + 1)
+              break
+            }
+            case 2: {
+              this.$router.push('/train/' + this.currentBankId + '/' + 2)
+              break
+            }
+            case 3:{
+
+            }
           }
+        } else {
+          this.$message.warning('当前题库暂无题目,o(╥﹏╥)o')
         }
       }
     }
@@ -372,7 +375,7 @@
   }
 
   .btn-item:first-child {
-    margin-left: 18px;
+    margin-left: 55px;
   }
 
   .img-btn {
