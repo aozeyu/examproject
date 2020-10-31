@@ -531,7 +531,7 @@ public class TeacherController {
         if (redisUtil.get("questionBankQuestion:" + bankId) != null) {//查询缓存
             return new CommonResult<>(200, "当前题库题目查询成功", redisUtil.get("questionBankQuestion:" + bankId));
         } else {
-            QuestionBank bank = questionBankService.getById(1);
+            QuestionBank bank = questionBankService.getById(bankId);
             //在题库中的(单选,多选,判断题)题目
             List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", bank.getBankName()).in("qu_type", 1,2,3));
             //构造前端需要的vo对象
@@ -581,5 +581,16 @@ public class TeacherController {
 //            redisUtil.set("questionBankQuestion:" + bankId, questionVos, 60 * 5 + new Random().nextInt(2));
             return new CommonResult<>(200, "当前题库题目查询成功", questionVos);
         }
+    }
+
+    @GetMapping("/getQuestionByBankIdAndType")
+    @ApiOperation("根据题库id和题目类型获取题目信息 type(1单选 2多选 3判断)")
+    public CommonResult<List<QuestionVo>> getQuestionByBankIdAndType(Integer bankId,Integer type){
+        //调用根据题库查询所有题目信息的方法
+        CommonResult<Object> questionByBank = getQuestionByBank(bankId);
+        List<QuestionVo> questionVos = (List<QuestionVo>)questionByBank.getData();
+        //根据题目类型筛选题目
+        questionVos.removeIf(questionVo -> !Objects.equals(questionVo.getQuestionType(), type));
+        return new CommonResult<>(200,"根据题目类型查询成功",questionVos);
     }
 }
