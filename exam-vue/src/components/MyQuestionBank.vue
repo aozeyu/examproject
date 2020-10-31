@@ -56,7 +56,7 @@
                      @size-change="handleSizeChange"
                      @current-change="handleCurrentChange"
                      :current-page="queryInfo.pageNo"
-                     :page-sizes="[10, 2, 30, 50]"
+                     :page-sizes="[10, 20, 30, 50]"
                      :page-size="queryInfo.pageSize"
                      layout="total, sizes, prev, pager, next, jumper"
                      :total="total">
@@ -96,7 +96,8 @@
 
       <h1>题型训练</h1>
       <el-card>
-        <div class="btn-item el-col el-col-7" style="margin-left: 18px;padding-left: 10px; padding-right: 10px;">
+        <div class="btn-item el-col el-col-7" style="margin-left: 18px;padding-left: 10px; padding-right: 10px;"
+             @click="questionBankInfo[currentBankIndex].singleChoice> 0 ? toTrainPage(3) : $message.warning('当前类型题库暂未收录o(╥﹏╥)o')">
           <div class="img-btn">
             <img src="../assets/imgs/single.png">
             <div>
@@ -105,7 +106,8 @@
           </div>
         </div>
 
-        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;"
+             @click="questionBankInfo[currentBankIndex].multipleChoice > 0 ? toTrainPage(4) : $message.warning('当前类型题库暂未收录o(╥﹏╥)o')">
           <div class="img-btn">
             <img src="../assets/imgs/multiple.png">
             <div>
@@ -114,7 +116,8 @@
           </div>
         </div>
 
-        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;">
+        <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;"
+             @click="questionBankInfo[currentBankIndex].judge> 0 ? toTrainPage(5) : $message.warning('当前类型题库暂未收录o(╥﹏╥)o')">
           <div class="img-btn">
             <img src="../assets/imgs/judge.png">
             <div>
@@ -291,19 +294,7 @@
       toTrainPage (trainType) {//trainType (1顺序,2随机,3单选,4多选,5判断)
         let bankInfo = this.questionBankInfo[this.currentBankIndex]
         if (bankInfo.multipleChoice > 0 || bankInfo.judge > 0 || bankInfo.singleChoice > 0) {//当前题库有题目
-          switch (trainType) {
-            case 1: {
-              this.$router.push('/train/' + this.currentBankId + '/' + 1)
-              break
-            }
-            case 2: {
-              this.$router.push('/train/' + this.currentBankId + '/' + 2)
-              break
-            }
-            case 3:{
-
-            }
-          }
+          this.$router.push('/train/' + this.currentBankId + '/' + trainType)
         } else {
           this.$message.warning('当前题库暂无题目,o(╥﹏╥)o')
         }

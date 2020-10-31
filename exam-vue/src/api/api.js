@@ -50,7 +50,9 @@ let API = {
     //根据题库id查询题库信息
     getBankById: '/teacher/getBankById',
     //根据题库id查询题库中所有单选 多选 判断题
-    getQuestionByBank: '/teacher/getQuestionByBank'
+    getQuestionByBank: '/teacher/getQuestionByBank',
+    //根据题库id查询各种类型的题目
+    getQuestionByBankIdAndType: '/teacher/getQuestionByBankIdAndType'
 
   },
 }

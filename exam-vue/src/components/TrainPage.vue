@@ -56,7 +56,8 @@
           </div>
           <!--多选的提示-->
           <div
-            v-if="currentBankQuestion[curIndex].questionType === 2 && confirmMultiple.includes(curIndex) && userAnswer[curIndex] && (userAnswer[curIndex]+'') !== trueAnswer[curIndex]">
+            v-if="currentBankQuestion[curIndex].questionType === 2 && confirmMultiple.includes(curIndex) &&
+            userAnswer[curIndex] !== undefined && String(userAnswer[curIndex]) !== String(trueAnswer[curIndex])">
             <span style="color: #1f90ff" v-text="'正确答案：' +  multipleAnswer"></span>
           </div>
 
@@ -167,8 +168,6 @@
       this.createTagsInParent()
       this.getQuestionInfo()
     },
-    mounted () {
-    },
     methods: {
       //向父组件中添加头部的tags标签
       createTagsInParent () {
@@ -194,7 +193,6 @@
                 this.loading = false
                 //获取正确答案
                 this.getTrueAnswer()
-                console.log(resp.data.data)
               }
             })
             break
@@ -214,13 +212,57 @@
                 this.loading = false
                 //获取正确答案
                 this.getTrueAnswer()
-                console.log(resp.data.data)
               }
             })
             break
           }
-          case 3: {
-
+          case 3: {//单选题模式
+            this.$http.get(this.API.getQuestionByBankIdAndType, {
+              params: {
+                'bankId': this.bankId,
+                'type': 1
+              }
+            }).then((resp) => {
+              if (resp.data.code === 200) {
+                this.currentBankQuestion = resp.data.data
+                this.loading = false
+                //获取正确答案
+                this.getTrueAnswer()
+              }
+            })
+            break
+          }
+          case 4: {//多选题模式
+            this.$http.get(this.API.getQuestionByBankIdAndType, {
+              params: {
+                'bankId': this.bankId,
+                'type': 2
+              }
+            }).then((resp) => {
+              if (resp.data.code === 200) {
+                this.currentBankQuestion = resp.data.data
+                this.loading = false
+                //获取正确答案
+                this.getTrueAnswer()
+              }
+            })
+            break
+          }
+          case 5: {//判断题模式
+            this.$http.get(this.API.getQuestionByBankIdAndType, {
+              params: {
+                'bankId': this.bankId,
+                'type': 3
+              }
+            }).then((resp) => {
+              if (resp.data.code === 200) {
+                this.currentBankQuestion = resp.data.data
+                this.loading = false
+                //获取正确答案
+                this.getTrueAnswer()
+              }
+            })
+            break
           }
         }
       },
@@ -278,15 +320,16 @@
         this.userAnswer[this.curIndex] = String(this.userAnswer[this.curIndex]).split(',').sort(function (a, b) {
           return a - b
         }).join(',')
-        if (this.userAnswer[this.curIndex] !== this.trueAnswer[this.curIndex]) {
-          this.wrongSum++
+        if (this.userAnswer[this.curIndex] === this.trueAnswer[this.curIndex]) {
+          this.confirmMultiple.push(this.curIndex)
+          this.trueSum++
+          this.curIndex++
         } else {
-          this.trueAnswer++
+          this.wrongSum++
+          this.confirmMultiple.push(this.curIndex)
         }
-        this.confirmMultiple.push(this.curIndex)
-      }
-    }
-    ,
+      },
+    },
     computed: {
       //题目正确的下标
       trueAnswerIndex () {
@@ -295,13 +338,12 @@
           if (item.isTrue === 'true') answer.push(index)
         })
         return answer.join(',')
-      }
-      ,
+      },
       //多选题的正确答案提示
       multipleAnswer () {
-        let res = ''
-        String(this.trueAnswer[this.curIndex]).split(',').map(item => {
-          res += this.optionName[parseInt(item)] + ' '
+        let res = String()
+        String(this.trueAnswer[this.curIndex]).split(',').forEach(item => {
+          res += String(this.optionName[parseInt(item)])
         })
         return res
       }
