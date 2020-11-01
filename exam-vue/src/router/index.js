@@ -48,11 +48,21 @@ const routes = [
         path: '/myQuestionBank',
         component: () => import('../components/MyQuestionBank')
       },
-      //题库训练页
+      //题库训练页(学生和管理员)
       {
         path: '/train/:bankId/:trainType',
         name: 'trainPage',
         component: () => import('../components/TrainPage')
+      },
+      //考试管理(老师和超级管理员)
+      {
+        path: '/examManage',
+        component: () => import('../components/ExamManage')
+      },
+      //添加考试(老师和超级管理员)
+      {
+        path: '/addExam',
+        component: () => import('../components/AddExam')
       }
     ]
   }
@@ -80,7 +90,7 @@ router.beforeEach((to, from, next) => {
     })
   }
   //属于超级管理员又属于老师
-  if (to.path === '/questionManage' || to.path === '/questionBankMange') {
+  if (to.path === '/questionManage' || to.path === '/questionBankMange' || to.path === '/examManage' || to.path === '/addExam') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId === '3' || resp.data.data.roleId === '2') {
         next()

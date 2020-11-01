@@ -638,7 +638,6 @@
       bankChange (val) {
         this.queryInfo.questionBank = val
         this.getQuestionInfo()
-
       },
       //题目名字筛选
       contentChange () {

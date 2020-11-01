@@ -52,7 +52,11 @@ let API = {
     //根据题库id查询题库中所有单选 多选 判断题
     getQuestionByBank: '/teacher/getQuestionByBank',
     //根据题库id查询各种类型的题目
-    getQuestionByBankIdAndType: '/teacher/getQuestionByBankIdAndType'
+    getQuestionByBankIdAndType: '/teacher/getQuestionByBankIdAndType',
+    //查询考试信息
+    getExamInfo: '/teacher/getExamInfo',
+    //对考试信息操作
+    operationExam: '/teacher/operationExam'
 
   },
 }
