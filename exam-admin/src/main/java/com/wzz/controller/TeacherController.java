@@ -7,13 +7,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.OSSUtil;
 import com.wzz.Util.RedisUtil;
-import com.wzz.entity.Answer;
-import com.wzz.entity.Question;
-import com.wzz.entity.QuestionBank;
-import com.wzz.entity.User;
+import com.wzz.entity.*;
 import com.wzz.service.impl.*;
 import com.wzz.vo.BankHaveQuestionSum;
 import com.wzz.vo.CommonResult;
+import com.wzz.vo.ExamQueryVo;
 import com.wzz.vo.QuestionVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -38,10 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class TeacherController {
 
     @Autowired
-    private UserServiceImpl userService;
-
-    @Autowired
-    private UserRoleServiceImpl userRoleService;
+    private ExamServiceImpl examService;
 
     @Autowired
     private QuestionServiceImpl questionService;
@@ -464,6 +459,7 @@ public class TeacherController {
     @GetMapping("/deleteQuestionBank")
     @ApiOperation("删除题库并去除所有题目中的包含此题库的信息")
     public CommonResult<String> deleteQuestionBank(String ids) {
+        log.info("执行了===>TeacherController中的deleteQuestionBank方法");
         String[] bankId = ids.split(",");
         for (String s : bankId) {
             //找到题库
@@ -515,6 +511,7 @@ public class TeacherController {
     @PostMapping("/addQuestionBank")
     @ApiOperation("添加题库信息")
     public CommonResult<String> addQuestionBank(@RequestBody QuestionBank questionBank) {
+        log.info("执行了===>TeacherController中的addQuestionBank方法");
         boolean flag = questionBankService.save(questionBank);
         return flag ? new CommonResult<>(200, "添加题库成功") : new CommonResult<>(200, "添加题库失败");
     }
@@ -522,18 +519,20 @@ public class TeacherController {
     @GetMapping("/getBankById")
     @ApiOperation("通过题库id获取题库信息")
     public CommonResult<QuestionBank> getBankById(Integer id) {
+        log.info("执行了===>TeacherController中的getBankById方法");
         return new CommonResult<>(200, "查询题库信息成功", questionBankService.getById(id));
     }
 
     @GetMapping("/getQuestionByBank")
     @ApiOperation("根据题库获取所有的题目信息(单选,多选,判断题)")
     public CommonResult<Object> getQuestionByBank(Integer bankId) {
+        log.info("执行了===>TeacherController中的getQuestionByBank方法");
         if (redisUtil.get("questionBankQuestion:" + bankId) != null) {//查询缓存
             return new CommonResult<>(200, "当前题库题目查询成功", redisUtil.get("questionBankQuestion:" + bankId));
         } else {
             QuestionBank bank = questionBankService.getById(bankId);
             //在题库中的(单选,多选,判断题)题目
-            List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", bank.getBankName()).in("qu_type", 1,2,3));
+            List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", bank.getBankName()).in("qu_type", 1, 2, 3));
             //构造前端需要的vo对象
             List<QuestionVo> questionVos = new ArrayList<>();
             for (Question question : questions) {
@@ -557,7 +556,7 @@ public class TeacherController {
                 //字段处理
                 for (int i = 0; i < options.length; i++) {
                     QuestionVo.Answer answer1 = new QuestionVo.Answer();
-                    if (images.length-1 >= i && images[i] != null && !images[i].equals(""))
+                    if (images.length - 1 >= i && images[i] != null && !images[i].equals(""))
                         answer1.setImages(new String[]{images[i]});
                     answer1.setAnswer(options[i]);
                     answer1.setId(i);
@@ -578,19 +577,69 @@ public class TeacherController {
                 questionVo.setAnswer(handleAnswer);
                 questionVos.add(questionVo);
             }
-//            redisUtil.set("questionBankQuestion:" + bankId, questionVos, 60 * 5 + new Random().nextInt(2));
+            redisUtil.set("questionBankQuestion:" + bankId, questionVos, 60 * 5 + new Random().nextInt(2));
             return new CommonResult<>(200, "当前题库题目查询成功", questionVos);
         }
     }
 
     @GetMapping("/getQuestionByBankIdAndType")
     @ApiOperation("根据题库id和题目类型获取题目信息 type(1单选 2多选 3判断)")
-    public CommonResult<List<QuestionVo>> getQuestionByBankIdAndType(Integer bankId,Integer type){
+    public CommonResult<List<QuestionVo>> getQuestionByBankIdAndType(Integer bankId, Integer type) {
+        log.info("执行了===>TeacherController中的getQuestionByBankIdAndType方法");
         //调用根据题库查询所有题目信息的方法
         CommonResult<Object> questionByBank = getQuestionByBank(bankId);
-        List<QuestionVo> questionVos = (List<QuestionVo>)questionByBank.getData();
+        List<QuestionVo> questionVos = (List<QuestionVo>) questionByBank.getData();
         //根据题目类型筛选题目
         questionVos.removeIf(questionVo -> !Objects.equals(questionVo.getQuestionType(), type));
-        return new CommonResult<>(200,"根据题目类型查询成功",questionVos);
+        return new CommonResult<>(200, "根据题目类型查询成功", questionVos);
+    }
+
+    @PostMapping("/getExamInfo")
+    @ApiOperation("根据信息查询考试的信息")
+    public CommonResult<List<Exam>> getExamInfo(@RequestBody ExamQueryVo examQueryVo) {
+        log.info("执行了===>TeacherController中的getExamInfo方法");
+        System.out.println(examQueryVo);
+        //参数一是当前页，参数二是每页个数
+        IPage<Exam> examIPage = new Page<>(examQueryVo.getPageNo(), examQueryVo.getPageSize());
+        //查询条件(可选)
+        QueryWrapper<Exam> wrapper = new QueryWrapper<>();
+
+        if (examQueryVo.getExamType() != null) wrapper.eq("type", examQueryVo.getExamType());
+        if (examQueryVo.getExamName() != null) wrapper.like("name", examQueryVo.getExamName());
+        if (examQueryVo.getStartTime() != null) {
+            wrapper.gt("start_time", examQueryVo.getStartTime().substring(0, examQueryVo.getStartTime().indexOf("T")));
+        }
+        if (examQueryVo.getEndTime() != null) {
+            wrapper.lt("end_time", examQueryVo.getEndTime().substring(0, examQueryVo.getEndTime().indexOf("T")));
+        }
+        IPage<Exam> page = examService.page(examIPage, wrapper);
+
+        List<Exam> exams = page.getRecords();
+
+        return new CommonResult<>(200, "查询考试信息成功", exams);
+    }
+
+    @GetMapping("/operationExam/{type}")
+    @ApiOperation("操作考试的信息表(type 1启用 2禁用 3删除)")
+    public CommonResult<String> operationExam(@PathVariable("type") Integer type,String ids){
+        String[] id = ids.split(",");
+        if (type == 1){
+            for (String s : id) {
+                Exam exam = examService.getById(s);
+                exam.setStatus(1);
+                examService.update(exam,new UpdateWrapper<Exam>().eq("exam_id",s));
+            }
+        }else if(type == 2){
+            for (String s : id) {
+                Exam exam = examService.getById(s);
+                exam.setStatus(2);
+                examService.update(exam,new UpdateWrapper<Exam>().eq("exam_id",s));
+            }
+        }else if (type == 3){
+            for (String s : id) {
+                examService.removeById(Integer.parseInt(s));
+            }
+        }
+        return new CommonResult<>(200,"操作成功");
     }
 }
