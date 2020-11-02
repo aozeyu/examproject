@@ -30,11 +30,17 @@ public class Exam {
     @ApiModelProperty(value = "考试名称", example = "小学一年级考试")
     private String name;
 
+    @ApiModelProperty(value = "考试描述", example = "这是一场考试的描述")
+    private String desc;
+
     @ApiModelProperty(value = "考试类型1公开,2需密码", example = "1")
     private Integer type;
 
     @ApiModelProperty(value = "考试密码,当type=2时候存在", example = "12345")
     private String password;
+
+    @ApiModelProperty(value = "考试时间", example = "125(分钟)")
+    private Integer duration;
 
     @ApiModelProperty(value = "考试开始时间", example = "2020-11-01")
     private Date startTime;

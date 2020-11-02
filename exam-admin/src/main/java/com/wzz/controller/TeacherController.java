@@ -336,7 +336,7 @@ public class TeacherController {
                         answer1.setId(i);
                         answer1.setAnswer(allOption[i]);
                         answer1.setImages(imgs);
-                        if (i == Integer.parseInt(answer.getTrueOption().split(",")[i])) {
+                        if (i < answer.getTrueOption().split(",").length && i == Integer.parseInt(answer.getTrueOption().split(",")[i])) {
                             answer1.setIsTrue("true");
                             answer1.setAnalysis(answer.getAnalysis());
                         }
