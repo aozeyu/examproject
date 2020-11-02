@@ -26,7 +26,8 @@
           <el-radio :label="2" border>自由组卷</el-radio>
         </el-radio-group>
 
-        <span style="float: right;color: red;font-weight: bold">{{ '试卷总分：' + sumTotalScore }}</span>
+        <span style="float: right;color: red;font-weight: bold" v-show="makeModel === 2">
+          {{ '试卷总分：' + sumTotalScore }}</span>
 
         <!-- 题库组卷内容-->
         <div v-show="makeModel === 1" style="margin-top: 25px">
@@ -159,12 +160,12 @@
             <el-input v-model="examInfo.examDesc"></el-input>
           </el-form-item>
 
-          <el-form-item label="总分数" prop="totalScore">
+          <el-form-item v-show="makeModel === 2" label="总分数" prop="totalScore">
             <el-input-number :value="sumTotalScore" :disabled="true"></el-input-number>
           </el-form-item>
 
           <el-form-item label="及格分数" prop="passScore">
-            <el-input-number v-model="examInfo.passScore" :min="1" :max="sumTotalScore"></el-input-number>
+            <el-input-number v-model="examInfo.passScore" :min="1"></el-input-number>
           </el-form-item>
 
           <el-form-item label="考试时长(分钟)" prop="examDuration">
@@ -348,7 +349,7 @@
         examPassword: '',
         //补充的考试信息
         examInfo: {
-          'examName': '',
+          'examId': '',
           'examDesc': '',
           'passScore': 0,
           'examDuration': '',
@@ -515,12 +516,16 @@
       //自由组卷中选中的题目添加进去
       addQuToFree () {
         this.selectedTable.forEach(item => {
-          this.addExamQuestion2.push({
-            'questionId': item.id,
-            'questionContent': item.quContent,
-            'questionType': item.quType,
-            'score': 0
-          })
+          if (!this.addExamQuestion2.some(i2 => {
+            return i2.questionId === item.id
+          })) {//不存在有当前题目
+            this.addExamQuestion2.push({
+              'questionId': item.id,
+              'questionContent': item.quContent,
+              'questionType': item.quType,
+              'score': 1
+            })
+          }
         })
         this.showQuestionDialog = false
       },
@@ -542,7 +547,6 @@
             //构造数据对象(考试信息)
             let exam = this.examInfo
             exam.totalScore = this.sumTotalScore
-            exam.duration = this.examInfo.examDuration
             exam.status = 1
             //权限id设置
             exam.type = this.examAuthority
@@ -552,40 +556,32 @@
             //题库组卷模式
             if (this.makeModel === 1 && !this.addExamQuestion.some(item => item.bankId === '')) {
               console.log(this.addExamQuestion)
-              let addExamVo = exam
-              //存放题库的题目(set防止重复)
-              const s = new Set()
-              //得到所有题目的id和分数
-              this.addExamQuestion.forEach(item => {
-                this.$http.get(this.API.getQuestion, {
-                  params: {
-                    'questionType': '',
-                    'questionBank': item.bankName,
-                    'questionContent': '',
-                    'pageNo': 1,
-                    'pageSize': 9999
-                  }
-                }).then((resp) => {
-                  if (resp.data.code === 200) {
-                    resp.data.data.forEach(i2 => {
-                      s.add(i2.id)
-                    })
-                  }
-                })
+              let bankNames = []
+              this.addExamQuestion.forEach(item => bankNames.push(item.bankName))
+              exam.bankNames = bankNames.join(',')
+              exam.singleScore = this.addExamQuestion[0].singleScore
+              exam.multipleScore = this.addExamQuestion[0].multipleScore
+              exam.judgeScore = this.addExamQuestion[0].judgeScore
+              exam.shortScore = this.addExamQuestion[0].shortScore
+              this.$http.post(this.API.addExamByBank, exam).then((resp) => {
+                if (resp.data.code === 200) this.$router.push('/examManage')
               })
-              console.log(s)
-              console.log(new Set(["A", "B"]))
-              for (let item of s) {
-                console.log(item);
-              }
-              // addExamVo.questionIds
-              console.log(addExamVo)
-              // this.$http.post(this.API.addExam, JSON.stringify(data)).then((resp) => {
-              //
-              // })
-
             } else if (this.makeModel === 2) {//自由组卷模式
               console.log(this.addExamQuestion2)
+              //题目id数组
+              let questionIds = []
+              //题目成绩数组
+              let scores = []
+              this.addExamQuestion2.forEach(item => {
+                questionIds.push(item.questionId)
+                scores.push(item.score)
+              })
+              exam.questionIds = questionIds.join(',')
+              exam.scores = scores.join(',')
+              console.log(exam)
+              this.$http.post(this.API.addExamByQuestionList, exam).then((resp) => {
+
+              })
             } else {
               this.$message.error('请检查考试规则设置是否完整')
             }
@@ -599,20 +595,7 @@
     computed: {
       //计算总分
       sumTotalScore () {
-        if (this.makeModel === 1) {//题库组卷
-          let score = 0
-          this.addExamQuestion.forEach(item => {
-            this.allBank.forEach(i2 => {
-              if (item.bankId === i2.questionBank.bankId) {
-                score += i2.judge * item.judgeScore +
-                  i2.multipleChoice * item.multipleScore +
-                  i2.shortAnswer * item.shortScore +
-                  i2.singleChoice * item.singleScore
-              }
-            })
-          })
-          return score
-        } else if (this.makeModel === 2) {
+        if (this.makeModel === 2) {
           let score = 0
           this.addExamQuestion2.forEach(item => {
             score += parseInt(item.score)

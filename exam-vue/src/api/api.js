@@ -57,8 +57,10 @@ let API = {
     getExamInfo: '/teacher/getExamInfo',
     //对考试信息操作
     operationExam: '/teacher/operationExam',
-    //添加考试
-    addExam: '/teacher/addExam'
+    //根据题库添加考试
+    addExamByBank: '/teacher/addExamByBank',
+    //根据题目列表添加考试
+    addExamByQuestionList: '/teacher/addExamByQuestionList',
 
   },
 }
