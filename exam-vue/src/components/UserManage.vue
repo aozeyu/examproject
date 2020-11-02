@@ -220,8 +220,6 @@
     },
     created () {
       this.getUserInfo()
-      //获取用户总数
-      this.getUserTotal()
     },
     methods: {
       //获取用户信息
@@ -229,6 +227,7 @@
         this.$http.get(this.API.getUserInfo, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
             this.userInfo = resp.data.data
+            this.getUserTotal()
             this.loading = false
           } else {
             this.$notify({
@@ -327,13 +326,11 @@
       },
       //查询所有用户的数据
       getUserTotal () {
+        let data = JSON.parse(JSON.stringify(this.queryInfo))
+        data.pageNo = 1
+        data.pageSize = 9999
         this.$http.get(this.API.getUserInfo, {
-          params: {
-            'loginName': '',
-            'trueName': '',
-            'pageNo': 1,
-            'pageSize': 9999
-          }
+          params: data
         }).then((resp) => {
           if (resp.data.code === 200) {
             this.total = resp.data.data.length
@@ -357,7 +354,6 @@
           if (valid) {
             this.$http.post(this.API.addUser, this.addForm).then((resp) => {
               if (resp.data.code === 200) {
-                this.getUserTotal()
                 this.getUserInfo()
                 this.$notify({
                   title: 'Tips',

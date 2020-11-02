@@ -216,12 +216,11 @@
       },
       //获取总数量
       getBankTotal () {
+        let data = JSON.parse(JSON.stringify(this.queryInfo))
+        data.pageNo = 1
+        data.pageSize = 9999
         this.$http.get(this.API.getBankHaveQuestionSumByType, {
-          params: {
-            'pageNo': 1,
-            'pageSize': 9999,
-            'bankname': ''
-          }
+          params: data
         }).then((resp) => {
           if (resp.data.code === 200) {
             this.total = resp.data.data.length

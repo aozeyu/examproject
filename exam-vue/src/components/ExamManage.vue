@@ -151,7 +151,6 @@
     },
     created () {
       this.getExamInfo()
-      this.getExamTotal()
     },
     methods: {
       //考试类型搜索
@@ -181,7 +180,6 @@
           this.$http.get(this.API.operationExam + '/3', { params: { 'ids': examIds.join(',') } }).then((resp) => {
             if (resp.data.code === 200) {
               this.getExamInfo()
-              this.getExamTotal()
             }
           })
         }
@@ -195,20 +193,17 @@
               item.endTime = String(item.endTime).substring(0, 10)
             })
             this.examInfo = resp.data.data
+            this.getExamTotal()
             this.loading = false
           }
         })
       },
       //查询考试信息
       getExamTotal () {
-        this.$http.post(this.API.getExamInfo, {
-          'examType': null,
-          'startTime': null,
-          'endTime': null,
-          'examName': null,
-          'pageNo': 0,
-          'pageSize': 9999
-        }).then((resp) => {
+        let data = JSON.parse(JSON.stringify(this.queryInfo))
+        data.pageNo = 1
+        data.pageSize = 9999
+        this.$http.post(this.API.getExamInfo, data).then((resp) => {
           if (resp.data.code === 200) {
             this.total = resp.data.data.length
           }

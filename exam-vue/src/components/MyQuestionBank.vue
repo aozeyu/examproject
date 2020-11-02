@@ -65,7 +65,7 @@
     </el-main>
 
 
-    <el-dialog title="开始训练" :visible.sync="trainVisible" center>
+    <el-dialog title="开始训练" v-if="questionBankInfo.length!==0" :visible.sync="trainVisible" center>
       <h1>题库简介</h1>
       <el-card style="height: 60px;position: relative">
         <span style="position: absolute;font-size: 16px;font-weight: 400;top: 20px;">{{ questionBankInfo[currentBankIndex].questionBank.bankName }}</span>
@@ -262,12 +262,11 @@
       },
       //获取总数量
       getBankTotal () {
+        let data = JSON.parse(JSON.stringify(this.queryInfo))
+        data.pageNo = 1
+        data.pageSize = 9999
         this.$http.get(this.API.getBankHaveQuestionSumByType, {
-          params: {
-            'pageNo': 1,
-            'pageSize': 9999,
-            'bankname': ''
-          }
+          params: data
         }).then((resp) => {
           if (resp.data.code === 200) {
             this.total = resp.data.data.length

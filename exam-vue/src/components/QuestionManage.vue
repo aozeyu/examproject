@@ -116,8 +116,7 @@
 
     </el-main>
 
-    <el-dialog title="更新题目" :visible.sync="updateQuTableVisible" width="50%" center
-               @close="$refs['updateQuForm'].resetFields()">
+    <el-dialog title="更新题目" :visible.sync="updateQuTableVisible" width="50%" center>
       <el-card>
 
         <el-form :model="updateQuForm" ref="updateQuForm" :rules="updateQuFormRules">
@@ -611,7 +610,6 @@
     created () {
       this.getQuestionBankInfo()
       this.getQuestionInfo()
-      this.getQuestionTotal()
     },
     methods: {
       //获取所有的题库信息
@@ -650,6 +648,7 @@
           if (resp.data.code === 200) {
             this.questionInfo = resp.data.data
             this.loading = false
+            this.getQuestionTotal()
           } else {
             this.$notify({
               title: 'Tips',
@@ -684,7 +683,6 @@
                 duration: 2000
               })
               this.getQuestionInfo()
-              this.getQuestionTotal()
             } else {
               this.$notify({
                 title: 'Tips',
@@ -712,15 +710,11 @@
       },
       //查询所有题目的数据
       getQuestionTotal () {
+        let data = JSON.parse(JSON.stringify(this.queryInfo))
+        data.pageNo = 1
+        data.pageSize = 9999
         this.$http.get(this.API.getQuestion, {
-          params: {
-            //题目类型下拉款所选的内容
-            'questionType': '',
-            'questionBank': '',
-            'questionContent': '',
-            'pageNo': 1,
-            'pageSize': 9999
-          }
+          params: data
         }).then((resp) => {
           if (resp.data.code === 200) {
             this.total = resp.data.data.length
@@ -972,7 +966,6 @@
               if (resp.data.code === 200) {
                 this.addQuTableVisible = false
                 this.getQuestionInfo()
-                this.getQuestionTotal()
                 this.$notify({
                   title: 'Tips',
                   message: '新增题目成功',
@@ -998,7 +991,6 @@
               if (resp.data.code === 200) {
                 this.addQuTableVisible = false
                 this.getQuestionInfo()
-                this.getQuestionTotal()
                 this.$notify({
                   title: 'Tips',
                   message: '新增题目成功',
@@ -1065,7 +1057,6 @@
               if (resp.data.code === 200) {
                 this.updateQuTableVisible = false
                 this.getQuestionInfo()
-                this.getQuestionTotal()
                 this.$notify({
                   title: 'Tips',
                   message: '更新题目成功',
@@ -1091,7 +1082,6 @@
               if (resp.data.code === 200) {
                 this.updateQuTableVisible = false
                 this.getQuestionInfo()
-                this.getQuestionTotal()
                 this.$notify({
                   title: 'Tips',
                   message: '更新题目成功',
