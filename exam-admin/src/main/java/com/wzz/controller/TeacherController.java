@@ -9,10 +9,7 @@ import com.wzz.Util.OSSUtil;
 import com.wzz.Util.RedisUtil;
 import com.wzz.entity.*;
 import com.wzz.service.impl.*;
-import com.wzz.vo.BankHaveQuestionSum;
-import com.wzz.vo.CommonResult;
-import com.wzz.vo.ExamQueryVo;
-import com.wzz.vo.QuestionVo;
+import com.wzz.vo.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.models.auth.In;
@@ -21,9 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @Date 2020/10/24 15:42
@@ -40,6 +35,9 @@ public class TeacherController {
 
     @Autowired
     private QuestionServiceImpl questionService;
+
+    @Autowired
+    private ExamQuestionServiceImpl examQuestionService;
 
     @Autowired
     private QuestionBankServiceImpl questionBankService;
@@ -605,7 +603,7 @@ public class TeacherController {
         QueryWrapper<Exam> wrapper = new QueryWrapper<>();
 
         if (examQueryVo.getExamType() != null) wrapper.eq("type", examQueryVo.getExamType());
-        if (examQueryVo.getExamName() != null) wrapper.like("name", examQueryVo.getExamName());
+        if (examQueryVo.getExamName() != null) wrapper.like("exam_name", examQueryVo.getExamName());
         if (examQueryVo.getStartTime() != null) {
             wrapper.gt("start_time", examQueryVo.getStartTime().substring(0, examQueryVo.getStartTime().indexOf("T")));
         }
@@ -642,4 +640,16 @@ public class TeacherController {
         }
         return new CommonResult<>(200,"操作成功");
     }
+
+    @PostMapping("/addExam")
+    @ApiOperation("添加考试")
+    public CommonResult<String> addExam(@RequestBody AddExamVo addExamVo){
+//        List<Exam> exams = examService.list(new QueryWrapper<>());
+//        //设置考试id
+//        Integer examId = exams.get(exams.size() - 1).getExamId() + 1;
+
+        System.out.println(addExamVo);
+        return new CommonResult<>();
+    }
+
 }
