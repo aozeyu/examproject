@@ -619,37 +619,140 @@ public class TeacherController {
 
     @GetMapping("/operationExam/{type}")
     @ApiOperation("操作考试的信息表(type 1启用 2禁用 3删除)")
-    public CommonResult<String> operationExam(@PathVariable("type") Integer type,String ids){
+    public CommonResult<String> operationExam(@PathVariable("type") Integer type, String ids) {
+        log.info("执行了===>TeacherController中的operationExam方法");
         String[] id = ids.split(",");
-        if (type == 1){
+        if (type == 1) {
             for (String s : id) {
                 Exam exam = examService.getById(s);
                 exam.setStatus(1);
-                examService.update(exam,new UpdateWrapper<Exam>().eq("exam_id",s));
+                examService.update(exam, new UpdateWrapper<Exam>().eq("exam_id", s));
             }
-        }else if(type == 2){
+        } else if (type == 2) {
             for (String s : id) {
                 Exam exam = examService.getById(s);
                 exam.setStatus(2);
-                examService.update(exam,new UpdateWrapper<Exam>().eq("exam_id",s));
+                examService.update(exam, new UpdateWrapper<Exam>().eq("exam_id", s));
             }
-        }else if (type == 3){
+        } else if (type == 3) {
             for (String s : id) {
                 examService.removeById(Integer.parseInt(s));
             }
         }
-        return new CommonResult<>(200,"操作成功");
+        return new CommonResult<>(200, "操作成功");
     }
 
-    @PostMapping("/addExam")
-    @ApiOperation("添加考试")
-    public CommonResult<String> addExam(@RequestBody AddExamVo addExamVo){
-//        List<Exam> exams = examService.list(new QueryWrapper<>());
-//        //设置考试id
-//        Integer examId = exams.get(exams.size() - 1).getExamId() + 1;
+    @PostMapping("/addExamByBank")
+    @ApiOperation("根据题库添加考试")
+    public CommonResult<String> addExamByBank(@RequestBody AddExamByBankVo addExamByBankVo) {
+        log.info("执行了===>TeacherController中的addExamByBank方法");
 
-        System.out.println(addExamVo);
-        return new CommonResult<>();
+        Exam exam = new Exam();
+        exam.setStatus(addExamByBankVo.getStatus());
+        exam.setDuration(addExamByBankVo.getExamDuration());
+        if (addExamByBankVo.getEndTime() != null)
+            exam.setEndTime(addExamByBankVo.getEndTime());
+        if (addExamByBankVo.getStartTime() != null)
+            exam.setStartTime(addExamByBankVo.getStartTime());
+        exam.setExamDesc(addExamByBankVo.getExamDesc());
+        exam.setExamName(addExamByBankVo.getExamName());
+        exam.setPassScore(addExamByBankVo.getPassScore());
+        exam.setType(addExamByBankVo.getType());
+        //设置密码如果有
+        if (addExamByBankVo.getPassword() != null) {
+            exam.setPassword(addExamByBankVo.getPassword());
+        }
+        //设置id
+        List<Exam> examList = examService.list(new QueryWrapper<>());
+        int id = 0;
+        if (examList.size() != 0) {
+            id = examList.get(examList.size() - 1).getExamId() + 1;
+        }
+        exam.setExamId(id);
+
+        //构造考试中含有的题目信息
+        ExamQuestion examQuestion = new ExamQuestion();
+        examQuestion.setExamId(id);
+        //设置题目id字符串
+        HashSet<Integer> set = new HashSet<>();
+        String[] bankNames = addExamByBankVo.getBankNames().split(",");
+
+        for (String bankName : bankNames) {
+            List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", bankName));
+            for (Question question : questions) {
+                set.add(question.getId());
+            }
+        }
+        String quIds = set.toString().substring(1, set.toString().length() - 1)
+                .replaceAll(" ", "");
+        System.out.println(quIds);
+        examQuestion.setQuestionIds(quIds);
+        //设置每一题的分数
+        String[] s = quIds.split(",");
+        //总分
+        int totalScore = 0;
+        StringBuilder sf = new StringBuilder();
+        for (String s1 : s) {
+            Question question = questionService.getById(Integer.parseInt(s1));
+            if (question.getQuType() == 1) {
+                sf.append(addExamByBankVo.getSingleScore()).append(",");
+                totalScore += addExamByBankVo.getSingleScore();
+            } else if (question.getQuType() == 2) {
+                sf.append(addExamByBankVo.getMultipleScore()).append(",");
+                totalScore += addExamByBankVo.getMultipleScore();
+            } else if (question.getQuType() == 3) {
+                sf.append(addExamByBankVo.getJudgeScore()).append(",");
+                totalScore += addExamByBankVo.getJudgeScore();
+            } else if (question.getQuType() == 4) {
+                sf.append(addExamByBankVo.getShortScore()).append(",");
+                totalScore += addExamByBankVo.getShortScore();
+            }
+        }
+        examQuestion.setScores(sf.toString().substring(0, sf.toString().length() - 1));
+        //设置总成绩
+        exam.setTotalScore(totalScore);
+
+        examService.save(exam);
+        examQuestionService.save(examQuestion);
+        return new CommonResult<>(200,"考试创建成功");
+    }
+
+    @PostMapping("/addExamByQuestionList")
+    @ApiOperation("根据题目列表添加考试")
+    public CommonResult<String> addExamByQuestionList(@RequestBody AddExamByQuestionVo addExamByQuestionVo){
+        log.info("执行了===>TeacherController中的addExamByQuestionList方法");
+        Exam exam = new Exam();
+        exam.setTotalScore(addExamByQuestionVo.getTotalScore());
+        exam.setType(addExamByQuestionVo.getType());
+        exam.setPassScore(addExamByQuestionVo.getPassScore());
+        if (addExamByQuestionVo.getEndTime() != null)
+            exam.setEndTime(addExamByQuestionVo.getEndTime());
+        if (addExamByQuestionVo.getStartTime() != null)
+            exam.setStartTime(addExamByQuestionVo.getStartTime());
+        exam.setExamDesc(addExamByQuestionVo.getExamDesc());
+        exam.setExamName(addExamByQuestionVo.getExamName());
+        exam.setDuration(addExamByQuestionVo.getExamDuration());
+        //设置密码如果有
+        if (addExamByQuestionVo.getPassword() != null) {
+            exam.setPassword(addExamByQuestionVo.getPassword());
+        }
+        exam.setStatus(addExamByQuestionVo.getStatus());
+        //设置id
+        List<Exam> examList = examService.list(new QueryWrapper<>());
+        int id = 0;
+        if (examList.size() != 0) {
+            id = examList.get(examList.size() - 1).getExamId() + 1;
+        }
+        exam.setExamId(id);
+        //设置考试的题目和分值信息
+        ExamQuestion examQuestion = new ExamQuestion();
+        examQuestion.setExamId(id);
+        examQuestion.setScores(addExamByQuestionVo.getScores());
+        examQuestion.setQuestionIds(addExamByQuestionVo.getQuestionIds());
+
+        examService.save(exam);
+        examQuestionService.save(examQuestion);
+        return new CommonResult<>(200,"考试创建成功");
     }
 
 }

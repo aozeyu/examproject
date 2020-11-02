@@ -26,7 +26,6 @@ import java.util.Date;
 @TableName(value = "exam")
 public class Exam implements Serializable {
 
-    @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "主键 考试id", example = "1")
     private Integer examId;
 

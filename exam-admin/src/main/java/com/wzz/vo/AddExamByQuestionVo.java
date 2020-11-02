@@ -19,12 +19,12 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddExamVo {
+public class AddExamByQuestionVo {
     private String examName;
     private String examDesc;
     private Integer type;
     private String password;
-    private Integer duration;
+    private Integer examDuration;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date startTime;
