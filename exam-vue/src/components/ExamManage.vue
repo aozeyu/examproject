@@ -54,7 +54,7 @@
                          width="55">
         </el-table-column>
 
-        <el-table-column align="center" prop="name" label="考试名称"></el-table-column>
+        <el-table-column align="center" prop="examName" label="考试名称"></el-table-column>
 
         <el-table-column align="center" label="考试类型">
           <template slot-scope="scope">

@@ -56,7 +56,9 @@ let API = {
     //查询考试信息
     getExamInfo: '/teacher/getExamInfo',
     //对考试信息操作
-    operationExam: '/teacher/operationExam'
+    operationExam: '/teacher/operationExam',
+    //添加考试
+    addExam: '/teacher/addExam'
 
   },
 }

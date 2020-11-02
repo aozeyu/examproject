@@ -11,14 +11,17 @@
 
       <el-button style="float:right;margin-top: 10px" v-show="curStep !== 3" type="primary" @click="curStep++">下一步
       </el-button>
-      <el-button style="float:right;margin-top: 10px" v-show="curStep === 3" type="primary">提交</el-button>
+      <el-button style="float:right;margin-top: 10px" v-show="curStep === 3" type="primary" @click="addExam">提交
+      </el-button>
     </el-header>
 
     <el-main>
       <!--设置试题信息-->
       <el-card v-show="curStep === 1">
 
-        <el-radio-group v-model="makeModel" size="medium">
+        <el-radio-group v-model="makeModel"
+                        @change="makeModelChange"
+                        size="medium">
           <el-radio :label="1" border>题库组卷</el-radio>
           <el-radio :label="2" border>自由组卷</el-radio>
         </el-radio-group>
@@ -34,13 +37,13 @@
 
             <el-table-column label="题库" width="155" align="center">
               <template slot-scope="scope">
-                <el-select clearable v-model="scope.row.bankId" placeholder="请选择题库"
+                <el-select clearable v-model="scope.row.bankName" placeholder="请选择题库"
                            style="margin-left: 5px">
                   <el-option
                     v-for="item in allBank"
                     :key="item.questionBank.bankId"
                     :label="item.questionBank.bankName"
-                    :value="item.questionBank.bankId">
+                    :value="item.questionBank.bankName">
                   </el-option>
                 </el-select>
               </template>
@@ -153,19 +156,19 @@
           </el-form-item>
 
           <el-form-item label="考试描述" prop="examDesc">
-            <el-input v-model="examInfo.examName"></el-input>
+            <el-input v-model="examInfo.examDesc"></el-input>
           </el-form-item>
 
           <el-form-item label="总分数" prop="totalScore">
-            <el-input-number v-model="examInfo.totalScore" :disabled="true"></el-input-number>
+            <el-input-number :value="sumTotalScore" :disabled="true"></el-input-number>
           </el-form-item>
 
           <el-form-item label="及格分数" prop="passScore">
-            <el-input-number v-model="examInfo.passScore" :min="0" :max="sumTotalScore"></el-input-number>
+            <el-input-number v-model="examInfo.passScore" :min="1" :max="sumTotalScore"></el-input-number>
           </el-form-item>
 
           <el-form-item label="考试时长(分钟)" prop="examDuration">
-            <el-input-number v-model="examInfo.examDuration" :min="0"></el-input-number>
+            <el-input-number v-model="examInfo.examDuration" :min="1"></el-input-number>
           </el-form-item>
 
           <el-form-item label="考试开始时间" prop="startTime">
@@ -347,22 +350,33 @@
         examInfo: {
           'examName': '',
           'examDesc': '',
-          'totalScore': window.onload = () => this.sumTotalScore,
           'passScore': 0,
           'examDuration': '',
           'startTime': '',
           'endTime': ''
         },
         //补充的考试信息的表单验证
-        examInfoRules:{
+        examInfoRules: {
           examName: [
-            { required: true, message: '请输入考试名称', trigger: 'blur' }
+            {
+              required: true,
+              message: '请输入考试名称',
+              trigger: 'blur'
+            }
           ],
           passScore: [
-            { required: true, message: '请输入通过分数', trigger: 'blur' }
+            {
+              required: true,
+              message: '请输入通过分数',
+              trigger: 'blur'
+            }
           ],
           examDuration: [
-            { required: true, message: '请输入考试时长', trigger: 'blur' }
+            {
+              required: true,
+              message: '请输入考试时长',
+              trigger: 'blur'
+            }
           ],
         }
       }
@@ -419,11 +433,11 @@
       addBank () {
         this.addExamQuestion.push(
           {
-            'bankId': '',
-            'singleScore': 0,
-            'multipleScore': 0,
-            'judgeScore': 0,
-            'shortScore': 0
+            'bankName': '',
+            'singleScore': 1,
+            'multipleScore': 1,
+            'judgeScore': 1,
+            'shortScore': 1
           })
       },
       //自由组卷时添加试题
@@ -509,6 +523,77 @@
           })
         })
         this.showQuestionDialog = false
+      },
+      //组卷模式变化
+      makeModelChange () {
+        this.$confirm('此操作将丢失当前组卷数据, 是否继续?', 'Tips', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.makeModel === 1 ? this.addExamQuestion2 = [] : this.addExamQuestion = []
+        }).catch(() => {
+        })
+      },
+      //添加考试
+      addExam () {
+        this.$refs['examInfoForm'].validate((valid) => {
+          if (valid && (this.addExamQuestion.length !== 0 || this.addExamQuestion2.length !== 0)) {
+            //构造数据对象(考试信息)
+            let exam = this.examInfo
+            exam.totalScore = this.sumTotalScore
+            exam.duration = this.examInfo.examDuration
+            exam.status = 1
+            //权限id设置
+            exam.type = this.examAuthority
+            if (this.examAuthority === 2) {//考试密码
+              exam.password = this.examPassword
+            }
+            //题库组卷模式
+            if (this.makeModel === 1 && !this.addExamQuestion.some(item => item.bankId === '')) {
+              console.log(this.addExamQuestion)
+              let addExamVo = exam
+              //存放题库的题目(set防止重复)
+              const s = new Set()
+              //得到所有题目的id和分数
+              this.addExamQuestion.forEach(item => {
+                this.$http.get(this.API.getQuestion, {
+                  params: {
+                    'questionType': '',
+                    'questionBank': item.bankName,
+                    'questionContent': '',
+                    'pageNo': 1,
+                    'pageSize': 9999
+                  }
+                }).then((resp) => {
+                  if (resp.data.code === 200) {
+                    resp.data.data.forEach(i2 => {
+                      s.add(i2.id)
+                    })
+                  }
+                })
+              })
+              console.log(s)
+              console.log(new Set(["A", "B"]))
+              for (let item of s) {
+                console.log(item);
+              }
+              // addExamVo.questionIds
+              console.log(addExamVo)
+              // this.$http.post(this.API.addExam, JSON.stringify(data)).then((resp) => {
+              //
+              // })
+
+            } else if (this.makeModel === 2) {//自由组卷模式
+              console.log(this.addExamQuestion2)
+            } else {
+              this.$message.error('请检查考试规则设置是否完整')
+            }
+          } else {
+            this.$message.error('请检查考试规则设置是否完整')
+            return false
+          }
+        })
       }
     },
     computed: {
