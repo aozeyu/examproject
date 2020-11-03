@@ -69,6 +69,11 @@ const routes = [
         path: '/updateExam/:examId',
         name: 'updateExam',
         component: () => import('../components/UpdateExam')
+      },
+      //在线考试页面选择考试(学生和超级管理员)
+      {
+        path: '/examOnline',
+        component: () => import('../components/ExamOnline')
       }
     ]
   }
@@ -108,7 +113,7 @@ router.beforeEach((to, from, next) => {
   }
 
   //超级管理员 + 学生
-  if (to.path === '/myQuestionBank' || to.name === 'trainPage') {
+  if (to.path === '/myQuestionBank' || to.name === 'trainPage' || to.path === '/examOnline') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId !== '2') {
         next()

@@ -3,13 +3,14 @@ import {
   Button, Container, Main, Row, Footer, Card, FormItem, Form, Input, Message, MessageBox, Aside, MenuItemGroup,
   Menu, MenuItem,Submenu,Col,Header,Tooltip,Breadcrumb,BreadcrumbItem,Dropdown,DropdownItem,DropdownMenu,Notification,
   Tag,TableColumn,Table,Select,Option,Pagination,Dialog,Loading,Upload,Checkbox,CheckboxGroup,DatePicker,Step,Steps,
-  RadioGroup,Radio,Alert,InputNumber
+  RadioGroup,Radio,Alert,InputNumber,
 } from 'element-ui'
 
 Vue.prototype.$message = Message
 Vue.prototype.$alert = MessageBox.alert
 Vue.prototype.$notify = Notification
 Vue.prototype.$confirm = MessageBox.confirm
+Vue.prototype.$prompt = MessageBox.prompt
 
 Vue.use(Button)
 Vue.use(InputNumber)
