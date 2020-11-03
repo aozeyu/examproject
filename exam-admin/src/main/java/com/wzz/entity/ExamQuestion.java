@@ -24,7 +24,6 @@ import java.io.Serializable;
 public class ExamQuestion implements Serializable {
 
     //  对应数据库的主键(uuid,自增id,雪花算法, redis,zookeeper)
-    @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "主键 考试题目表的id", example = "1")
     private Integer id;
 

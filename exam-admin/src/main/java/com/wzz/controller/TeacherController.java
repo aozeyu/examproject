@@ -1,6 +1,8 @@
 package com.wzz.controller;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.segments.MergeSegments;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -624,19 +626,23 @@ public class TeacherController {
         String[] id = ids.split(",");
         if (type == 1) {
             for (String s : id) {
-                Exam exam = examService.getById(s);
+                Exam exam = examService.getOne(new QueryWrapper<Exam>().eq("exam_id", Integer.parseInt(s)));
                 exam.setStatus(1);
                 examService.update(exam, new UpdateWrapper<Exam>().eq("exam_id", s));
             }
         } else if (type == 2) {
             for (String s : id) {
-                Exam exam = examService.getById(s);
+                Exam exam = examService.getOne(new QueryWrapper<Exam>().eq("exam_id", Integer.parseInt(s)));
                 exam.setStatus(2);
                 examService.update(exam, new UpdateWrapper<Exam>().eq("exam_id", s));
             }
         } else if (type == 3) {
+            Map<String, Object> map = new HashMap<>();
             for (String s : id) {
-                examService.removeById(Integer.parseInt(s));
+                map.clear();
+                map.put("exam_id", Integer.parseInt(s));
+                examService.removeByMap(map);
+                examQuestionService.removeByMap(map);
             }
         }
         return new CommonResult<>(200, "操作成功");
@@ -714,12 +720,12 @@ public class TeacherController {
 
         examService.save(exam);
         examQuestionService.save(examQuestion);
-        return new CommonResult<>(200,"考试创建成功");
+        return new CommonResult<>(200, "考试创建成功");
     }
 
     @PostMapping("/addExamByQuestionList")
     @ApiOperation("根据题目列表添加考试")
-    public CommonResult<String> addExamByQuestionList(@RequestBody AddExamByQuestionVo addExamByQuestionVo){
+    public CommonResult<String> addExamByQuestionList(@RequestBody AddExamByQuestionVo addExamByQuestionVo) {
         log.info("执行了===>TeacherController中的addExamByQuestionList方法");
         Exam exam = new Exam();
         exam.setTotalScore(addExamByQuestionVo.getTotalScore());
@@ -752,7 +758,74 @@ public class TeacherController {
 
         examService.save(exam);
         examQuestionService.save(examQuestion);
-        return new CommonResult<>(200,"考试创建成功");
+        return new CommonResult<>(200, "考试创建成功");
+    }
+
+    @GetMapping("/getExamInfoById")
+    @ApiOperation("根据考试id查询考试的信息和题目列表")
+    public CommonResult<Object> getExamInfoById(@RequestParam Integer examId) {
+        log.info("执行了===>TeacherController中的getExamInfoById方法");
+        if (redisUtil.get("examInfo:" + examId) != null) {
+            return new CommonResult<>(200, "查询成功", redisUtil.get("examInfo:" + examId));
+        } else {
+            //构造传递给前端的考试组合对象
+            AddExamByQuestionVo addExamByQuestionVo = new AddExamByQuestionVo();
+            Exam exam = examService.getOne(new QueryWrapper<Exam>().eq("exam_id", examId));
+            addExamByQuestionVo.setExamDesc(exam.getExamDesc());
+            addExamByQuestionVo.setExamDuration(exam.getDuration());
+            addExamByQuestionVo.setExamId(examId);
+            addExamByQuestionVo.setExamName(exam.getExamName());
+            addExamByQuestionVo.setPassScore(exam.getPassScore());
+            addExamByQuestionVo.setTotalScore(exam.getTotalScore());
+            addExamByQuestionVo.setEndTime(exam.getEndTime());
+            addExamByQuestionVo.setStartTime(exam.getStartTime());
+            addExamByQuestionVo.setType(exam.getType());
+            addExamByQuestionVo.setPassword(exam.getPassword());
+            addExamByQuestionVo.setStatus(exam.getStatus());
+
+            //考试中题目的对象
+            ExamQuestion examQuestion = examQuestionService.getOne(new QueryWrapper<ExamQuestion>().eq("exam_id", examId));
+            addExamByQuestionVo.setQuestionIds(examQuestion.getQuestionIds());
+            addExamByQuestionVo.setScores(examQuestion.getScores());
+            redisUtil.set("examInfo:" + examId, addExamByQuestionVo, 60 * 5 * new Random().nextInt(2));
+            return new CommonResult<>(200, "查询成功", addExamByQuestionVo);
+        }
+    }
+
+    @PostMapping("/updateExamInfo")
+    @ApiOperation("更新考试的信息")
+    public CommonResult<String> updateExamInfo(@RequestBody AddExamByQuestionVo addExamByQuestionVo){
+        log.info("执行了===>TeacherController中的updateExamInfo方法");
+        Exam exam = new Exam();
+        exam.setTotalScore(addExamByQuestionVo.getTotalScore());
+        exam.setType(addExamByQuestionVo.getType());
+        exam.setPassScore(addExamByQuestionVo.getPassScore());
+        if (addExamByQuestionVo.getEndTime() != null)
+            exam.setEndTime(addExamByQuestionVo.getEndTime());
+        if (addExamByQuestionVo.getStartTime() != null)
+            exam.setStartTime(addExamByQuestionVo.getStartTime());
+        exam.setExamDesc(addExamByQuestionVo.getExamDesc());
+        exam.setExamName(addExamByQuestionVo.getExamName());
+        exam.setDuration(addExamByQuestionVo.getExamDuration());
+        //设置密码如果有
+        if (addExamByQuestionVo.getPassword() != null) {
+            exam.setPassword(addExamByQuestionVo.getPassword());
+        }else {
+            exam.setPassword(null);
+        }
+        exam.setStatus(addExamByQuestionVo.getStatus());
+        exam.setExamId(addExamByQuestionVo.getExamId());
+        //设置考试的题目和分值信息
+        ExamQuestion examQuestion = new ExamQuestion();
+        examQuestion.setExamId(addExamByQuestionVo.getExamId());
+        examQuestion.setScores(addExamByQuestionVo.getScores());
+        examQuestion.setQuestionIds(addExamByQuestionVo.getQuestionIds());
+
+        examService.update(exam,new UpdateWrapper<Exam>().eq("exam_id",exam.getExamId()));
+        examQuestionService.update(examQuestion,new UpdateWrapper<ExamQuestion>().eq("exam_id",exam.getExamId()));
+        //移除缓存
+        redisUtil.del("examInfo:" + exam.getExamId());
+        return new CommonResult<>(200,"更新成功");
     }
 
 }

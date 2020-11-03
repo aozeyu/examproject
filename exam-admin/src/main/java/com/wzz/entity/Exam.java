@@ -1,8 +1,6 @@
 package com.wzz.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -39,6 +37,7 @@ public class Exam implements Serializable {
     private Integer type;
 
     @ApiModelProperty(value = "考试密码,当type=2时候存在", example = "12345")
+    @TableField(strategy= FieldStrategy.IGNORED)
     private String password;
 
     @ApiModelProperty(value = "考试时间", example = "125(分钟)")
