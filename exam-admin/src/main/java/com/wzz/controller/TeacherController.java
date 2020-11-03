@@ -794,23 +794,21 @@ public class TeacherController {
 
     @PostMapping("/updateExamInfo")
     @ApiOperation("更新考试的信息")
-    public CommonResult<String> updateExamInfo(@RequestBody AddExamByQuestionVo addExamByQuestionVo){
+    public CommonResult<String> updateExamInfo(@RequestBody AddExamByQuestionVo addExamByQuestionVo) {
         log.info("执行了===>TeacherController中的updateExamInfo方法");
         Exam exam = new Exam();
         exam.setTotalScore(addExamByQuestionVo.getTotalScore());
         exam.setType(addExamByQuestionVo.getType());
         exam.setPassScore(addExamByQuestionVo.getPassScore());
-        if (addExamByQuestionVo.getEndTime() != null)
-            exam.setEndTime(addExamByQuestionVo.getEndTime());
-        if (addExamByQuestionVo.getStartTime() != null)
-            exam.setStartTime(addExamByQuestionVo.getStartTime());
+        exam.setEndTime(addExamByQuestionVo.getEndTime());
+        exam.setStartTime(addExamByQuestionVo.getStartTime());
         exam.setExamDesc(addExamByQuestionVo.getExamDesc());
         exam.setExamName(addExamByQuestionVo.getExamName());
         exam.setDuration(addExamByQuestionVo.getExamDuration());
         //设置密码如果有
         if (addExamByQuestionVo.getPassword() != null) {
             exam.setPassword(addExamByQuestionVo.getPassword());
-        }else {
+        } else {
             exam.setPassword(null);
         }
         exam.setStatus(addExamByQuestionVo.getStatus());
@@ -821,11 +819,11 @@ public class TeacherController {
         examQuestion.setScores(addExamByQuestionVo.getScores());
         examQuestion.setQuestionIds(addExamByQuestionVo.getQuestionIds());
 
-        examService.update(exam,new UpdateWrapper<Exam>().eq("exam_id",exam.getExamId()));
-        examQuestionService.update(examQuestion,new UpdateWrapper<ExamQuestion>().eq("exam_id",exam.getExamId()));
+        examService.update(exam, new UpdateWrapper<Exam>().eq("exam_id", exam.getExamId()));
+        examQuestionService.update(examQuestion, new UpdateWrapper<ExamQuestion>().eq("exam_id", exam.getExamId()));
         //移除缓存
         redisUtil.del("examInfo:" + exam.getExamId());
-        return new CommonResult<>(200,"更新成功");
+        return new CommonResult<>(200, "更新成功");
     }
 
 }

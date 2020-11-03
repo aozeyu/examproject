@@ -46,11 +46,13 @@ public class Exam implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @JsonFormat(pattern = "yyyy-MM-dd")
     @ApiModelProperty(value = "考试开始时间", example = "2020-11-01")
+    @TableField(strategy= FieldStrategy.IGNORED)
     private Date startTime;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @JsonFormat(pattern = "yyyy-MM-dd")
     @ApiModelProperty(value = "考试结束时间", example = "2020-12-01")
+    @TableField(strategy= FieldStrategy.IGNORED)
     private Date endTime;
 
     @ApiModelProperty(value = "考试总分", example = "100")
