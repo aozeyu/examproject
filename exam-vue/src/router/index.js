@@ -63,6 +63,12 @@ const routes = [
       {
         path: '/addExam',
         component: () => import('../components/AddExam')
+      },
+      //修改考试信息(老师和超级管理员)
+      {
+        path: '/updateExam/:examId',
+        name: 'updateExam',
+        component: () => import('../components/UpdateExam')
       }
     ]
   }
@@ -90,7 +96,8 @@ router.beforeEach((to, from, next) => {
     })
   }
   //属于超级管理员又属于老师
-  if (to.path === '/questionManage' || to.path === '/questionBankMange' || to.path === '/examManage' || to.path === '/addExam') {
+  if (to.path === '/questionManage' || to.path === '/questionBankMange' || to.path === '/examManage'
+    || to.path === '/addExam' || to.name === 'updateExam') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId === '3' || resp.data.data.roleId === '2') {
         next()

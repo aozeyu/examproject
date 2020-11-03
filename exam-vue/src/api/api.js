@@ -61,7 +61,10 @@ let API = {
     addExamByBank: '/teacher/addExamByBank',
     //根据题目列表添加考试
     addExamByQuestionList: '/teacher/addExamByQuestionList',
-
+    //根据考试id查询考试信息和题目信息
+    getExamInfoById: '/teacher/getExamInfoById',
+    //更新考试的规则信息
+    updateExamInfo: '/teacher/updateExamInfo',
   },
 }
 

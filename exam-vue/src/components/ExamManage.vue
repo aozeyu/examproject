@@ -27,7 +27,8 @@
                 prefix-icon="el-icon-search"></el-input>
       <br>
       <el-button type="primary" icon="el-icon-plus" style="margin-top: 10px"
-                 @click="$router.push('/addExam')">添加</el-button>
+                 @click="$router.push('/addExam')">添加
+      </el-button>
     </el-header>
 
     <el-main>
@@ -54,7 +55,11 @@
                          width="55">
         </el-table-column>
 
-        <el-table-column align="center" prop="examName" label="考试名称"></el-table-column>
+        <el-table-column align="center" label="考试名称">
+          <template slot-scope="scope">
+            <span style="cursor:pointer;color: rgb(24,144,255)" @click="$router.push('/updateExam/'+ scope.row.examId)">{{ scope.row.examName }}</span>
+          </template>
+        </el-table-column>
 
         <el-table-column align="center" label="考试类型">
           <template slot-scope="scope">
@@ -168,18 +173,36 @@
           this.$http.get(this.API.operationExam + '/1', { params: { 'ids': examIds.join(',') } }).then((resp) => {
             if (resp.data.code === 200) {
               this.getExamInfo()
+              this.$notify({
+                'type': 'success',
+                'title': 'Tips',
+                'message': '操作成功',
+                'duration': 2000
+              })
             }
           })
         } else if (val === 'off') {
           this.$http.get(this.API.operationExam + '/2', { params: { 'ids': examIds.join(',') } }).then((resp) => {
             if (resp.data.code === 200) {
               this.getExamInfo()
+              this.$notify({
+                'type': 'success',
+                'title': 'Tips',
+                'message': '操作成功',
+                'duration': 2000
+              })
             }
           })
         } else if (val === 'delete') {
           this.$http.get(this.API.operationExam + '/3', { params: { 'ids': examIds.join(',') } }).then((resp) => {
             if (resp.data.code === 200) {
               this.getExamInfo()
+              this.$notify({
+                'type': 'success',
+                'title': 'Tips',
+                'message': '操作成功',
+                'duration': 2000
+              })
             }
           })
         }

@@ -11,7 +11,7 @@
 
       <el-button style="float:right;margin-top: 10px" v-show="curStep !== 3" type="primary" @click="curStep++">下一步
       </el-button>
-      <el-button style="float:right;margin-top: 10px" v-show="curStep === 3" type="primary" @click="addExam">提交
+      <el-button style="float:right;margin-top: 10px" v-show="curStep === 3" type="primary" @click="updateExam">提交
       </el-button>
     </el-header>
 
@@ -19,77 +19,15 @@
       <!--设置试题信息-->
       <el-card v-show="curStep === 1">
 
-        <el-radio-group v-model="makeModel"
-                        @change="makeModelChange"
-                        size="medium">
-          <el-radio :label="1" border>题库组卷</el-radio>
-          <el-radio :label="2" border>自由组卷</el-radio>
-        </el-radio-group>
-
-        <span style="float: right;color: red;font-weight: bold" v-show="makeModel === 2">
+        <span style="float: right;color: red;font-weight: bold">
           {{ '试卷总分：' + sumTotalScore }}</span>
 
-        <!-- 题库组卷内容-->
-        <div v-show="makeModel === 1" style="margin-top: 25px">
-          <el-button icon="el-icon-plus" size="mini" @click="addBank">添加题库</el-button>
-
-          <!--存放题目的信息-->
-          <el-table :data="addExamQuestion" border style="margin-top: 10px">
-
-            <el-table-column label="题库" width="155" align="center">
-              <template slot-scope="scope">
-                <el-select clearable v-model="scope.row.bankName" placeholder="请选择题库"
-                           style="margin-left: 5px">
-                  <el-option
-                    v-for="item in allBank"
-                    :key="item.questionBank.bankId"
-                    :label="item.questionBank.bankName"
-                    :value="item.questionBank.bankName">
-                  </el-option>
-                </el-select>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="单选题分数" align="center">
-              <template slot-scope="scope">
-                <el-input v-model="scope.row.singleScore" style="margin-left: 5px"></el-input>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="多选题分数" align="center">
-              <template slot-scope="scope">
-                <el-input v-model="scope.row.multipleScore" style="margin-left: 5px"></el-input>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="判断题分数" align="center">
-              <template slot-scope="scope">
-                <el-input v-model="scope.row.judgeScore" style="margin-left: 5px"></el-input>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="简答题分数" align="center">
-              <template slot-scope="scope">
-                <el-input v-model="scope.row.shortScore" style="margin-left: 5px"></el-input>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="操作" width="80" align="center">
-              <template slot-scope="scope">
-                <el-button type="danger" icon="el-icon-delete" circle @click="delBank(scope.row.bankId)"></el-button>
-              </template>
-            </el-table-column>
-
-          </el-table>
-        </div>
-
-        <!-- 自由组卷内容-->
-        <div v-show="makeModel === 2">
+        <div>
           <el-card>
             <h1>题目列表</h1>
             <el-button type="primary" icon="el-icon-plus" size="small" @click="showAddDialog">添加试题</el-button>
 
-            <el-table :data="addExamQuestion2" border style="margin-top: 10px">
+            <el-table v-loading="pageLoading" :data="updateExamQuestion" border style="margin-top: 10px">
 
               <el-table-column
                 type="index"
@@ -133,17 +71,17 @@
 
       <!--设置考试权限-->
       <el-card v-show="curStep === 2">
-        <el-radio-group v-model="examAuthority" size="medium">
+        <el-radio-group v-model="examInfo.type" size="medium">
           <el-radio :label="1" border>完全公开</el-radio>
           <el-radio :label="2" border>需要密码</el-radio>
         </el-radio-group>
 
         <el-alert style="margin-top: 15px"
-                  :title="examAuthority === 1? '开放的，任何人都可以进行考试！' : '半开放的，知道密码的人员才可以考试！'"
+                  :title="examInfo.type === 1? '开放的，任何人都可以进行考试！' : '半开放的，知道密码的人员才可以考试！'"
                   type="warning">
         </el-alert>
 
-        <el-input style="margin-top: 15px;width: 20%" v-model="examPassword" v-show="examAuthority === 2"
+        <el-input style="margin-top: 15px;width: 20%" v-model="examInfo.password" v-show="examInfo.type === 2"
                   type="password" show-password placeholder="输入考试密码"></el-input>
       </el-card>
 
@@ -160,7 +98,7 @@
             <el-input v-model="examInfo.examDesc"></el-input>
           </el-form-item>
 
-          <el-form-item v-show="makeModel === 2" label="总分数" prop="totalScore">
+          <el-form-item label="总分数" prop="totalScore">
             <el-input-number :value="sumTotalScore" :disabled="true"></el-input-number>
           </el-form-item>
 
@@ -293,7 +231,7 @@
 
 <script>
   export default {
-    name: 'AddExam',
+    name: 'UpdateExam',
     data () {
       return {
         //查询题目的参数
@@ -324,39 +262,26 @@
             name: '简答题',
           },
         ],
-        //当前的步骤
-        curStep: 1,
-        //组卷模式
-        makeModel: 1,
-        //添加考试题目信息(makeModel = 1的时候)
-        addExamQuestion: [],
         //所有题库信息
         allBank: [],
-        //添加考试题目信息(makeModel = 2 的时候)
-        addExamQuestion2: [],
-        //所有题目的对话框
+        //当前的步骤
+        curStep: 1,
+        //考试题目信息
+        updateExamQuestion: [],
+        //添加题库的对话框
         showQuestionDialog: false,
         //对话框中题目表格的加载
         loading: true,
+        //页面中的题目列表表格
+        pageLoading: true,
         //所有题目的信息
         questionInfo: [],
         //所有题目的对话框中表格被选中
         selectedTable: [],
-        //所有题目总数
+        //对话框中题目的总数
         total: 0,
-        //考试权限(1公开, 2密码)
-        examAuthority: 1,
-        //考试密码(权限为2时的密码)
-        examPassword: '',
-        //补充的考试信息
-        examInfo: {
-          'examId': '',
-          'examDesc': '',
-          'passScore': 0,
-          'examDuration': '',
-          'startTime': '',
-          'endTime': ''
-        },
+        //当前考试的信息
+        examInfo: {},
         //补充的考试信息的表单验证
         examInfoRules: {
           examName: [
@@ -386,8 +311,9 @@
     props: ['tagInfo'],
     created () {
       //一创建就改变头部的面包屑
-      this.$emit('giveChildChangeBreakInfo', '添加考试', '添加考试')
+      this.$emit('giveChildChangeBreakInfo', '更新考试', '更新考试')
       this.createTagsInParent()
+      this.getExamInfo()
       this.getBankInfo()
     },
     methods: {
@@ -396,14 +322,39 @@
         let flag = false
         this.tagInfo.map(item => {
           //如果tags全部符合
-          if (item.name === '添加考试' && item.url === this.$route.path) {
+          if (item.name === '更新考试' && item.url === this.$route.path) {
             flag = true
-          } else if (item.name === '添加考试' && item.url !== this.$route.path) {
-            this.$emit('updateTagInfo', '添加考试', this.$route.path)
+          } else if (item.name === '更新考试' && item.url !== this.$route.path) {
+            this.$emit('updateTagInfo', '更新考试', this.$route.path)
             flag = true
           }
         })
-        if (!flag) this.$emit('giveChildAddTag', '添加考试', this.$route.path)
+        if (!flag) this.$emit('giveChildAddTag', '更新考试', this.$route.path)
+      },
+      //根据考试的id查询考试的信息和题目的信息
+      async getExamInfo () {
+        await this.$http.get(this.API.getExamInfoById, { params: this.$route.params }).then((resp) => {
+          if (resp.data.code === 200) {
+            this.examInfo = resp.data.data
+            let scores = resp.data.data.scores.split(',')
+            resp.data.data.questionIds.split(',').forEach((item, index) => {
+              this.$http.get(this.API.getQuestionById + '/' + item).then((r) => {
+                this.updateExamQuestion.push({
+                  'questionId': parseInt(item),
+                  'questionType': r.data.data.questionType,
+                  'questionContent': r.data.data.questionContent,
+                  'score': scores[index]
+                })
+              })
+            })
+            this.pageLoading = false
+          }
+        })
+      },
+      //自由组卷时添加试题
+      showAddDialog () {
+        this.showQuestionDialog = true
+        this.getQuestionInfo()
       },
       //获取所有的题库信息
       getBankInfo () {
@@ -425,44 +376,6 @@
           }
         })
       },
-      //删除当前需要去除的题库
-      delBank (bankId) {
-        this.addExamQuestion.forEach((item, index) => {
-          if (item.bankId === bankId) this.addExamQuestion.splice(index, 1)
-        })
-      },
-      //添加题库组卷中的题库
-      addBank () {
-        this.addExamQuestion.push(
-          {
-            'bankName': '',
-            'singleScore': 1,
-            'multipleScore': 1,
-            'judgeScore': 1,
-            'shortScore': 1
-          })
-      },
-      //自由组卷时添加试题
-      showAddDialog () {
-        this.showQuestionDialog = true
-        this.getQuestionInfo()
-      },
-      //自由组卷时删除试题
-      delQuestion (questionId) {
-        this.addExamQuestion2.forEach((item, index) => {
-          if (item.questionId === questionId) this.addExamQuestion2.splice(index, 1)
-        })
-      },
-      //题目类型变化
-      typeChange (val) {
-        this.queryInfo.questionType = val
-        this.getQuestionInfo()
-      },
-      //题库变化
-      bankChange (val) {
-        this.queryInfo.questionBank = val
-        this.getQuestionInfo()
-      },
       //获取题目信息
       getQuestionInfo () {
         this.$http.get(this.API.getQuestion, { params: this.queryInfo }).then((resp) => {
@@ -480,9 +393,51 @@
           }
         })
       },
+      //自由组卷时删除试题
+      delQuestion (questionId) {
+        this.updateExamQuestion.forEach((item, index) => {
+          if (item.questionId === questionId) this.updateExamQuestion.splice(index, 1)
+        })
+      },
+      //题目类型变化
+      typeChange (val) {
+        this.queryInfo.questionType = val
+        this.getQuestionInfo()
+      },
+      //题库变化
+      bankChange (val) {
+        this.queryInfo.questionBank = val
+        this.getQuestionInfo()
+      },
+      //自由组卷中选中的题目添加进去
+      addQuToFree () {
+        this.selectedTable.forEach(item => {
+          if (!this.updateExamQuestion.some(i2 => {
+            return i2.questionId === item.id
+          })) {//不存在有当前题目
+            this.updateExamQuestion.push({
+              'questionId': item.id,
+              'questionContent': item.quContent,
+              'questionType': item.quType,
+              'score': 1
+            })
+          }
+        })
+        this.showQuestionDialog = false
+      },
       //处理表格被选中
       handleTableSectionChange (val) {
         this.selectedTable = val
+      },
+      //分页页面大小改变
+      handleSizeChange (val) {
+        this.queryInfo.pageSize = val
+        this.getQuestionInfo()
+      },
+      //分页插件的页数
+      handleCurrentChange (val) {
+        this.queryInfo.pageNo = val
+        this.getQuestionInfo()
       },
       //查询所有题目的数据
       getQuestionTotal () {
@@ -504,83 +459,34 @@
           }
         })
       },
-      //分页页面大小改变
-      handleSizeChange (val) {
-        this.queryInfo.pageSize = val
-        this.getQuestionInfo()
-      },
-      //分页插件的页数
-      handleCurrentChange (val) {
-        this.queryInfo.pageNo = val
-        this.getQuestionInfo()
-      },
-      //自由组卷中选中的题目添加进去
-      addQuToFree () {
-        this.selectedTable.forEach(item => {
-          if (!this.addExamQuestion2.some(i2 => {
-            return i2.questionId === item.id
-          })) {//不存在有当前题目
-            this.addExamQuestion2.push({
-              'questionId': item.id,
-              'questionContent': item.quContent,
-              'questionType': item.quType,
-              'score': 1
-            })
-          }
-        })
-        this.showQuestionDialog = false
-      },
-      //组卷模式变化
-      makeModelChange () {
-        this.$confirm('此操作将丢失当前组卷数据, 是否继续?', 'Tips', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.makeModel === 1 ? this.addExamQuestion2 = [] : this.addExamQuestion = []
-        }).catch(() => {
-        })
-      },
-      //添加考试
-      addExam () {
+      //更新考试
+      updateExam () {
         this.$refs['examInfoForm'].validate((valid) => {
-          if (valid && (this.addExamQuestion.length !== 0 || this.addExamQuestion2.length !== 0)) {
+          if (valid) {
             //构造数据对象(考试信息)
             let exam = this.examInfo
-            exam.totalScore = this.sumTotalScore
-            exam.status = 1
-            //权限id设置
-            exam.type = this.examAuthority
-            if (this.examAuthority === 2) {//考试密码
-              exam.password = this.examPassword
-            }
-            //题库组卷模式
-            if (this.makeModel === 1 && !this.addExamQuestion.some(item => item.bankId === '')) {
-              console.log(this.addExamQuestion)
-              let bankNames = []
-              this.addExamQuestion.forEach(item => bankNames.push(item.bankName))
-              exam.bankNames = bankNames.join(',')
-              exam.singleScore = this.addExamQuestion[0].singleScore
-              exam.multipleScore = this.addExamQuestion[0].multipleScore
-              exam.judgeScore = this.addExamQuestion[0].judgeScore
-              exam.shortScore = this.addExamQuestion[0].shortScore
-              this.$http.post(this.API.addExamByBank, exam).then((resp) => {
-                if (resp.data.code === 200) this.$router.push('/examManage')
-              })
-            } else if (this.makeModel === 2) {//自由组卷模式
+            if (this.updateExamQuestion.length !== 0) {//自由组卷模式
+              exam.type === 1 ? exam.password = null : ''
               //题目id数组
               let questionIds = []
               //题目成绩数组
               let scores = []
-              this.addExamQuestion2.forEach(item => {
+              this.updateExamQuestion.forEach(item => {
                 questionIds.push(item.questionId)
                 scores.push(item.score)
               })
               exam.questionIds = questionIds.join(',')
               exam.scores = scores.join(',')
-              console.log(exam)
-              this.$http.post(this.API.addExamByQuestionList, exam).then((resp) => {
-                if (resp.data.code === 200) this.$router.push('/examManage')
+              this.$http.post(this.API.updateExamInfo, exam).then((resp) => {
+                if (resp.data.code === 200) {
+                  this.$notify({
+                    type:'success',
+                    title:'Tips',
+                    message: resp.data.message,
+                    duration: 2000
+                  })
+                  this.$router.push('/examManage')
+                }
               })
             } else {
               this.$message.error('请检查考试规则设置是否完整')
@@ -595,13 +501,12 @@
     computed: {
       //计算总分
       sumTotalScore () {
-        if (this.makeModel === 2) {
-          let score = 0
-          this.addExamQuestion2.forEach(item => {
-            score += parseInt(item.score)
-          })
-          return score
-        }
+        let score = 0
+        this.updateExamQuestion.forEach(item => {
+          score += parseInt(item.score)
+        })
+        this.examInfo.totalScore = score
+        return score
       }
     }
   }
