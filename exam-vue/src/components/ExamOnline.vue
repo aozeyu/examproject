@@ -88,7 +88,7 @@
         type="error">
       </el-alert>
 
-      <el-card>
+      <el-card style="margin-top: 25px">
         <span>考试名称：</span>{{ currentSelectedExam.examName }}
         <br>
         <span>考试描述：</span>{{ currentSelectedExam.examDesc }}
@@ -106,7 +106,7 @@
 
       <span slot="footer" class="dialog-footer">
     <el-button @click="startExamDialog = false">返 回</el-button>
-    <el-button type="primary">开始考试</el-button>
+    <el-button type="primary" @click="$router.push('/exam/'+ currentSelectedExam.examId)">开始考试</el-button>
   </span>
     </el-dialog>
   </el-container>
