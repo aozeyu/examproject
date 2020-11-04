@@ -8,7 +8,8 @@
           <span class="examTitle">距离考试结束还有：</span>
           <span style="color: red;font-size: 18px;">{{ duration | timeFormat }}</span>
           <el-button type="warning" round
-                     style="background-color: #ffd550;float: right;color: black;font-weight: 800" @click="uploadExamToAdmin">提交试卷
+                     style="background-color: #ffd550;float: right;color: black;font-weight: 800"
+                     @click="uploadExamToAdmin">提交试卷
           </el-button>
         </el-col>
       </el-row>
@@ -252,10 +253,10 @@
       //查询当前考试的信息
       getExamInfo () {
         this.$http.get(this.API.getExamInfoById, { params: this.$route.params }).then((resp) => {
-          console.log(resp)
           if (resp.data.code === 200) {
             this.examInfo = resp.data.data
             //设置定时(秒)
+            if (localStorage.getItem('examDuration') === '0') localStorage.removeItem('examDuration')
             this.duration = localStorage.getItem('examDuration') || resp.data.data.examDuration * 60
             //定时器
             window.setInterval(() => {
@@ -266,12 +267,16 @@
         })
       },
       //查询考试的题目信息
-      getQuestionInfo (ids) {
-        ids.forEach((item, index) => {
+      async getQuestionInfo (ids) {
+        await ids.forEach((item, index) => {
           this.$http.get(this.API.getQuestionById + '/' + item).then((resp) => {
             if (index === 0) this.questionInfo = []
             if (resp.data.code === 200) {
               this.questionInfo.push(resp.data.data)
+              //重置问题的顺序 单选 多选 判断 简答
+              this.questionInfo = this.questionInfo.sort(function (a, b) {
+                return a.questionType - b.questionType
+              })
             }
           })
         })
@@ -378,7 +383,20 @@
       },
       //上传用户考试信息进入后台
       uploadExamToAdmin () {
-
+        if (this.cameraOn) {//不开摄像头 不让提交
+          if (this.userAnswer.some(item => item === undefined)){//有题目未做完 不允许提交
+            let questionIds = []
+            this.questionInfo.forEach(item => {
+              questionIds.push(item.questionId)
+            })
+            console.log(this.userAnswer)
+            console.log(questionIds)
+          }else {
+            this.$message.error('请做完所有题目，端正态度o(╥﹏╥)o')
+          }
+        } else {
+          this.$message.error('请开启摄像头权限o(╥﹏╥)o，请刷新后重试~!')
+        }
       }
     },
     watch: {
