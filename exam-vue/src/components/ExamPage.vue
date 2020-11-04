@@ -6,8 +6,9 @@
         <el-col :span="18" :offset="3" style="border-bottom: 1px solid #f5f5f5">
           <span class="startExam">开始考试</span>
           <span class="examTitle">距离考试结束还有：</span>
+          <span style="color: red;font-size: 18px;">{{ duration | timeFormat }}</span>
           <el-button type="warning" round
-                     style="background-color: #ffd550;float: right;color: black;font-weight: 800">提交试卷
+                     style="background-color: #ffd550;float: right;color: black;font-weight: 800" @click="uploadExamToAdmin">提交试卷
           </el-button>
         </el-col>
       </el-row>
@@ -16,7 +17,7 @@
     <el-main>
       <el-row>
         <el-col :span="18" :offset="3">
-          <el-col :span="16" >
+          <el-col :span="16">
             <el-card style="min-height: 500px">
               <!--题目信息-->
               <div>
@@ -144,6 +145,9 @@
 
         </el-col>
       </el-row>
+      <video id="video" muted="muted" style="float:right;position: fixed;top: 80%;left: 85%" width="200px"
+             height="200px" autoplay="autoplay"></video>
+      <canvas id="canvas" width="200px" height="200px"></canvas>
     </el-main>
     <!--图片回显-->
     <el-dialog :visible.sync="bigImgDialog" @close="bigImgDialog = false">
@@ -181,17 +185,68 @@
         show: false,
         //答案的选项名abcd数据
         optionName: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+        //考试总时长
+        duration: 0,
+        //摄像头对象
+        mediaStreamTrack: null,
+        //诚信照片的url
+        takePhotoUrl: [],
+        //摄像头是否开启
+        cameraOn: false
       }
     },
     created () {
       this.getExamInfo()
-      //页面数据加载
+      //页面数据加载的等待状态栏
       this.loading = this.$Loading.service({
         body: true,
         lock: true,
         text: '数据拼命加载中,(*╹▽╹*)',
         spinner: 'el-icon-loading',
       })
+      //开启摄像头
+      window.onload = () => {
+        setTimeout(() => {
+          this.getCamera()
+        }, 2000)
+      }
+      //生成3次时间点截图
+      let times = []
+      for (let i = 0; i < 3; i++) {
+        times.push(Math.ceil(Math.random() * this.duration * 1000))
+      }
+      //一次考试最多3次随机的诚信截图
+      times.forEach(item => {
+        window.setTimeout(() => {
+          this.takePhoto()
+        }, item)
+      })
+    },
+    mounted () {
+      //关闭浏览器窗口的时候移除 localstorage的时长
+      var userAgent = navigator.userAgent //取得浏览器的userAgent字符串
+      var isOpera = userAgent.indexOf('Opera') > -1 //判断是否Opera浏览器
+      var isIE = userAgent.indexOf('compatible') > -1 && userAgent.indexOf('MSIE') > -1 && !isOpera //判断是否IE浏览器
+      var isIE11 = userAgent.indexOf('rv:11.0') > -1 //判断是否是IE11浏览器
+      var isEdge = userAgent.indexOf('Edge') > -1 && !isIE //判断是否IE的Edge浏览器
+      if (!isIE && !isEdge && !isIE11) {//兼容chrome和firefox
+        var _beforeUnload_time = 0, _gap_time = 0
+        var is_fireFox = navigator.userAgent.indexOf('Firefox') > -1//是否是火狐浏览器
+        window.onunload = function () {
+          _gap_time = new Date().getTime() - _beforeUnload_time
+          if (_gap_time <= 5) {
+            localStorage.removeItem('examDuration')
+          } else {//谷歌浏览器刷新
+          }
+        }
+        window.onbeforeunload = function () {
+          _beforeUnload_time = new Date().getTime()
+          if (is_fireFox) {//火狐关闭执行
+
+          } else {//火狐浏览器刷新
+          }
+        }
+      }
     },
     methods: {
       //查询当前考试的信息
@@ -200,8 +255,12 @@
           console.log(resp)
           if (resp.data.code === 200) {
             this.examInfo = resp.data.data
-            //设置定时
-
+            //设置定时(秒)
+            this.duration = localStorage.getItem('examDuration') || resp.data.data.examDuration * 60
+            //定时器
+            window.setInterval(() => {
+              if (this.duration > 0) this.duration--
+            }, 1000)
             this.getQuestionInfo(resp.data.data.questionIds.split(','))
           }
         })
@@ -254,7 +313,83 @@
           }).join(',')
         }
       },
+      //调用摄像头
+      getCamera () {
+        let constraints = {
+          video: {
+            width: 200,
+            height: 200
+          },
+          audio: false
+        }
+        //获得video摄像头
+        let video = document.getElementById('video')
+        let promise = navigator.mediaDevices.getUserMedia(constraints)
+        promise.then((mediaStream) => {
+          this.mediaStreamTrack = typeof mediaStream.stop === 'function' ? mediaStream : mediaStream.getTracks()[1]
+          video.srcObject = mediaStream
+          video.play()
+          this.cameraOn = true
+        }).catch((back) => {
+          this.$message.error('请开启摄像头权限o(╥﹏╥)o,请刷新后重试~!')
+        })
+      },
+      //拍照
+      takePhoto () {
+        if (this.cameraOn) {//摄像头是否开启 开启了才执行上传信用图片
+          //获得Canvas对象
+          let video = document.getElementById('video')
+          let canvas = document.getElementById('canvas')
+          let ctx = canvas.getContext('2d')
+          ctx.drawImage(video, 0, 0, 200, 200)
+          // toDataURL  ---  可传入'image/png'---默认, 'image/jpeg'
+          let img = document.getElementById('canvas').toDataURL()
+
+          //构造post的form表单
+          let formData = new FormData()
+          //convertBase64UrlToBlob函数是将base64编码转换为Blob
+          formData.append('file', this.base64ToFile(img, 'examTakePhoto.png'))
+          //上传阿里云OSS
+          this.$http.post(this.API.uploadQuestionImage, formData).then((resp) => {
+            if (resp.data.code === 200) this.takePhotoUrl.push(resp.data.data)
+          })
+        }
+      },
+      //关闭摄像头
+      closeCamera () {
+        let stream = document.getElementById('video').srcObject
+        let tracks = stream.getTracks()
+        tracks.forEach(function (track) {
+          track.stop()
+        })
+        document.getElementById('video').srcObject = null
+      },
+      //将摄像头截图的base64串转化为file提交后台
+      base64ToFile (urlData, fileName) {
+        let arr = urlData.split(',')
+        let mime = arr[0].match(/:(.*?);/)[1]
+        let bytes = atob(arr[1]) // 解码base64
+        let n = bytes.length
+        let ia = new Uint8Array(n)
+        while (n--) {
+          ia[n] = bytes.charCodeAt(n)
+        }
+        return new File([ia], fileName, { type: mime })
+      },
+      //上传用户考试信息进入后台
+      uploadExamToAdmin () {
+
+      }
     },
+    watch: {
+      //监控考试的剩余时间
+      duration (newVal) {
+        localStorage.setItem('examDuration', newVal)
+        if (newVal <= 1) {//考试时间结束了提交试卷
+
+        }
+      }
+    }
   }
 </script>
 
@@ -326,7 +461,7 @@
     background-color: rgb(255, 213, 80);
   }
 
-  .num{
+  .num {
     display: inline-block;
     background: url('../assets/imgs/examTitle.png') no-repeat 100% 100%;
     background-size: contain;
