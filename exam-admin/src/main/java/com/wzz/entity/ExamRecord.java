@@ -34,13 +34,13 @@ public class ExamRecord implements Serializable {
     @ApiModelProperty(value = "考试过程中的信用截图", example = "imgUrl")
     private String creditImgUrl;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "考试时间", example = "2020-10-20")
     private Date examTime;
 
     @ApiModelProperty(value = "考试逻辑得分", example = "69")
-    private Integer logic_score;
+    private Integer logicScore;
 
     @ApiModelProperty(value = "考试的id", example = "1")
     private Integer examId;

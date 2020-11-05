@@ -1,7 +1,9 @@
 package com.wzz.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.CheckToken;
+import com.wzz.Util.RedisUtil;
 import com.wzz.Util.SaltEncryption;
 import com.wzz.Util.TokenUtils;
 import com.wzz.entity.User;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -37,6 +40,13 @@ public class CommonController {
 
     @Autowired
     private UserRoleServiceImpl userRoleService;
+
+    //注入自己的redis工具类
+    @Autowired
+    private RedisUtil redisUtil;
+
+    //jackson
+    ObjectMapper mapper = new ObjectMapper();
 
     @ApiOperation("用户注册接口")
     @PostMapping("/register")
@@ -91,22 +101,28 @@ public class CommonController {
     @ApiOperation(value = "用户主动退出登录")
     public CommonResult<String> logout() {
         log.info("执行了===>CommonController中的logout方法");
-        return new CommonResult<>(200,"退出成功");
+        return new CommonResult<>(200, "退出成功");
     }
 
     @GetMapping("/getMenu")
     @ApiOperation(value = "获取不同用户的权限菜单")
-    public CommonResult<String> getMenu(HttpServletRequest request) {
+    public CommonResult<Object> getMenu(HttpServletRequest request) {
         log.info("执行了===>CommonController中的getMenu方法");
         //工具类验证token是否有效 有效返回tokenVo对象,否则返回null
         TokenVo tokenVo = new CheckToken().checkToken(request, userService);
         System.out.println(tokenVo);
         if (tokenVo != null) {//有效token
-            String roleId = tokenVo.getRoleId();
-            QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
-            wrapper.eq("role_id", roleId);
-            UserRole userRole = userRoleService.getOne(wrapper);
-            return new CommonResult<>(200, "success", userRole.getMenuInfo());
+            if (redisUtil.get("menu:" + tokenVo.getRoleId()) != null) {
+                return new CommonResult<>(200, "success", redisUtil.get("menu" + tokenVo.getRoleId()));
+            } else {
+                String roleId = tokenVo.getRoleId();
+                QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
+                wrapper.eq("role_id", roleId);
+                UserRole userRole = userRoleService.getOne(wrapper);
+                redisUtil.set("menu:" + tokenVo.getRoleId(), userRole.getMenuInfo(), 60 * 60 * 10 + new Random().nextInt(5) * 60 * 60);
+                return new CommonResult<>(200, "success", userRole.getMenuInfo());
+            }
+
         } else {
             return new CommonResult<>(233, "认证信息有误,获取数据失败");
         }

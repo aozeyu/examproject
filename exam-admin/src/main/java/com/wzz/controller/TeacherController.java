@@ -1,8 +1,6 @@
 package com.wzz.controller;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.segments.MergeSegments;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -16,7 +14,6 @@ import com.wzz.service.impl.*;
 import com.wzz.vo.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @Date 2020/10/24 15:42
@@ -839,6 +835,7 @@ public class TeacherController {
     @PostMapping("/addExamRecord")
     @ApiOperation("保存考试记录信息,返回保存记录的id")
     public CommonResult<Integer> addExamRecord(@RequestBody ExamRecord examRecord, HttpServletRequest request) {
+        log.info("执行了===>TeacherController中的addExamRecord方法");
         String token = request.getHeader("authorization");
         //当前用户对象的信息
         TokenVo tokenVo = TokenUtils.verifyToken(token);
@@ -882,7 +879,7 @@ public class TeacherController {
                 }
             }
         }
-        examRecord.setLogic_score(logicScore);
+        examRecord.setLogicScore(logicScore);
         if (sf.length() > 0) {//存在错的逻辑题
             examRecord.setErrorQuestionIds(sf.toString().substring(0, sf.toString().length() - 1));
         }
@@ -893,5 +890,29 @@ public class TeacherController {
         return new CommonResult<>(200, "考试记录保存成功", id);
     }
 
+    @GetMapping("/getExamRecordById/{recordId}")
+    @ApiOperation("根据考试的记录id查询用户考试的信息")
+    public CommonResult<Object> getExamRecordById(@PathVariable Integer recordId) {
+        log.info("执行了===>TeacherController中的getExamRecordById方法");
+        if (redisUtil.get("examRecord:" + recordId) != null) {
+            return new CommonResult<>(200, "考试信息查询成功", redisUtil.get("examRecord:" + recordId));
+        } else {
+            ExamRecord examRecord = examRecordService.getOne(new QueryWrapper<ExamRecord>().eq("record_id", recordId));
+            redisUtil.set("examRecord:" + recordId, examRecord,60 * 5 + new Random().nextInt(2) * 60);
+            return new CommonResult<>(200, "考试信息查询成功", examRecord);
+        }
+    }
+
+    @GetMapping("/getExamQuestionByExamId/{examId}")
+    @ApiOperation("根据考试id查询考试中的每一道题目id和分值")
+    public CommonResult<Object> getExamQuestionByExamId(@PathVariable Integer examId){
+        log.info("执行了===>TeacherController中的getExamQuestionByExamId方法");
+        if (redisUtil.get("examQuestion:"+examId)!=null){
+            return new CommonResult<>(200,"查询考试中题目和分值成功",redisUtil.get("examQuestion:"+examId));
+        }else {
+            ExamQuestion examQuestion = examQuestionService.getOne(new QueryWrapper<ExamQuestion>().eq("exam_id", examId));
+            return new CommonResult<>(200,"查询考试中题目和分值成功",examQuestion);
+        }
+    }
 
 }
