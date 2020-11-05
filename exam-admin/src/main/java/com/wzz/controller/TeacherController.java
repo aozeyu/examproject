@@ -9,6 +9,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.OSSUtil;
 import com.wzz.Util.RedisUtil;
+import com.wzz.Util.SaltEncryption;
+import com.wzz.Util.TokenUtils;
 import com.wzz.entity.*;
 import com.wzz.service.impl.*;
 import com.wzz.vo.*;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -37,10 +40,16 @@ public class TeacherController {
     private ExamServiceImpl examService;
 
     @Autowired
+    private UserServiceImpl userService;
+
+    @Autowired
     private QuestionServiceImpl questionService;
 
     @Autowired
     private ExamQuestionServiceImpl examQuestionService;
+
+    @Autowired
+    private ExamRecordServiceImpl examRecordService;
 
     @Autowired
     private QuestionBankServiceImpl questionBankService;
@@ -826,5 +835,63 @@ public class TeacherController {
         redisUtil.del("examInfo:" + exam.getExamId());
         return new CommonResult<>(200, "更新成功");
     }
+
+    @PostMapping("/addExamRecord")
+    @ApiOperation("保存考试记录信息,返回保存记录的id")
+    public CommonResult<Integer> addExamRecord(@RequestBody ExamRecord examRecord, HttpServletRequest request) {
+        String token = request.getHeader("authorization");
+        //当前用户对象的信息
+        TokenVo tokenVo = TokenUtils.verifyToken(token);
+        User user = userService.getOne(new QueryWrapper<User>().eq("username", tokenVo.getUsername()));
+        //设置考试信息的字段
+        examRecord.setUserId(user.getId());
+        //设置id
+        List<ExamRecord> examRecords = examRecordService.list(new QueryWrapper<>());
+        int id = 1;
+        if (examRecords.size() > 0) {
+            id = examRecords.get(examRecords.size() - 1).getRecordId() + 1;
+        }
+        examRecord.setRecordId(id);
+
+        //设置逻辑题目的分数
+        //查询所有的题目答案信息
+        List<Answer> answers = answerService.list(new QueryWrapper<Answer>().in("question_id", Arrays.asList(examRecord.getQuestionIds().split(","))));
+        //查询考试的题目的分数
+        HashMap<String, String> map = new HashMap<>();//key是题目的id  value是题目分值
+        ExamQuestion examQuestion = examQuestionService.getOne(new QueryWrapper<ExamQuestion>().eq("exam_id", examRecord.getExamId()));
+        //题目的id
+        String[] ids = examQuestion.getQuestionIds().split(",");
+        //题目在考试中对应的分数
+        String[] scores = examQuestion.getScores().split(",");
+        for (int i = 0; i < ids.length; i++) {
+            map.put(ids[i], scores[i]);
+        }
+        //逻辑分数
+        int logicScore = 0;
+        //错题的id
+        StringBuffer sf = new StringBuffer();
+        //用户的答案
+        String[] userAnswers = examRecord.getUserAnswers().split("-");
+        for (int i = 0; i < examRecord.getQuestionIds().split(",").length; i++) {
+            int index = SaltEncryption.getIndex(answers, Integer.parseInt(examRecord.getQuestionIds().split(",")[i]));
+            if (index != -1) {
+                if (Objects.equals(userAnswers[i], answers.get(index).getTrueOption())) {
+                    logicScore += Integer.parseInt(map.get(examRecord.getQuestionIds().split(",")[i]));
+                } else {
+                    sf.append(examRecord.getQuestionIds().split(",")[i]).append(",");
+                }
+            }
+        }
+        examRecord.setLogic_score(logicScore);
+        if (sf.length() > 0) {//存在错的逻辑题
+            examRecord.setErrorQuestionIds(sf.toString().substring(0, sf.toString().length() - 1));
+        }
+
+        System.out.println(examRecord);
+        examRecord.setExamTime(new Date());
+        examRecordService.save(examRecord);
+        return new CommonResult<>(200, "考试记录保存成功", id);
+    }
+
 
 }
