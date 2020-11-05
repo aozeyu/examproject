@@ -66,7 +66,11 @@ let API = {
     //更新考试的规则信息
     updateExamInfo: '/teacher/updateExamInfo',
     //新增考试记录
-    addExamRecord: '/teacher/addExamRecord'
+    addExamRecord: '/teacher/addExamRecord',
+    //根据考试记录的id查询考试记录信息
+    getExamRecordById: '/teacher/getExamRecordById',
+    //根据考试id查询考试中的每一道题目id和分值
+    getExamQuestionByExamId: '/teacher/getExamQuestionByExamId'
   },
 }
 

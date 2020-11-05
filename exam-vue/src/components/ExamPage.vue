@@ -393,7 +393,6 @@
             let data = {}
             data.userAnswers = this.userAnswer.join('-')
             data.examId = parseInt(this.$route.params.examId)
-            data.examTime = new Date()
             data.questionIds = []
             this.questionInfo.forEach(item => {
               data.questionIds.push(item.questionId)
