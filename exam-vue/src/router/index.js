@@ -75,6 +75,12 @@ const routes = [
         path: '/examOnline',
         component: () => import('../components/ExamOnline')
       },
+      //考试结果页(学生和超级管理员)
+      {
+        path: '/examResult/:recordId',
+        name: 'examResult',
+        component: () => import('../components/ExamResult')
+      }
     ]
   },
   //考试界面(管理员和学生)
@@ -119,7 +125,8 @@ router.beforeEach((to, from, next) => {
   }
 
   //超级管理员 + 学生
-  if (to.path === '/myQuestionBank' || to.name === 'trainPage' || to.path === '/examOnline' || to.name === 'exam') {
+  if (to.path === '/myQuestionBank' || to.name === 'trainPage' || to.path === '/examOnline'
+    || to.name === 'exam' || to.name === 'examResult') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId !== '2') {
         next()

@@ -65,6 +65,8 @@ let API = {
     getExamInfoById: '/teacher/getExamInfoById',
     //更新考试的规则信息
     updateExamInfo: '/teacher/updateExamInfo',
+    //新增考试记录
+    addExamRecord: '/teacher/addExamRecord'
   },
 }
 

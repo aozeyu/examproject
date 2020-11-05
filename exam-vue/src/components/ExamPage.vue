@@ -148,7 +148,7 @@
       </el-row>
       <video id="video" muted="muted" style="float:right;position: fixed;top: 80%;left: 85%" width="200px"
              height="200px" autoplay="autoplay"></video>
-      <canvas id="canvas" width="200px" height="200px"></canvas>
+      <canvas id="canvas" hidden width="200px" height="200px"></canvas>
     </el-main>
     <!--图片回显-->
     <el-dialog :visible.sync="bigImgDialog" @close="bigImgDialog = false">
@@ -210,18 +210,20 @@
         setTimeout(() => {
           this.getCamera()
         }, 2000)
+
+        //生成3次时间点截图
+        let times = []
+        for (let i = 0; i < 2; i++) {
+          times.push(Math.ceil(Math.random() * this.duration * 1000))
+        }
+        times.push(5000)
+        //一次考试最多3次随机的诚信截图
+        times.forEach(item => {
+          window.setTimeout(() => {
+            this.takePhoto()
+          }, item)
+        })
       }
-      //生成3次时间点截图
-      let times = []
-      for (let i = 0; i < 3; i++) {
-        times.push(Math.ceil(Math.random() * this.duration * 1000))
-      }
-      //一次考试最多3次随机的诚信截图
-      times.forEach(item => {
-        window.setTimeout(() => {
-          this.takePhoto()
-        }, item)
-      })
     },
     mounted () {
       //关闭浏览器窗口的时候移除 localstorage的时长
@@ -382,17 +384,28 @@
         return new File([ia], fileName, { type: mime })
       },
       //上传用户考试信息进入后台
-      uploadExamToAdmin () {
+      async uploadExamToAdmin () {
         if (this.cameraOn) {//不开摄像头 不让提交
-          if (this.userAnswer.some(item => item === undefined)){//有题目未做完 不允许提交
-            let questionIds = []
-            this.questionInfo.forEach(item => {
-              questionIds.push(item.questionId)
-            })
-            console.log(this.userAnswer)
-            console.log(questionIds)
-          }else {
+          if (this.userAnswer.length !== this.questionInfo.length) {//有题目未做完 不允许提交
             this.$message.error('请做完所有题目，端正态度o(╥﹏╥)o')
+          } else {//提交允许 准备进入考试结束页
+            if (this.cameraOn) await this.takePhoto()//结束的时候拍照上传一张
+            let data = {}
+            data.userAnswers = this.userAnswer.join('-')
+            data.examId = parseInt(this.$route.params.examId)
+            data.examTime = new Date()
+            data.questionIds = []
+            this.questionInfo.forEach(item => {
+              data.questionIds.push(item.questionId)
+            })
+            data.questionIds = data.questionIds.join(',')
+            data.creditImgUrl = this.takePhotoUrl.join(',')
+            this.closeCamera()
+            this.$http.post(this.API.addExamRecord, data).then((resp) => {
+              if (resp.data.code === 200) {
+                this.$router.push('/examResult/' + resp.data.data)
+              }
+            })
           }
         } else {
           this.$message.error('请开启摄像头权限o(╥﹏╥)o，请刷新后重试~!')
@@ -404,7 +417,23 @@
       duration (newVal) {
         localStorage.setItem('examDuration', newVal)
         if (newVal <= 1) {//考试时间结束了提交试卷
-
+          if (this.cameraOn) this.takePhoto()//结束的时候拍照上传一张
+          let data = {}
+          data.userAnswers = this.userAnswer.join('-')
+          data.examId = parseInt(this.$route.params.examId)
+          data.examTime = new Date()
+          data.questionIds = []
+          this.questionInfo.forEach(item => {
+            data.questionIds.push(item.questionId)
+          })
+          data.questionIds = data.questionIds.join(',')
+          data.creditImgUrl = this.takePhotoUrl.join(',')
+          this.closeCamera()
+          this.$http.post(this.API.addExamRecord, data).then((resp) => {
+            if (resp.data.code === 200) {
+              this.$router.push('/examResult/' + resp.data.data)
+            }
+          })
         }
       }
     }
