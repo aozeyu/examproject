@@ -53,6 +53,7 @@ public class TeacherController {
     @Autowired
     private AnswerServiceImpl answerService;
 
+
     //注入自己的redis工具类
     @Autowired
     private RedisUtil redisUtil;
@@ -898,21 +899,67 @@ public class TeacherController {
             return new CommonResult<>(200, "考试信息查询成功", redisUtil.get("examRecord:" + recordId));
         } else {
             ExamRecord examRecord = examRecordService.getOne(new QueryWrapper<ExamRecord>().eq("record_id", recordId));
-            redisUtil.set("examRecord:" + recordId, examRecord,60 * 5 + new Random().nextInt(2) * 60);
+            redisUtil.set("examRecord:" + recordId, examRecord, 60 * 5 + new Random().nextInt(2) * 60);
             return new CommonResult<>(200, "考试信息查询成功", examRecord);
         }
     }
 
     @GetMapping("/getExamQuestionByExamId/{examId}")
     @ApiOperation("根据考试id查询考试中的每一道题目id和分值")
-    public CommonResult<Object> getExamQuestionByExamId(@PathVariable Integer examId){
+    public CommonResult<Object> getExamQuestionByExamId(@PathVariable Integer examId) {
         log.info("执行了===>TeacherController中的getExamQuestionByExamId方法");
-        if (redisUtil.get("examQuestion:"+examId)!=null){
-            return new CommonResult<>(200,"查询考试中题目和分值成功",redisUtil.get("examQuestion:"+examId));
-        }else {
+        if (redisUtil.get("examQuestion:" + examId) != null) {
+            return new CommonResult<>(200, "查询考试中题目和分值成功", redisUtil.get("examQuestion:" + examId));
+        } else {
             ExamQuestion examQuestion = examQuestionService.getOne(new QueryWrapper<ExamQuestion>().eq("exam_id", examId));
-            return new CommonResult<>(200,"查询考试中题目和分值成功",examQuestion);
+            return new CommonResult<>(200, "查询考试中题目和分值成功", examQuestion);
         }
     }
 
+    @GetMapping("/getExamRecord")
+    @ApiOperation("获取考试记录信息,(pageNo,pageSize)")
+    public CommonResult<List<ExamRecord>> getExamRecord(@RequestParam(required = false) Integer examId,
+                                                        Integer pageNo, Integer pageSize) {
+        log.info("执行了===>TeacherController中的getExamRecords方法");
+        //参数一是当前页，参数二是每页个数
+        IPage<ExamRecord> examRecordPage = new Page<>(pageNo, pageSize);
+        //查询条件(可选)
+        QueryWrapper<ExamRecord> wrapper = new QueryWrapper<>();
+        if (examId != null) wrapper.eq("exam_id", examId);
+
+        IPage<ExamRecord> page = examRecordService.page(examRecordPage, wrapper);
+
+        List<ExamRecord> records = page.getRecords();
+        return new CommonResult<>(200, "success", records);
+    }
+
+    @GetMapping("/getUserById/{userId}")
+    @ApiOperation("根据用户id查询用户信息")
+    public CommonResult<Object> getUserById(@PathVariable Integer userId) {
+        log.info("执行了===>TeacherController中的getUserById方法");
+        if (redisUtil.get("user:" + userId) != null) {
+            return new CommonResult<>(200, "用户信息查询成功", redisUtil.get("user:" + userId));
+        } else {
+            User user = userService.getOne(new QueryWrapper<User>().eq("id", userId));
+            redisUtil.set("user:" + userId, user, 5 * 60 + new Random().nextInt(2) * 60);
+            return new CommonResult<>(200, "用户信息查询成功", user);
+        }
+    }
+
+    @GetMapping("/allExamInfo")
+    @ApiOperation("查询考试所有信息")
+    public CommonResult<List<Exam>> allExamInfo() {
+        log.info("执行了===>TeacherController中的allExamInfo方法");
+        List<Exam> exams = examService.list(new QueryWrapper<>());
+        return new CommonResult<>(200, "所有考试信息获取成功", exams);
+    }
+
+    @GetMapping("/setObjectQuestionScore")
+    @ApiOperation("设置考试记录的客观题得分,设置总分为逻辑得分+客观题")
+    public CommonResult<String> setObjectQuestionScore(Integer totalScore,Integer examRecordId){
+        ExamRecord examRecord = examRecordService.getOne(new QueryWrapper<ExamRecord>().eq("record_id", examRecordId));
+        examRecord.setTotalScore(totalScore);
+        boolean flag = examRecordService.update(examRecord, new UpdateWrapper<ExamRecord>().eq("record_id", examRecordId));
+        return flag ? new CommonResult<>(200,"批阅成功") : new CommonResult<>(233,"批阅失败");
+    }
 }

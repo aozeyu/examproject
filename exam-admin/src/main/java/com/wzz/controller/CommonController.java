@@ -113,7 +113,7 @@ public class CommonController {
         System.out.println(tokenVo);
         if (tokenVo != null) {//有效token
             if (redisUtil.get("menu:" + tokenVo.getRoleId()) != null) {
-                return new CommonResult<>(200, "success", redisUtil.get("menu" + tokenVo.getRoleId()));
+                return new CommonResult<>(200, "success", redisUtil.get("menu:" + tokenVo.getRoleId()));
             } else {
                 String roleId = tokenVo.getRoleId();
                 QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
