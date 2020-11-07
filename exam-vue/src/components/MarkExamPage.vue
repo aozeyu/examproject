@@ -1,7 +1,7 @@
 <template>
   <el-container>
-    <el-header height="150">
-      <el-card style="height: 150px">
+    <el-header height="180">
+      <el-card style="height: 180px">
         <span class="examName">{{ examInfo.examName }}</span>
         <span class="examTime">{{ examRecord.examTime }}</span>
 
@@ -16,6 +16,7 @@
           总分: {{ examInfo.totalScore }}分</span>
           </el-tooltip>
         </el-row>
+        <el-button @click="creditDialog = true" size="small" style="margin-top: 15px" type="primary">查看诚信截图</el-button>
 
       </el-card>
 
@@ -94,6 +95,11 @@
     <el-dialog :visible.sync="bigImgDialog" @close="bigImgDialog = false">
       <img style="width: 100%" :src="bigImgUrl">
     </el-dialog>
+
+    <!--诚信考试图片-->
+    <el-dialog :visible.sync="creditDialog" @close="creditDialog = false">
+      <img style="width: 100%" :src="item" v-for="item in examRecord.creditImgUrl.split(',')">
+    </el-dialog>
   </el-container>
 </template>
 
@@ -119,7 +125,9 @@
         //用户回答的答案
         userAnswer: [],
         //单题的分值
-        questionScore: new Map()
+        questionScore: new Map(),
+        //诚信考试的图片的对话框
+        creditDialog: false
       }
     },
     props: ['tagInfo'],
@@ -226,7 +234,7 @@
             'examRecordId': this.$route.params.recordId
           }
         }).then((resp) => {
-          if (resp.data.code === 200){
+          if (resp.data.code === 200) {
             this.$notify({
               title: 'Tips',
               message: resp.data.message,

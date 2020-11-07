@@ -104,6 +104,30 @@
 
       </el-container>
 
+      <el-dialog title="更新用户信息" center :visible.sync="updateCurrentUserDialog">
+
+        <el-form :model="currentUserInfo2" :rules="updateUserFormRules" ref="updateUserForm">
+
+          <el-form-item label="用户名">
+            <el-input v-model="currentUserInfo2.username" disabled></el-input>
+          </el-form-item>
+
+          <el-form-item label="真实姓名" prop="trueName">
+            <el-input v-model="currentUserInfo2.trueName"></el-input>
+          </el-form-item>
+
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="currentUserInfo2.password" placeholder="不更改请留空"></el-input>
+          </el-form-item>
+
+        </el-form>
+
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="updateCurrentUserDialog = false">取 消</el-button>
+          <el-button type="primary" @click="updateCurrentUser">确 定</el-button>
+        </div>
+      </el-dialog>
+
     </el-main>
   </el-container>
 </template>
@@ -112,6 +136,15 @@
   export default {
     name: 'Main',
     data () {
+      var validatePassword = (rule, value, callback) => {
+        if (value === '') {
+          callback();
+        } else if (value.length < 5) {
+          callback(new Error('新密码少于5位数!'));
+        } else {
+          callback();
+        }
+      };
       return {
         //菜单信息
         menuInfo: [
@@ -147,7 +180,24 @@
             'url': '/dashboard',
             'highlight': true
           }
-        ]
+        ],
+        //跟新当前用户的信息的对话框
+        updateCurrentUserDialog: false,
+        //当前用户的信息
+        currentUserInfo2: {},
+        //更新信息表单信息
+        updateUserFormRules: {
+          trueName: [
+            {
+              required: true,
+              message: '请输入真实姓名',
+              trigger: 'blur'
+            }
+          ],
+          password: [
+            { validator: validatePassword, trigger: 'blur' }
+          ]
+        }
       }
     },
     created () {
@@ -261,7 +311,13 @@
         if (command === 'logout') {//退出
           this.logout()
         } else if (command === 'personInfo') {
-
+          this.updateCurrentUserDialog = true
+          this.$http.get(this.API.getCurrentUser).then((resp) => {
+            if (resp.data.code === 200) {
+              resp.data.data.password = ''
+              this.currentUserInfo2 = resp.data.data
+            }
+          })
         }
       },
       //退出登录
@@ -373,7 +429,7 @@
         this.breadInfo.sub = subMenuName
       },
       //提供给子组件改变面包屑最后的信息
-      giveChildChangeBreakInfo (subMenuName,topMenuName) {
+      giveChildChangeBreakInfo (subMenuName, topMenuName) {
         this.breadInfo.sub = subMenuName
         this.breadInfo.top = topMenuName
       },
@@ -401,6 +457,26 @@
           'url': url,
           'highlight': true
         })
+      },
+      //更新当前用户
+      updateCurrentUser () {
+        this.$refs['updateUserForm'].validate((valid) => {
+          if (valid) {
+            this.$http.post(this.API.updateCurrentUser, this.currentUserInfo2).then((resp) => {
+              if (resp.data.code === 200) {
+                this.$notify({
+                  title: 'Tips',
+                  message: resp.data.message,
+                  type: 'success',
+                  duration: 2000
+                })
+                this.logout()
+              }
+            })
+          } else {
+            return false;
+          }
+        });
       }
     }
   }

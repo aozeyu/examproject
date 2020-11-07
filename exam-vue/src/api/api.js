@@ -80,7 +80,13 @@ let API = {
     //查询所有的考试信息
     allExamInfo: '/teacher/allExamInfo',
     //批阅试卷的客观题
-    setObjectQuestionScore: '/teacher/setObjectQuestionScore'
+    setObjectQuestionScore: '/teacher/setObjectQuestionScore',
+    //查询当前用户的信息
+    getCurrentUser: '/common/getCurrentUser',
+    //更新当前用户的信息
+    updateCurrentUser: '/common/updateCurrentUser',
+    //获取我的成绩(根据username)
+    getMyGrade: '/student/getMyGrade'
   },
 }
 

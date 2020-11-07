@@ -91,6 +91,11 @@ const routes = [
         path: '/markExam/:recordId',
         name: 'markExam',
         component: () => import('../components/MarkExamPage')
+      },
+      //我的成绩(学生和管理员)
+      {
+        path: '/myGrade',
+        component: () => import('../components/MyGrade')
       }
     ]
   },
@@ -137,7 +142,7 @@ router.beforeEach((to, from, next) => {
 
   //超级管理员 + 学生
   if (to.path === '/myQuestionBank' || to.name === 'trainPage' || to.path === '/examOnline'
-    || to.name === 'exam' || to.name === 'examResult') {
+    || to.name === 'exam' || to.name === 'examResult' || to.path === '/myGrade') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId !== '2') {
         next()
