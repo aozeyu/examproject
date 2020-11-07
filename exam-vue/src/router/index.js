@@ -80,6 +80,17 @@ const routes = [
         path: '/examResult/:recordId',
         name: 'examResult',
         component: () => import('../components/ExamResult')
+      },
+      //阅卷管理页面(老师和超级管理员)
+      {
+        path: '/markManage',
+        component: () => import('../components/MarkManage')
+      },
+      //批阅试卷(老师和管理员)
+      {
+        path: '/markExam/:recordId',
+        name: 'markExam',
+        component: () => import('../components/MarkExamPage')
       }
     ]
   },
@@ -114,7 +125,7 @@ router.beforeEach((to, from, next) => {
   }
   //属于超级管理员又属于老师
   if (to.path === '/questionManage' || to.path === '/questionBankMange' || to.path === '/examManage'
-    || to.path === '/addExam' || to.name === 'updateExam') {
+    || to.path === '/addExam' || to.name === 'updateExam' || to.path === '/markManage' || to.name === 'markExam') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId === '3' || resp.data.data.roleId === '2') {
         next()

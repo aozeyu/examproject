@@ -70,7 +70,17 @@ let API = {
     //根据考试记录的id查询考试记录信息
     getExamRecordById: '/teacher/getExamRecordById',
     //根据考试id查询考试中的每一道题目id和分值
-    getExamQuestionByExamId: '/teacher/getExamQuestionByExamId'
+    getExamQuestionByExamId: '/teacher/getExamQuestionByExamId',
+    //根据考试记录id查询考试的信息
+    getExamRecord: '/teacher/getExamRecord',
+    //根据考试id单纯的查询考试对象信息
+    getExamById: '/teacher/getExamById',
+    //教师用户根据用户id查询用户
+    getUserById: '/teacher/getUserById',
+    //查询所有的考试信息
+    allExamInfo: '/teacher/allExamInfo',
+    //批阅试卷的客观题
+    setObjectQuestionScore: '/teacher/setObjectQuestionScore'
   },
 }
 

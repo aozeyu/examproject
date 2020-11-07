@@ -87,7 +87,7 @@
             <div>
               <el-tag @close="handleClose(index)" v-for="(item,index) in tags"
                       type="info" size="small" :key="index" :class="item.highlight ? 'active' : ''"
-                      :closable="item.name !== '控制台'" @click="changeHighlightTag(item.name)"
+                      :closable="item.name !== '产品介绍'" @click="changeHighlightTag(item.name)"
                       effect="plain">
                 <i class="el-icon-s-opportunity" style="margin-right: 2px"
                    v-if="item.highlight"></i>
@@ -137,13 +137,13 @@
         activeMenu: '',
         //面包屑信息
         breadInfo: {
-          'top': '控制台',//顶级菜单信息
-          'sub': '控制台'//当前的菜单信息
+          'top': '产品介绍',//顶级菜单信息
+          'sub': '产品介绍'//当前的菜单信息
         },
         //面包屑下的标签数据
         tags: [
           {
-            'name': '控制台',
+            'name': '产品介绍',
             'url': '/dashboard',
             'highlight': true
           }
