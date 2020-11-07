@@ -1,6 +1,7 @@
 package com.wzz.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.CheckToken;
 import com.wzz.Util.RedisUtil;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 
@@ -141,4 +143,29 @@ public class CommonController {
         }
     }
 
+    @GetMapping("/getCurrentUser")
+    @ApiOperation("供给普通用户查询个人信息使用")
+    public CommonResult<User> getCurrentUser(HttpServletRequest request) {
+        log.info("执行了===>CommonController中的getCurrentUser方法");
+        //工具类验证token是否有效 有效返回tokenVo对象,否则返回null
+        TokenVo tokenVo = new CheckToken().checkToken(request, userService);
+        User user = userService.getOne(new QueryWrapper<User>().eq("username", tokenVo.getUsername()));
+        return new CommonResult<>(200, "查询当前用户成功", user);
+    }
+
+    @PostMapping("/updateCurrentUser")
+    @ApiOperation("供给用户更改个人信息")
+    public CommonResult<String> updateCurrentUser(HttpServletRequest request,@RequestBody User user) throws NoSuchAlgorithmException {
+        log.info("执行了===>CommonController中的updateCurrentUser方法");
+        //工具类验证token是否有效 有效返回tokenVo对象,否则返回null
+        TokenVo tokenVo = new CheckToken().checkToken(request, userService);
+        User curUser = userService.getOne(new QueryWrapper<User>().eq("username", tokenVo.getUsername()));
+        if (!Objects.equals(user.getPassword(), "")){
+            String newPwd = SaltEncryption.saltEncryption(user.getPassword(), curUser.getSalt());
+            curUser.setPassword(newPwd);
+        }
+        curUser.setTrueName(user.getTrueName());
+        boolean flag = userService.update(curUser, new UpdateWrapper<User>().eq("username", tokenVo.getUsername()));
+        return flag ? new CommonResult<>(200,"更新成功") : new CommonResult<>(233,"更新失败");
+    }
 }

@@ -15,12 +15,17 @@ public class WebAppConfigurer implements WebMvcConfigurer {
 
     @Bean
     public AdminInterceptor getAdminInterceptor() {//只属于管理员
-        return  new AdminInterceptor();
+        return new AdminInterceptor();
     }
 
     @Bean
     public TeacherInterceptor getTeacherInterceptor() {//属于老师 但是管理员也可以用
-        return  new TeacherInterceptor();
+        return new TeacherInterceptor();
+    }
+
+    @Bean
+    public StudentInterceptor getStudentInterceptor() {//属于学生 但是管理员也可以用
+        return new StudentInterceptor();
     }
 
     @Override
@@ -29,6 +34,7 @@ public class WebAppConfigurer implements WebMvcConfigurer {
         //拦截未登录进入超级管理员的界面
         registry.addInterceptor(getAdminInterceptor()).addPathPatterns("/admin/**");
         registry.addInterceptor(getTeacherInterceptor()).addPathPatterns("/teacher/**");
+        registry.addInterceptor(getStudentInterceptor()).addPathPatterns("/student/**");
     }
 
 }
