@@ -86,7 +86,11 @@ let API = {
     //更新当前用户的信息
     updateCurrentUser: '/common/updateCurrentUser',
     //获取我的成绩(根据username)
-    getMyGrade: '/student/getMyGrade'
+    getMyGrade: '/student/getMyGrade',
+    //获取考试通过率(echarts绘图)
+    getExamPassRate: '/teacher/getExamPassRate',
+    //获取考试的次数(echarts绘图)
+    getExamNumbers: '/teacher/getExamNumbers'
   },
 }
 

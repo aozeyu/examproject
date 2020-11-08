@@ -4,6 +4,9 @@ import router from './router'
 import './plugins/element.js'
 import axios from 'axios'
 import api from './api/api'
+// 引入echarts
+import echarts from 'echarts'
+Vue.prototype.$echarts = echarts
 
 //配置请求根路径
 axios.defaults.baseURL = 'http://localhost:8888/'

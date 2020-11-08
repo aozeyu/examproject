@@ -96,6 +96,11 @@ const routes = [
       {
         path: '/myGrade',
         component: () => import('../components/MyGrade')
+      },
+      //统计总览页面(老师和管理员)
+      {
+        path: '/staticOverview',
+        component: () => import('../components/StatisticOverview')
       }
     ]
   },

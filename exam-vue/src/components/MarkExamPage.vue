@@ -161,8 +161,8 @@
         if (!flag) this.$emit('giveChildAddTag', '批阅试卷', this.$route.path)
       },
       //查询用户当时考试的信息
-      getExamRecord () {
-        this.$http.get(this.API.getExamRecordById + '/' + this.$route.params.recordId).then((resp) => {
+      async getExamRecord () {
+        await this.$http.get(this.API.getExamRecordById + '/' + this.$route.params.recordId).then((resp) => {
           if (resp.data.code === 200) {
             this.examRecord = resp.data.data
             console.log(resp.data.data)
