@@ -1,4 +1,7 @@
 # 追风考试系统 
+[![star](https://gitee.com/wzhouzhou/exam_system/badge/star.svg?theme=dark)](https://gitee.com/wzhouzhou/exam_system/stargazers)[![fork](https://gitee.com/wzhouzhou/exam_system/badge/fork.svg?theme=white)](https://gitee.com/wzhouzhou/exam_system/members)
+
+[![Fork me on Gitee](https://gitee.com/wzhouzhou/exam_system/widgets/widget_4.svg?color=d716f0)](https://gitee.com/wzhouzhou/exam_system)
 
 追风考试系统是一个多角色在线培训考试系统，系统集成了用户管理、角色管理、题库管理、试
 
@@ -6,7 +9,7 @@
 
 户在此系统中进行练习并不断提升自己，在考试中不断进步。
 
-`请务必将文档看完, 很多问题都可以在文档中找到解决, 也可以加入群一起交流, 群号: 970804317 下面也会有二维码
+`请务必将文档看完, 很多问题都可以在文档中找到解决, 也可以加入群一起交流, 群号: 970804317 下面也会有二维码`
 
 - [码云地址](https://gitee.com/wzhouzhou/exam_system)
 - [Github地址]()
@@ -70,39 +73,39 @@
 
 ### 登录页
 
-![image-20201108201614204](E:\Project\myProject\examSystem\preview\image-20201108201614204.png)
+![image-20201108201614204](./preview/image-20201108201614204.png)
 
 ### 考试页面
 
-![image-20201108201802537](E:\Project\myProject\examSystem\preview\image-20201108201802537.png)
+![image-20201108201802537](./preview/image-20201108201802537.png)
 
 ### 考试结果
 
-![image-20201108201917741](E:\Project\myProject\examSystem\preview\image-20201108201917741.png)
+![image-20201108201917741](./preview/image-20201108201917741.png)
 
 ### 题库训练
 
-![image-20201108201946994](E:\Project\myProject\examSystem\preview\image-20201108201946994.png)
+![image-20201108201946994](./preview/image-20201108201946994.png)
 
 ### 题库训练
 
-![image-20201108202010994](E:\Project\myProject\examSystem\preview\image-20201108202010994.png)
+![image-20201108202010994](./preview/image-20201108202010994.png)
 
 ### 试题管理
 
-![image-20201108202043383](E:\Project\myProject\examSystem\preview\image-20201108202043383.png)
+![image-20201108202043383](./preview/image-20201108202043383.png)
 
 ### 考试管理
 
-![image-20201108202105004](E:\Project\myProject\examSystem\preview\image-20201108202105004.png)
+![image-20201108202105004](./preview/image-20201108202105004.png)
 
 ### 考试数据可视化
 
-![image-20201108202141971](E:\Project\myProject\examSystem\preview\image-20201108202141971.png)
+![image-20201108202141971](./preview/image-20201108202141971.png)
 
 ### 用户和权限管理
 
-![image-20201108202203845](E:\Project\myProject\examSystem\preview\image-20201108202203845.png)
+![image-20201108202203845](./preview/image-20201108202203845.png)
 
 ## 快速启动
 
@@ -138,7 +141,7 @@ npm run serve #启动项目服务
 
 ## 问题
 
-![image-20201108203026741](E:\Project\myProject\examSystem\preview\image-20201108203026741.png)
+![image-20201108203026741](./preview/image-20201108203026741.png)
 
 - 开发学习问题或者好的建议可以给出反馈交流, 一起学习
 - 如果有需要QQ群里提问，请在提问前先完成以下过程：
@@ -151,4 +154,4 @@ npm run serve #启动项目服务
 
 - License
 
-Copyright (c) 2020-person wangzhouzhouhttps://gitee.com/gitee-stars/)
+Copyright (c) 2020-person wangzhouzhou
