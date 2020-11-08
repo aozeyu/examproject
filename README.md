@@ -11,13 +11,6 @@
 - [码云地址](https://gitee.com/wzhouzhou/exam_system)
 - [Github地址]()
 
-```
-public static String ENDPOINT = "https://oss-cn-beijing.aliyuncs.com";
-public static String ACCESSKEYID = "LTAI4G9uG3RcnzkM6HdWUDFe";
-public static String ACCESSKEYSECRET = "gxoveTAJrPEr9BhTdXMM4pS7oBHm2D";
-public static String BUCKETNAME = "wangsiryun";
-public static String KEY = "images/upload/";
-```
 
 ## 技术栈
 
