@@ -17,10 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @SpringBootTest
 class ExamAdminApplicationTests {
@@ -35,6 +32,9 @@ class ExamAdminApplicationTests {
     private QuestionBankServiceImpl questionBankService;
 
     @Autowired
+    private ExamRecordServiceImpl examRecordService;
+
+    @Autowired
     private AnswerServiceImpl answerService;
 
     @Test
@@ -45,7 +45,7 @@ class ExamAdminApplicationTests {
         IPage<User> userPage = new Page<>(2, 2);//参数一是当前页，参数二是每页个数
         userPage = userService.page(userPage, null);
         List<User> list = userPage.getRecords();
-        for(User user : list){
+        for (User user : list) {
             System.out.println(user);
         }
     }
@@ -58,22 +58,22 @@ class ExamAdminApplicationTests {
         User user = new User(1, 1, "wzz", "112", "1231", "121", 1, new Date());
         System.out.println(user);
         ObjectMapper mapper = new ObjectMapper();
-        redisUtil.set("user:1", mapper.writeValueAsString(user),60);
-        System.out.println(mapper.readValue(redisUtil.get("user:1").toString(),User.class));
+        redisUtil.set("user:1", mapper.writeValueAsString(user), 60);
+        System.out.println(mapper.readValue(redisUtil.get("user:1").toString(), User.class));
     }
 
     @Autowired
     private UserRoleServiceImpl userRoleService;
 
     @Test
-    void t2(){
+    void t2() {
         System.out.println(redisUtil.get("userRoles"));
         List<UserRole> userRoles = userRoleService.list(new QueryWrapper<>());
-        redisUtil.set("userRoles",userRoles);
+        redisUtil.set("userRoles", userRoles);
     }
 
     @Test
-    void t3(){
+    void t3() {
         QuestionBank bank = questionBankService.getById(1);
         //在题库中的(单选,多选,判断题)题目
         List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", bank.getBankName()).in("qu_type", "1,2,3"));
@@ -120,5 +120,65 @@ class ExamAdminApplicationTests {
         System.out.println(questionVos);
     }
 
+    @Autowired
+    private ExamServiceImpl examService;
 
+    @Test
+    void t4() {
+        List<Exam> exams = examService.list(new QueryWrapper<>());
+        List<ExamRecord> examRecords = examRecordService.list(new QueryWrapper<ExamRecord>().isNotNull("total_score"));
+        //考试的名称
+        String[] examNames = new String[exams.size()];
+        //考试通过率
+        double[] passRates = new double[exams.size()];
+
+        double total = 0;
+        double pass = 0;
+        for (int i = 0; i < exams.size(); i++) {
+            examNames[i] = exams.get(i).getExamName();
+            total = 0;
+            pass = 0;
+            for (ExamRecord examRecord : examRecords) {
+                if (Objects.equals(examRecord.getExamId(), exams.get(i).getExamId())) {
+                    total++;
+                    if (examRecord.getTotalScore() >= exams.get(i).getPassScore()) pass++;
+                }
+            }
+            passRates[i] = pass / total;
+        }
+        for (int i = 0; i < passRates.length; i++) {
+            if (Double.isNaN(passRates[i])) passRates[i] = 0;
+        }
+        String res1 = Arrays.toString(examNames);
+        String res2 = Arrays.toString(passRates);
+        System.out.println(res1.substring(1, res1.length() - 1).replaceAll(" ", ""));
+        System.out.println(res2.substring(1, res2.length() - 1).replaceAll(" ", ""));
+    }
+
+    @Test
+    void t5() {
+        List<Exam> exams = examService.list(new QueryWrapper<>());
+        List<ExamRecord> examRecords = examRecordService.list(new QueryWrapper<ExamRecord>());
+        //考试的名称
+        String[] examNames = new String[exams.size()];
+        //考试的考试次数
+        String[] examNumbers = new String[exams.size()];
+
+        int total = 0;
+        int cur = 0;
+        for (int i = 0; i < exams.size(); i++) {
+            examNames[i] = exams.get(i).getExamName();
+            total = 0;
+            cur = 0;
+            for (ExamRecord examRecord : examRecords) {
+                total++;
+                if (Objects.equals(examRecord.getExamId(), exams.get(i).getExamId())) {
+                    cur++;
+                }
+            }
+            examNumbers[i] = cur + "";
+        }
+        System.out.println(Arrays.toString(examNames));
+        System.out.println(Arrays.toString(examNumbers));
+    }
 }

@@ -956,10 +956,79 @@ public class TeacherController {
 
     @GetMapping("/setObjectQuestionScore")
     @ApiOperation("设置考试记录的客观题得分,设置总分为逻辑得分+客观题")
-    public CommonResult<String> setObjectQuestionScore(Integer totalScore,Integer examRecordId){
+    public CommonResult<String> setObjectQuestionScore(Integer totalScore, Integer examRecordId) {
         ExamRecord examRecord = examRecordService.getOne(new QueryWrapper<ExamRecord>().eq("record_id", examRecordId));
         examRecord.setTotalScore(totalScore);
         boolean flag = examRecordService.update(examRecord, new UpdateWrapper<ExamRecord>().eq("record_id", examRecordId));
-        return flag ? new CommonResult<>(200,"批阅成功") : new CommonResult<>(233,"批阅失败");
+        return flag ? new CommonResult<>(200, "批阅成功") : new CommonResult<>(233, "批阅失败");
     }
+
+    @GetMapping("/getExamPassRate")
+    @ApiOperation("提供每一门考试的通过率数据(echarts绘图)")
+    public CommonResult<List<String>> getExamPassRate() {
+        List<Exam> exams = examService.list(new QueryWrapper<>());
+        List<ExamRecord> examRecords = examRecordService.list(new QueryWrapper<ExamRecord>().isNotNull("total_score"));
+        //考试的名称
+        String[] examNames = new String[exams.size()];
+        //考试通过率
+        double[] passRates = new double[exams.size()];
+
+        double total = 0;
+        double pass = 0;
+        for (int i = 0; i < exams.size(); i++) {
+            examNames[i] = exams.get(i).getExamName();
+            total = 0;
+            pass = 0;
+            for (ExamRecord examRecord : examRecords) {
+                if (Objects.equals(examRecord.getExamId(), exams.get(i).getExamId())) {
+                    total++;
+                    if (examRecord.getTotalScore() >= exams.get(i).getPassScore()) pass++;
+                }
+            }
+            passRates[i] = pass / total;
+        }
+        for (int i = 0; i < passRates.length; i++) {
+            if (Double.isNaN(passRates[i])) passRates[i] = 0;
+        }
+        List<String> list = new ArrayList<>();
+        String res1 = Arrays.toString(examNames);
+        String res2 = Arrays.toString(passRates);
+        list.add(res1.substring(1, res1.length() - 1).replaceAll(" ", ""));
+        list.add(res2.substring(1, res2.length() - 1).replaceAll(" ", ""));
+        return new CommonResult<>(200, "考试通过率获取成功", list);
+    }
+
+    @GetMapping("/getExamNumbers")
+    @ApiOperation("提供每一门考试的考试次数(echarts绘图)")
+    public CommonResult<List<String>> getExamNumbers() {
+        List<Exam> exams = examService.list(new QueryWrapper<>());
+        List<ExamRecord> examRecords = examRecordService.list(new QueryWrapper<ExamRecord>());
+        //考试的名称
+        String[] examNames = new String[exams.size()];
+        //考试的考试次数
+        String[] examNumbers = new String[exams.size()];
+
+        int total = 0;
+        int cur = 0;
+        for (int i = 0; i < exams.size(); i++) {
+            examNames[i] = exams.get(i).getExamName();
+            total = 0;
+            cur = 0;
+            for (ExamRecord examRecord : examRecords) {
+                total++;
+                if (Objects.equals(examRecord.getExamId(), exams.get(i).getExamId())) {
+                    cur++;
+                }
+            }
+            examNumbers[i] = cur + "";
+        }
+        List<String> list = new ArrayList<>();
+        String res1 = Arrays.toString(examNames);
+        String res2 = Arrays.toString(examNumbers);
+        list.add(res1.substring(1, res1.length() - 1).replaceAll(" ", ""));
+        list.add(res2.substring(1, res2.length() - 1).replaceAll(" ", ""));
+        return new CommonResult<>(200, "考试次数获取成功", list);
+    }
+
+
 }
