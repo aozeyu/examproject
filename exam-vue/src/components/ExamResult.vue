@@ -152,7 +152,6 @@
         this.$http.get(this.API.getExamRecordById + '/' + this.$route.params.recordId).then((resp) => {
           if (resp.data.code === 200) {
             this.examRecord = resp.data.data
-            console.log(resp.data.data)
             this.getExamInfoById(resp.data.data.examId)
             this.userAnswer = resp.data.data.userAnswers.split('-')
             //获取单题的分值

@@ -56,7 +56,8 @@
     data () {
       //自定义验证码校验规则
       var validateCode = (rule, value, callback) => {
-        if (value !== this.code) {
+        //验证码不区分大小写
+        if (value.toString().toLocaleLowerCase() !== this.code.toString().toLocaleLowerCase()) {
           callback(new Error('验证码输入错误'))
         } else {
           callback()
@@ -124,8 +125,16 @@
             this.$http.post(this.API.login, data).then((resp) => {
               if (resp.data.code === 200) {
                 localStorage.setItem('authorization', resp.data.data)
+                this.$notify({
+                  title: 'Tips',
+                  message: '登陆成功^_^',
+                  type: 'success',
+                  duration: 2000
+                })
                 this.$router.push('/index')
               } else {//请求出错
+                this.changeCode()
+                this.getCode()
                 this.$notify({
                   title: 'Tips',
                   message: resp.data.message,
@@ -135,12 +144,14 @@
               }
             })
           } else {//验证不通过
-            this.$notify({
-              title: 'Tips',
-              message: '请检查所填写信息是否正确',
-              type: 'error',
-              duration: 2000
-            })
+            if (this.code !== this.loginForm.code) {
+              this.$notify({
+                title: 'Tips',
+                message: '验证码输入有误',
+                type: 'error',
+                duration: 2000
+              })
+            }
             return false
           }
         })
