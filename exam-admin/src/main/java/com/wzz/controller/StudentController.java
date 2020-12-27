@@ -57,7 +57,7 @@ public class StudentController {
         //参数一是当前页，参数二是每页个数
         IPage<ExamRecord> examRecordPage = new Page<>(pageNo, pageSize);
         //查询条件(可选)
-        QueryWrapper<ExamRecord> wrapper = new QueryWrapper<ExamRecord>();
+        QueryWrapper<ExamRecord> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", user.getId());
         if (examId != null) wrapper.eq("exam_id", examId);
 

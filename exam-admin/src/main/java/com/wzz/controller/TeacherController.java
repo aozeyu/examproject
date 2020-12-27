@@ -108,6 +108,8 @@ public class TeacherController {
                 flag = false;
             }
         }
+        //清楚题库的缓存
+        redisUtil.del("questionBanks");
         return flag ? new CommonResult<>(200, "删除成功") : new CommonResult<>(233, "删除失败");
     }
 
@@ -284,6 +286,8 @@ public class TeacherController {
             //设置所有的选项
             answer.setAllOption(handleAnswers);
             answerService.save(answer);
+            //清楚题库的缓存
+            redisUtil.del("questionBanks");
         }
         return new CommonResult<>(200, "新增题目成功");
     }
@@ -421,6 +425,7 @@ public class TeacherController {
             //设置所有的选项
             answer.setAllOption(handleAnswers);
             answerService.update(answer, new UpdateWrapper<Answer>().eq("question_id", questionVo.getQuestionId()));
+            redisUtil.del("questionVo:" + questionVo.getQuestionId());
         }
         return new CommonResult<>(200, "更新题目成功");
     }
@@ -511,6 +516,8 @@ public class TeacherController {
             }
             //删除题库
             questionBankService.removeById(Integer.parseInt(s));
+            //清楚题库的缓存
+            redisUtil.del("questionBanks");
         }
         return new CommonResult<>(200, "删除题库成功");
     }
