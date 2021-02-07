@@ -466,7 +466,14 @@
             //构造数据对象(考试信息)
             let exam = this.examInfo
             if (this.updateExamQuestion.length !== 0) {//自由组卷模式
-              exam.type === 1 ? exam.password = null : ''
+              if (exam.type === 1) {
+                exam.password = null
+              }
+              console.log(exam)
+              if (exam.type === 2 && (exam.password === null || exam.password === '')) {
+                this.$message.error('当前权限为需要密码,但是密码为空')
+                return false
+              }
               //题目id数组
               let questionIds = []
               //题目成绩数组
@@ -480,8 +487,8 @@
               this.$http.post(this.API.updateExamInfo, exam).then((resp) => {
                 if (resp.data.code === 200) {
                   this.$notify({
-                    type:'success',
-                    title:'Tips',
+                    type: 'success',
+                    title: 'Tips',
                     message: resp.data.message,
                     duration: 2000
                   })

@@ -6,8 +6,7 @@
                background-color="rgb(48,65,86)"
                text-color="rgb(191,203,217)"
                active-text-color="rgb(64,158,255)"
-               :collapse="isCollapse"
-      >
+               :collapse="isCollapse">
         <el-menu-item index="/index" disabled style="text-align: center">
           <i class="el-icon-sunny"></i>
           <span slot="title">
@@ -75,12 +74,18 @@
                 </el-dropdown-menu>
               </el-dropdown>
 
+
               <!--右侧的放大图标-->
               <el-tooltip effect="dark" content="全屏预览" placement="top-start">
                 <i class="el-icon-full-screen" id="full" @click="fullShow" style="float: right;margin-right:10px;
               margin-bottom:5px;cursor:pointer;font-size: 25px;font-weight: 100"></i>
               </el-tooltip>
 
+              <!--右侧的查看公告图标-->
+              <el-tooltip effect="dark" content="查看公告" placement="top-start">
+                <i class="el-icon-bell" @click="showSystemNotice" style="float: right;margin-right:10px;
+              margin-bottom:5px;cursor:pointer;font-size: 25px;font-weight: 100"></i>
+              </el-tooltip>
             </div>
 
             <!--卡片面板的主内容-->
@@ -98,7 +103,7 @@
         </el-header>
 
         <el-main style="margin-top: 25px;">
-          <router-view @giveChildChangeBreakInfo="giveChildChangeBreakInfo"
+          <router-view @giveChildChangeBreakInfo="giveChildChangeBreakInfo" @showSystemNotice="showSystemNotice"
                        @giveChildAddTag="giveChildAddTag" :tagInfo="tags" @updateTagInfo="updateTagInfo"></router-view>
         </el-main>
 
@@ -138,13 +143,13 @@
     data () {
       var validatePassword = (rule, value, callback) => {
         if (value === '') {
-          callback();
+          callback()
         } else if (value.length < 5) {
-          callback(new Error('新密码少于5位数!'));
+          callback(new Error('新密码少于5位数!'))
         } else {
-          callback();
+          callback()
         }
-      };
+      }
       return {
         //菜单信息
         menuInfo: [
@@ -195,7 +200,10 @@
             }
           ],
           password: [
-            { validator: validatePassword, trigger: 'blur' }
+            {
+              validator: validatePassword,
+              trigger: 'blur'
+            }
           ]
         }
       }
@@ -208,6 +216,13 @@
     mounted () {
       //根据当前链接的hash设置对应高亮的菜单
       this.activeMenu = window.location.hash.substring(1)
+      document.querySelector('.el-container').style.maxHeight = screen.height + 'px'
+      // 根据设备大小调整侧边栏
+      if (screen.width <= 1080) {
+        this.isCollapse = !this.isCollapse
+        document.querySelector('#aside').style.width = 65 + 'px'
+        document.querySelector('.el-container').style.minWidth = 1080 + 'px'
+      }
     },
     watch: {
       //监察路径变化,改变菜单的高亮
@@ -237,6 +252,23 @@
       }
     },
     methods: {
+      //查看系统公告
+      showSystemNotice () {
+        this.$http.get(this.API.getCurrentNewNotice).then((resp) => {
+          if (resp.data.code === 200) {
+            this.$alert(resp.data.data, '最新公告', {
+              dangerouslyUseHTMLString: true
+            })
+          } else {
+            this.$notify({
+              title: 'Tips',
+              message: '公告获取失败',
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      },
       //根据token后台判断用户权限,传递相对应的菜单
       getMenu () {
         this.$http.get(this.API.getMenuInfo).then((resp) => {
@@ -474,9 +506,9 @@
               }
             })
           } else {
-            return false;
+            return false
           }
-        });
+        })
       }
     }
   }

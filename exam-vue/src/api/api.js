@@ -2,7 +2,7 @@ let API = {
   //应用表
   api: {
     // 查询应用列表
-    register:  '/common/register',
+    register: '/common/register',
     //查询当前的验证码
     getCode: '/util/getCode',
     //校验用户名
@@ -90,7 +90,17 @@ let API = {
     //获取考试通过率(echarts绘图)
     getExamPassRate: '/teacher/getExamPassRate',
     //获取考试的次数(echarts绘图)
-    getExamNumbers: '/teacher/getExamNumbers'
+    getExamNumbers: '/teacher/getExamNumbers',
+    //获取所有系统公告信息
+    getAllNotice: '/admin/getAllNotice',
+    //获取最新的系统公告
+    getCurrentNewNotice: '/student/getCurrentNewNotice',
+    //发布公告
+    publishNotice: '/admin/publishNotice',
+    //批量删除公告
+    deleteNotice: '/admin/deleteNotice',
+    //更新公告
+    updateNotice: '/admin/updateNotice'
   },
 }
 

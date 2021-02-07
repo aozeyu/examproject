@@ -60,7 +60,8 @@
     data () {
       //自定义验证码校验规则
       var validateCode = (rule, value, callback) => {
-        if (value !== this.code) {
+        //验证码不区分大小写
+        if (value.toString().toLocaleLowerCase() !== this.code.toString().toLocaleLowerCase()) {
           callback(new Error('验证码输入错误'))
         } else {
           callback()
@@ -187,6 +188,7 @@
 <style scoped lang="scss">
   .el-container {
     height: 100%;
+    min-width: 417px;
     background: url("../assets/imgs/bg.png");
     -moz-background-size: 100% 100%;
     background-size: 100% 100%;

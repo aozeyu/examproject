@@ -60,7 +60,11 @@
 
 <script>
   export default {
-    name: 'Dashboard'
+    name: 'Dashboard',
+    created () {
+      // 调用父组件Main的展示系统公告方法
+      this.$emit('showSystemNotice');
+    },
   }
 </script>
 

@@ -403,12 +403,12 @@
             this.questionInfo.forEach((item, index) => {
               data.questionIds.push(item.questionId)
               //当前数据不完整,用户回答不完整(我们自动补充空答案,防止业务出错)
-              if (index > this.userAnswer.length) {
-                data.userAnswers += ' -'
+              if (index > (this.userAnswer.length - 1)) {
+                data.userAnswers += '- '
               }
             })
             //如果所有题目全部未答
-            if (data.userAnswers === '') {
+            if (this.userAnswer.length === 0) {
               this.questionInfo.forEach(item => {
                 data.userAnswers += ' -'
               })

@@ -65,7 +65,7 @@
     </el-main>
 
 
-    <el-dialog title="开始训练" v-if="questionBankInfo.length!==0" :visible.sync="trainVisible" center>
+    <el-dialog title="开始训练" width="75%" v-if="questionBankInfo.length!==0" :visible.sync="trainVisible" center>
       <h1>题库简介</h1>
       <el-card style="height: 60px;position: relative">
         <span style="position: absolute;font-size: 16px;font-weight: 400;top: 20px;">{{ questionBankInfo[currentBankIndex].questionBank.bankName }}</span>
@@ -365,12 +365,12 @@
   }
 
   .btn-item:first-child {
-    margin-left: 55px;
+    margin-left: 86px;
   }
 
   .img-btn {
     position: relative;
-    margin-left: 20%;
+    margin-left: 27%;
 
     img {
       width: 40px;

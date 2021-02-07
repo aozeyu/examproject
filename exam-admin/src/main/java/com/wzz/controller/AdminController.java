@@ -7,18 +7,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wzz.Util.RedisUtil;
 import com.wzz.Util.SaltEncryption;
+import com.wzz.entity.Notice;
 import com.wzz.entity.QuestionBank;
 import com.wzz.entity.User;
 import com.wzz.entity.UserRole;
-import com.wzz.service.impl.QuestionBankServiceImpl;
-import com.wzz.service.impl.QuestionServiceImpl;
-import com.wzz.service.impl.UserRoleServiceImpl;
-import com.wzz.service.impl.UserServiceImpl;
+import com.wzz.service.impl.*;
 import com.wzz.vo.CommonResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
@@ -46,6 +45,9 @@ public class AdminController {
 
     @Autowired
     private QuestionBankServiceImpl questionBankService;
+
+    @Autowired
+    private NoticeServiceImpl noticeService;
 
     //注入自己的redis工具类
     @Autowired
@@ -129,4 +131,88 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/getAllNotice")
+    @ApiOperation("获取系统发布的所有公告(分页 条件查询  二合一接口)")
+    public CommonResult<List<Notice>> getAllNotice(@RequestParam(required = false, name = "noticeContent") String content,
+                                                   Integer pageNo, Integer pageSize) {
+        log.info("执行了===>AdminController中的getAllNotice方法");
+        //参数一是当前页，参数二是每页个数
+        IPage<Notice> noticeIPage = new Page<>(pageNo, pageSize);
+        //查询条件(可选)
+        QueryWrapper<Notice> wrapper = new QueryWrapper<>();
+        if (!Objects.equals(content, "")) wrapper.like("content", content);
+        noticeIPage = noticeService.page(noticeIPage, wrapper);
+        List<Notice> notices = noticeIPage.getRecords();
+        return new CommonResult<>(200, "查询所有公告信息", notices);
+    }
+
+    @PostMapping("/publishNotice")
+    @ApiOperation("发布新公告")
+    @Transactional
+    public CommonResult<String> publishNotice(@RequestBody Notice notice) {
+        log.info("执行了===>AdminController中的publishNotice方法");
+        if (notice.getStatus() == 1) {// 当前发布的是置顶公告
+            // 1. 将当前所有公告设置为历史公告
+            noticeService.setAllNoticeIsHistoryNotice();
+            // 2. 新增最新公告进去
+            notice.setCreateTime(new Date());
+            boolean save = noticeService.save(notice);
+            if (redisUtil.get("currentNewNotice") != null && save)
+                redisUtil.set("currentNewNotice", notice.getContent());
+            return save ? new CommonResult<>(200, "发布公告成功") :
+                    new CommonResult<>(233, "发布公告失败");
+        } else if (notice.getStatus() == 0) {// 不发布最新公告
+            notice.setCreateTime(new Date());
+            boolean save = noticeService.save(notice);
+            return save ? new CommonResult<>(200, "发布公告成功") :
+                    new CommonResult<>(233, "发布公告失败");
+        } else
+            throw new RuntimeException("发布公告状态有误");
+    }
+
+    @GetMapping("/deleteNotice")
+    @ApiOperation("批量删除公告")
+    @Transactional
+    public CommonResult<String> deleteNotice(@RequestParam(name = "ids") String noticeIds) {
+        log.info("执行了===>AdminController中的deleteNotice方法");
+        //转换成数组 需要操作的用户的id数组
+        String[] ids = noticeIds.split(",");
+        for (String id : ids) {
+            noticeService.removeById(Integer.parseInt(id));
+        }
+        return new CommonResult<>(200, "批量删除公告成功");
+    }
+
+    @PostMapping("/updateNotice")
+    @ApiOperation("更新公告")
+    @Transactional
+    public CommonResult<String> updateNotice(@RequestBody Notice notice) {
+        log.info("执行了===>AdminController中的updateNotice方法");
+        System.out.println(notice);
+        // 查询当前公告信息
+        QueryWrapper<Notice> wrapper = new QueryWrapper<Notice>().eq("n_id", notice.getNId());
+        Notice targetNotice = noticeService.getOne(wrapper);
+
+        if (notice.getStatus() == 1) {// 当前更新成为置顶公告
+            // 将当前所有公告设置为历史公告
+            noticeService.setAllNoticeIsHistoryNotice();
+            targetNotice.setUpdateTime(new Date());
+            targetNotice.setContent(notice.getContent());
+            targetNotice.setStatus(notice.getStatus());
+
+            boolean update = noticeService.update(targetNotice, wrapper);
+            if (redisUtil.get("currentNewNotice") != null && update)// 清楚旧缓存
+                redisUtil.set("currentNewNotice", notice.getContent());
+            return update ? new CommonResult<>(200, "更新公告成功") :
+                    new CommonResult<>(233, "更新公告失败");
+        } else if (notice.getStatus() == 0) {// 不发布最新公告
+            targetNotice.setUpdateTime(new Date());
+            targetNotice.setContent(notice.getContent());
+            targetNotice.setStatus(notice.getStatus());
+            boolean update = noticeService.update(targetNotice, wrapper);
+            return update ? new CommonResult<>(200, "更新公告成功") :
+                new CommonResult<>(233, "更新公告失败");
+        } else
+            throw new RuntimeException("公告状态有误");
+    }
 }

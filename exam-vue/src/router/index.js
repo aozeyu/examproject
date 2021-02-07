@@ -101,6 +101,11 @@ const routes = [
       {
         path: '/staticOverview',
         component: () => import('../components/StatisticOverview')
+      },
+      // 公告管理(管理员)
+      {
+        path: '/noticeManage',
+        component: () => import('../components/NoticeManage')
       }
     ]
   },
@@ -124,7 +129,7 @@ router.beforeEach((to, from, next) => {
   //没有token的情况 直接返回登录页
   if (!token) return next('/')
   //属于超级管理员的功能
-  if (to.path === '/userManage' || to.path === '/roleManage') {
+  if (to.path === '/userManage' || to.path === '/roleManage' || to.path === '/noticeManage') {
     axios.get('/common/checkToken').then((resp) => {
       if (resp.data.code === 200 && resp.data.data.roleId === '3') {//当前用户携带的token信息正确并且是管理员
         next()

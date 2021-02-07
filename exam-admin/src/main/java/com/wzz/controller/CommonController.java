@@ -50,6 +50,11 @@ public class CommonController {
     //jackson
     ObjectMapper mapper = new ObjectMapper();
 
+    @RequestMapping("/error")
+    public CommonResult<String> error() {
+        return new CommonResult<>(233, "请求错误!");
+    }
+
     @ApiOperation("用户注册接口")
     @PostMapping("/register")
     public CommonResult<String> Register(@RequestBody User user) throws NoSuchAlgorithmException {
@@ -155,17 +160,17 @@ public class CommonController {
 
     @PostMapping("/updateCurrentUser")
     @ApiOperation("供给用户更改个人信息")
-    public CommonResult<String> updateCurrentUser(HttpServletRequest request,@RequestBody User user) throws NoSuchAlgorithmException {
+    public CommonResult<String> updateCurrentUser(HttpServletRequest request, @RequestBody User user) throws NoSuchAlgorithmException {
         log.info("执行了===>CommonController中的updateCurrentUser方法");
         //工具类验证token是否有效 有效返回tokenVo对象,否则返回null
         TokenVo tokenVo = new CheckToken().checkToken(request, userService);
         User curUser = userService.getOne(new QueryWrapper<User>().eq("username", tokenVo.getUsername()));
-        if (!Objects.equals(user.getPassword(), "")){
+        if (!Objects.equals(user.getPassword(), "")) {
             String newPwd = SaltEncryption.saltEncryption(user.getPassword(), curUser.getSalt());
             curUser.setPassword(newPwd);
         }
         curUser.setTrueName(user.getTrueName());
         boolean flag = userService.update(curUser, new UpdateWrapper<User>().eq("username", tokenVo.getUsername()));
-        return flag ? new CommonResult<>(200,"更新成功") : new CommonResult<>(233,"更新失败");
+        return flag ? new CommonResult<>(200, "更新成功") : new CommonResult<>(233, "更新失败");
     }
 }

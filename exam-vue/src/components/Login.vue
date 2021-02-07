@@ -187,9 +187,9 @@
 
 <style scoped lang="scss">
   .el-container {
+    min-width: 417px;
     height: 100%;
     background: url("../assets/imgs/bg.png");
-    -moz-background-size: 100% 100%;
     background-size: 100% 100%;
   }
 

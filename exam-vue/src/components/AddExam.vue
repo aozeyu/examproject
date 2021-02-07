@@ -552,6 +552,10 @@
             //权限id设置
             exam.type = this.examAuthority
             if (this.examAuthority === 2) {//考试密码
+              if (this.examPassword === '') {// 当前用户选择了需要密码权限,但是密码为空
+                this.$message.error('当前权限为需要密码,但是密码为空');
+                return false;
+              }
               exam.password = this.examPassword
             }
             //题库组卷模式
