@@ -258,7 +258,8 @@
           if (resp.data.code === 200) {
             this.$alert(resp.data.data, '最新公告', {
               dangerouslyUseHTMLString: true,
-              closeOnPressEscape: true
+              closeOnPressEscape: true,
+              lockScroll: false
             })
           } else {
             this.$notify({
