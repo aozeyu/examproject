@@ -10,7 +10,6 @@ import com.wzz.Util.CertificateUtil.PDFUtil;
 import com.wzz.Util.RedisUtil;
 import com.wzz.entity.ExamRecord;
 import com.wzz.entity.Notice;
-import com.wzz.entity.QuestionBank;
 import com.wzz.entity.User;
 import com.wzz.service.impl.*;
 import com.wzz.vo.CommonResult;
@@ -26,11 +25,11 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 
 /**
  * @Date 2020/11/7 19:44
@@ -103,7 +102,7 @@ public class StudentController {
         } else {//redis无缓存
             Notice notice = noticeService.getOne(new QueryWrapper<Notice>().eq("status", "1"));
             //设置默认缓存时间(24小时)
-            redisUtil.set("currentNewNotice", notice, 60 * 1440);
+            redisUtil.set("currentNewNotice", notice.getContent(), 60 * 1440);
             return new CommonResult<>(200, "获取最新公告成功", notice.getContent());
         }
     }
@@ -118,7 +117,7 @@ public class StudentController {
     @GetMapping("/getCertificate")
     @ApiOperation("生成证书接口")
     public void getCertificate(HttpServletResponse response, @RequestParam(name = "examName") String examName,
-                               @RequestParam(name = "examRecordId") Integer examRecordId) throws IOException, DocumentException {
+                               @RequestParam(name = "examRecordId") Integer examRecordId) throws IOException, DocumentException, URISyntaxException {
         log.info("执行了===>StudentController中getCertificate的方法");
         System.out.println(examRecordId);
         // 1. 查询考试记录信息
@@ -128,12 +127,21 @@ public class StudentController {
         // 3. 查询用户的真实姓名生成证书
         User user = userService.getOne(new QueryWrapper<User>().eq("id", userId));
 
+
+        // windows下用如下路径
         // 获取证书背景图片路径
         String backgroundImage = Objects.requireNonNull(PDFUtil.class.getClassLoader().getResource("static/images/certificateBg.png")).getPath();
         // 获取发放证书的项目Logo
         String logo = Objects.requireNonNull(PDFUtil.class.getClassLoader().getResource("static/images/logo.png")).getPath();
         // 生成的pdf的文件位置(一个模板多次生成)
-        String pdfFilePath = Objects.requireNonNull(PDFUtil.class.getClassLoader().getResource("")).getPath() + "templateCertificate.pdf";
+        String pdfFilePath = Objects.requireNonNull(PDFUtil.class.getClassLoader().getResource("static/templateCertificate.pdf")).getPath();
+
+
+        // ****linux服务器下用如下(地址对应服务器上文件路径)
+//        String backgroundImage = "/wzz/nginx_static_resources/certificateBg.png";
+//        String logo = "/wzz/nginx_static_resources/logo.png";
+//        String pdfFilePath = "/wzz/nginx_static_resources/templateCertificate.pdf";
+
         // 生成工具类
         PDFUtil pdfUtil = new PDFUtil();
 

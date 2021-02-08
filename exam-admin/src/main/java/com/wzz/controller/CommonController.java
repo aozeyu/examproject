@@ -11,8 +11,10 @@ import com.wzz.Util.CheckToken;
 import com.wzz.Util.RedisUtil;
 import com.wzz.Util.SaltEncryption;
 import com.wzz.Util.TokenUtils;
+import com.wzz.entity.ExamRecord;
 import com.wzz.entity.User;
 import com.wzz.entity.UserRole;
+import com.wzz.service.impl.ExamRecordServiceImpl;
 import com.wzz.service.impl.UserRoleServiceImpl;
 import com.wzz.service.impl.UserServiceImpl;
 import com.wzz.vo.CommonResult;
@@ -21,6 +23,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletOutputStream;
@@ -50,6 +53,9 @@ public class CommonController {
 
     @Autowired
     private UserRoleServiceImpl userRoleService;
+
+    @Autowired
+    private ExamRecordServiceImpl examRecordService;
 
     //注入自己的redis工具类
     @Autowired

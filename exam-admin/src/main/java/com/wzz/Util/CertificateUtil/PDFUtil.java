@@ -6,10 +6,14 @@ import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Date;
 import java.util.Objects;
 
@@ -34,8 +38,8 @@ public class PDFUtil {
      * @throws FileNotFoundException
      * @throws DocumentException
      */
-    public PDFUtil openDocument(String pafPath) throws FileNotFoundException, DocumentException {
-        Document document = new Document(PageSize.A4);
+    public PDFUtil openDocument(String pafPath) throws FileNotFoundException, DocumentException, URISyntaxException, MalformedURLException {
+        Document document = new Document();
         writer = PdfWriter.getInstance(document, new FileOutputStream(pafPath));
         document.open();
         this.document = document;
@@ -90,7 +94,11 @@ public class PDFUtil {
         }
 
         PdfContentByte canvas = writer.getDirectContent();
-        BaseFont bf = BaseFont.createFont(contentStyle.getTTFPath(), BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+        // windows下用下面的
+//        BaseFont bf = BaseFont.createFont(contentStyle.getTTFPath(),BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+        // linux用这个
+        BaseFont bf = BaseFont.createFont("STSong-Light",
+                        "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
         Font secFont = new Font(bf, contentStyle.getFontSize(), contentStyle.getStyle(), contentStyle.getBaseColor());
         Phrase certificateContentPhrase = new Phrase(certificateContent, secFont);
         ColumnText.showTextAligned(canvas, contentStyle.getAlignment(), certificateContentPhrase, x, y, 0);
@@ -163,29 +171,5 @@ public class PDFUtil {
         }
         p = Math.round(p2);
         return p;
-    }
-
-    public static void main(String[] args) throws IOException, DocumentException {
-        long currentDateTime = new Date().getTime();
-        String backgroundImage = Objects.requireNonNull(PDFUtil.class.getClassLoader().getResource("1.png")).getPath();
-        String logo = Objects.requireNonNull(PDFUtil.class.getClassLoader().getResource("logo.png")).getPath();
-        String pdfFilePath = "d:/" + 7 + ".pdf";
-        PDFUtil pdfUtil = new PDFUtil();
-
-
-        ContentStyle style1 = new ContentStyle();
-        style1.setFontSize(15);
-
-        ContentStyle style2 = new ContentStyle();
-        style2.setFontSize(10);
-        pdfUtil.openDocument(pdfFilePath)
-                .addImage(backgroundImage, 0, 400)
-                .addLogo(logo, 270, 460)
-                .addContent("哈哈哈哈哈哈哈哈或或或或同学：", 85, 630, style1)
-                .addContent("于" + DateTimeUtil.DateToString(new Date()) +
-                        "在xxx测评中取得优异成绩!", 125, 590, style1)
-                .addContent("特发此证,以资鼓励!", 125, 530, style2)
-                .addContent("Power By WangZhouzhou", 360, 475, style2)
-                .close();
     }
 }
