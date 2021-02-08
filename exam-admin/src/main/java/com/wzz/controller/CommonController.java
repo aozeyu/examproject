@@ -3,6 +3,10 @@ package com.wzz.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itextpdf.text.DocumentException;
+import com.wzz.Util.CertificateUtil.ContentStyle;
+import com.wzz.Util.CertificateUtil.DateTimeUtil;
+import com.wzz.Util.CertificateUtil.PDFUtil;
 import com.wzz.Util.CheckToken;
 import com.wzz.Util.RedisUtil;
 import com.wzz.Util.SaltEncryption;
@@ -19,7 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Objects;
@@ -55,6 +63,11 @@ public class CommonController {
         return new CommonResult<>(233, "请求错误!");
     }
 
+    /**
+     * @param user 用户实体
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
     @ApiOperation("用户注册接口")
     @PostMapping("/register")
     public CommonResult<String> Register(@RequestBody User user) throws NoSuchAlgorithmException {
@@ -72,6 +85,10 @@ public class CommonController {
         return new CommonResult<String>(200, "success", token);
     }
 
+    /**
+     * @param username 登录用户名
+     * @return
+     */
     @GetMapping("/check/{username}")
     @ApiOperation("用户名合法查询接口")
     public CommonResult<String> checkUsername(@PathVariable(value = "username") String username) {
@@ -83,6 +100,12 @@ public class CommonController {
         else return new CommonResult<>(233, "用户已存在");
     }
 
+    /**
+     * @param username 登录用户名
+     * @param password 用户密码
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
     @PostMapping("/login")
     @ApiOperation("用户登录接口")
     public CommonResult<String> login(@RequestParam(value = "username") String username,
@@ -111,6 +134,10 @@ public class CommonController {
         return new CommonResult<>(200, "退出成功");
     }
 
+    /**
+     * @param request
+     * @return
+     */
     @GetMapping("/getMenu")
     @ApiOperation(value = "获取不同用户的权限菜单")
     public CommonResult<Object> getMenu(HttpServletRequest request) {
@@ -135,6 +162,10 @@ public class CommonController {
         }
     }
 
+    /**
+     * @param request
+     * @return
+     */
     @GetMapping("/checkToken")
     @ApiOperation("验证用户token接口")
     public CommonResult<TokenVo> checkToken(HttpServletRequest request) {
@@ -158,6 +189,12 @@ public class CommonController {
         return new CommonResult<>(200, "查询当前用户成功", user);
     }
 
+    /**
+     * @param request
+     * @param user    用户实体
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
     @PostMapping("/updateCurrentUser")
     @ApiOperation("供给用户更改个人信息")
     public CommonResult<String> updateCurrentUser(HttpServletRequest request, @RequestBody User user) throws NoSuchAlgorithmException {
@@ -173,4 +210,5 @@ public class CommonController {
         boolean flag = userService.update(curUser, new UpdateWrapper<User>().eq("username", tokenVo.getUsername()));
         return flag ? new CommonResult<>(200, "更新成功") : new CommonResult<>(233, "更新失败");
     }
+
 }

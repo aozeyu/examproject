@@ -76,6 +76,14 @@ public class TeacherController {
         }
     }
 
+    /**
+     * @param questionType    问题类型
+     * @param questionBank    问题所属题库
+     * @param questionContent 问题内容
+     * @param pageNo          页面数
+     * @param pageSize        页面大小
+     * @return
+     */
     @GetMapping("/getQuestion")
     @ApiOperation("获取题目信息,可分页 ----> 查询条件(可无)(questionType,questionBank,questionContent),必须有的(pageNo,pageSize)")
     public CommonResult<List<Question>> getQuestion(@RequestParam(required = false) String questionType,
@@ -97,6 +105,11 @@ public class TeacherController {
         return new CommonResult<>(200, "success", questions);
     }
 
+    /**
+     * @param questionIds 需要删除的问题id的字符串,逗号分隔
+     * @return
+     * @throws InterruptedException
+     */
     @GetMapping("/deleteQuestion")
     @ApiOperation("根据id批量删除")
     public CommonResult<String> deleteQuestion(String questionIds) throws InterruptedException {
@@ -113,6 +126,11 @@ public class TeacherController {
         return flag ? new CommonResult<>(200, "删除成功") : new CommonResult<>(233, "删除失败");
     }
 
+    /**
+     * @param questionIds 问题id字符串,逗号分隔
+     * @param banks       题库id字符串,逗号分隔
+     * @return
+     */
     @GetMapping("/addBankQuestion")
     @ApiOperation("将问题加入题库")
     public CommonResult<String> addBankQuestion(String questionIds, String banks) {
@@ -161,6 +179,11 @@ public class TeacherController {
         return flag ? new CommonResult<>(200, "添加题库成功") : new CommonResult<>(233, "添加题库失败");
     }
 
+    /**
+     * @param questionIds 问题id字符串,逗号分隔
+     * @param banks       题库id字符串,逗号分隔
+     * @return
+     */
     @GetMapping("/removeBankQuestion")
     @ApiOperation("将问题从题库移除")
     public CommonResult<String> removeBankQuestion(String questionIds, String banks) {
@@ -210,6 +233,11 @@ public class TeacherController {
         return flag ? new CommonResult<>(200, "移除题库成功") : new CommonResult<>(233, "移除题库失败");
     }
 
+    /**
+     * @param file 图片文件
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/uploadQuestionImage")
     @ApiOperation("接受前端上传的图片,返回上传图片地址")
     public CommonResult<String> uploadQuestionImage(MultipartFile file) throws Exception {
@@ -219,6 +247,10 @@ public class TeacherController {
         return new CommonResult<>(200, "上传成功", url);
     }
 
+    /**
+     * @param questionVo 试题Vo对象
+     * @return
+     */
     @PostMapping("/addQuestion")
     @ApiOperation("添加试题")
     public CommonResult<String> addQuestion(@RequestBody QuestionVo questionVo) {
@@ -292,6 +324,10 @@ public class TeacherController {
         return new CommonResult<>(200, "新增题目成功");
     }
 
+    /**
+     * @param id 题目id
+     * @return
+     */
     @GetMapping("/getQuestionById/{id}")
     @ApiOperation("根据id获取题目信息")
     public CommonResult<Object> getQuestionById(@PathVariable("id") Integer id) {
@@ -361,6 +397,10 @@ public class TeacherController {
         }
     }
 
+    /**
+     * @param questionVo 问题vo对象
+     * @return
+     */
     @PostMapping("/updateQuestion")
     @ApiOperation("更新试题")
     public CommonResult<String> updateQuestion(@RequestBody QuestionVo questionVo) {
@@ -430,6 +470,12 @@ public class TeacherController {
         return new CommonResult<>(200, "更新题目成功");
     }
 
+    /**
+     * @param bankName 题目名称
+     * @param pageNo   页面数
+     * @param pageSize 页面大小
+     * @return
+     */
     @GetMapping("/getBankHaveQuestionSumByType")
     @ApiOperation("获取题库中所有题目类型的数量")
     public CommonResult<Object> getBankHaveQuestionSumByType(@RequestParam(required = false) String bankName, Integer pageNo, Integer pageSize) {
@@ -468,6 +514,10 @@ public class TeacherController {
         return new CommonResult<>(200, "查询题库和所属题目信息成功", bankHaveQuestionSums);
     }
 
+    /**
+     * @param ids
+     * @return
+     */
     @GetMapping("/deleteQuestionBank")
     @ApiOperation("删除题库并去除所有题目中的包含此题库的信息")
     public CommonResult<String> deleteQuestionBank(String ids) {
@@ -522,6 +572,10 @@ public class TeacherController {
         return new CommonResult<>(200, "删除题库成功");
     }
 
+    /**
+     * @param questionBank
+     * @return
+     */
     @PostMapping("/addQuestionBank")
     @ApiOperation("添加题库信息")
     public CommonResult<String> addQuestionBank(@RequestBody QuestionBank questionBank) {
@@ -530,6 +584,10 @@ public class TeacherController {
         return flag ? new CommonResult<>(200, "添加题库成功") : new CommonResult<>(200, "添加题库失败");
     }
 
+    /**
+     * @param id 题库id
+     * @return
+     */
     @GetMapping("/getBankById")
     @ApiOperation("通过题库id获取题库信息")
     public CommonResult<QuestionBank> getBankById(Integer id) {
@@ -537,6 +595,10 @@ public class TeacherController {
         return new CommonResult<>(200, "查询题库信息成功", questionBankService.getById(id));
     }
 
+    /**
+     * @param bankId 题库id
+     * @return
+     */
     @GetMapping("/getQuestionByBank")
     @ApiOperation("根据题库获取所有的题目信息(单选,多选,判断题)")
     public CommonResult<Object> getQuestionByBank(Integer bankId) {
@@ -596,6 +658,11 @@ public class TeacherController {
         }
     }
 
+    /**
+     * @param bankId 题库id
+     * @param type   题目类型
+     * @return
+     */
     @GetMapping("/getQuestionByBankIdAndType")
     @ApiOperation("根据题库id和题目类型获取题目信息 type(1单选 2多选 3判断)")
     public CommonResult<List<QuestionVo>> getQuestionByBankIdAndType(Integer bankId, Integer type) {
@@ -608,6 +675,10 @@ public class TeacherController {
         return new CommonResult<>(200, "根据题目类型查询成功", questionVos);
     }
 
+    /**
+     * @param examQueryVo 考试信息查询vo对象
+     * @return
+     */
     @PostMapping("/getExamInfo")
     @ApiOperation("根据信息查询考试的信息")
     public CommonResult<List<Exam>> getExamInfo(@RequestBody ExamQueryVo examQueryVo) {
@@ -633,6 +704,11 @@ public class TeacherController {
         return new CommonResult<>(200, "查询考试信息成功", exams);
     }
 
+    /**
+     * @param type 操作类型
+     * @param ids  操作的考试id集合
+     * @return
+     */
     @GetMapping("/operationExam/{type}")
     @ApiOperation("操作考试的信息表(type 1启用 2禁用 3删除)")
     public CommonResult<String> operationExam(@PathVariable("type") Integer type, String ids) {
@@ -662,6 +738,10 @@ public class TeacherController {
         return new CommonResult<>(200, "操作成功");
     }
 
+    /**
+     * @param addExamByBankVo 根据题库添加考试vo对象
+     * @return
+     */
     @PostMapping("/addExamByBank")
     @ApiOperation("根据题库添加考试")
     public CommonResult<String> addExamByBank(@RequestBody AddExamByBankVo addExamByBankVo) {
@@ -737,6 +817,10 @@ public class TeacherController {
         return new CommonResult<>(200, "考试创建成功");
     }
 
+    /**
+     * @param addExamByQuestionVo 通过题目列表添加考试的vo对象
+     * @return
+     */
     @PostMapping("/addExamByQuestionList")
     @ApiOperation("根据题目列表添加考试")
     public CommonResult<String> addExamByQuestionList(@RequestBody AddExamByQuestionVo addExamByQuestionVo) {
@@ -775,6 +859,10 @@ public class TeacherController {
         return new CommonResult<>(200, "考试创建成功");
     }
 
+    /**
+     * @param examId 考试id
+     * @return
+     */
     @GetMapping("/getExamInfoById")
     @ApiOperation("根据考试id查询考试的信息和题目列表")
     public CommonResult<Object> getExamInfoById(@RequestParam Integer examId) {
@@ -806,6 +894,10 @@ public class TeacherController {
         }
     }
 
+    /**
+     * @param addExamByQuestionVo
+     * @return
+     */
     @PostMapping("/updateExamInfo")
     @ApiOperation("更新考试的信息")
     public CommonResult<String> updateExamInfo(@RequestBody AddExamByQuestionVo addExamByQuestionVo) {
@@ -840,6 +932,11 @@ public class TeacherController {
         return new CommonResult<>(200, "更新成功");
     }
 
+    /**
+     * @param examRecord
+     * @param request
+     * @return
+     */
     @PostMapping("/addExamRecord")
     @ApiOperation("保存考试记录信息,返回保存记录的id")
     public CommonResult<Integer> addExamRecord(@RequestBody ExamRecord examRecord, HttpServletRequest request) {
@@ -898,6 +995,10 @@ public class TeacherController {
         return new CommonResult<>(200, "考试记录保存成功", id);
     }
 
+    /**
+     * @param recordId 考试记录id
+     * @return
+     */
     @GetMapping("/getExamRecordById/{recordId}")
     @ApiOperation("根据考试的记录id查询用户考试的信息")
     public CommonResult<Object> getExamRecordById(@PathVariable Integer recordId) {
@@ -911,6 +1012,10 @@ public class TeacherController {
         }
     }
 
+    /**
+     * @param examId 考试id
+     * @return
+     */
     @GetMapping("/getExamQuestionByExamId/{examId}")
     @ApiOperation("根据考试id查询考试中的每一道题目id和分值")
     public CommonResult<Object> getExamQuestionByExamId(@PathVariable Integer examId) {
@@ -923,6 +1028,12 @@ public class TeacherController {
         }
     }
 
+    /**
+     * @param examId   考试id
+     * @param pageNo   页数
+     * @param pageSize 页面大小
+     * @return
+     */
     @GetMapping("/getExamRecord")
     @ApiOperation("获取考试记录信息,(pageNo,pageSize)")
     public CommonResult<List<ExamRecord>> getExamRecord(@RequestParam(required = false) Integer examId,
@@ -940,6 +1051,10 @@ public class TeacherController {
         return new CommonResult<>(200, "success", records);
     }
 
+    /**
+     * @param userId 用户id
+     * @return
+     */
     @GetMapping("/getUserById/{userId}")
     @ApiOperation("根据用户id查询用户信息")
     public CommonResult<Object> getUserById(@PathVariable Integer userId) {
@@ -961,6 +1076,11 @@ public class TeacherController {
         return new CommonResult<>(200, "所有考试信息获取成功", exams);
     }
 
+    /**
+     * @param totalScore   总成绩
+     * @param examRecordId 考试记录id
+     * @return
+     */
     @GetMapping("/setObjectQuestionScore")
     @ApiOperation("设置考试记录的客观题得分,设置总分为逻辑得分+客观题")
     public CommonResult<String> setObjectQuestionScore(Integer totalScore, Integer examRecordId) {
@@ -1036,6 +1156,4 @@ public class TeacherController {
         list.add(res2.substring(1, res2.length() - 1).replaceAll(" ", ""));
         return new CommonResult<>(200, "考试次数获取成功", list);
     }
-
-
 }

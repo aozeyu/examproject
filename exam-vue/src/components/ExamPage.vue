@@ -390,8 +390,25 @@
       //上传用户考试信息进入后台
       async uploadExamToAdmin () {
         if (this.cameraOn) await this.takePhoto()//结束的时候拍照上传一张
+        // 正则
+        var reg = new RegExp('-', 'g')
+        // 去掉用户输入的非法分割符号(-),保证后端接受数据处理不报错
+        this.userAnswer.forEach((item, index) => {
+          if (this.questionInfo[index].questionType === 4) {//简答题答案处理
+            this.userAnswer[index] = item.replace(reg, ' ')
+          }
+        })
+
+        // 标记题目是否全部做完
+        let flag = true
+        for (let i = 0; i < this.userAnswer.length; i++) {// 检测用户是否题目全部做完
+          if (this.userAnswer[i] === undefined) {
+            flag = false
+          }
+        }
         //题目未做完
-        if (this.userAnswer.length < this.questionInfo.length) {
+        if (!flag) {
+          // if (this.userAnswer.some((item) => item === undefined)) {
           this.$confirm('当前试题暂未做完, 是否继续提交o(╥﹏╥)o ?', 'Tips', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',

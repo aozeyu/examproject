@@ -1,6 +1,9 @@
 <template>
-  <el-container>
-    <el-header>
+  <el-container
+    v-loading="loadingCertificate"
+    element-loading-text="拼命加载证书中"
+    element-loading-spinner="el-icon-loading">
+    <el-header height="210">
       <!--操作的下拉框-->
       <el-select @change="operation" clearable v-model="queryInfo.examId"
                  placeholder="请选择考试" style="margin-bottom: 25px;">
@@ -8,6 +11,12 @@
           <span style="float: left">{{ item.examName }}</span>
         </el-option>
       </el-select>
+
+      <el-alert center show-icon
+                title="新增查看证书功能，通过测评即可获得追风考试系统颁发的专属证书！"
+                type="warning">
+      </el-alert>
+
     </el-header>
 
     <el-main>
@@ -24,11 +33,21 @@
         <el-table-column align="center" prop="examTime" label="考试时间"></el-table-column>
         <el-table-column align="center" prop="logicScore" label="逻辑得分"></el-table-column>
         <el-table-column align="center" prop="passScore" label="及格线"></el-table-column>
-        <el-table-column align="center" prop="totalScore" label="总得分"></el-table-column>
+        <el-table-column align="center" label="总得分">
+          <template slot-scope="scope">
+            {{ scope.row.totalScore === null ? '暂未批阅' : scope.row.totalScore }}
+          </template>
+        </el-table-column>
 
         <el-table-column align="center" label="是否通过">
           <template slot-scope="scope">
-            <span v-if="isOrNotPassExam(scope.row)" style="color: limegreen">通过</span>
+
+            <div v-if="isOrNotPassExam(scope.row)">
+              <span style="color: limegreen">通过</span>
+              |
+              <el-button type="text" @click="getCertificate(scope.row.recordId,scope.row.examName)">查看证书</el-button>
+            </div>
+
             <span v-if="!isOrNotPassExam(scope.row)" style="color: red">未通过</span>
           </template>
         </el-table-column>
@@ -146,7 +165,9 @@
         optionName: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
         //大图的对话图片地址
         bigImgUrl: '',
-        bigImgDialog: false
+        bigImgDialog: false,
+        //加载证书的数据加载动画
+        loadingCertificate: false
       }
     },
     created () {
@@ -234,6 +255,45 @@
         this.bigImgUrl = url
         this.bigImgDialog = true
       },
+      // 获取专属证书
+      getCertificate (recordId, examName) {
+        this.loadingCertificate = true
+        this.$http({
+          url: this.API.getCertificate,
+          method: 'get',
+          responseType: 'arraybuffer',   //一定要设置响应类型，否则页面会是空白pdf
+          params: {
+            'examRecordId': recordId,
+            'examName': examName
+          }
+        }).then(res => {
+          if (res.status === 200) {// 证书获取成功
+            const binaryData = []
+            binaryData.push(res.data)
+            //获取blob链接
+            this.pdfUrl = window.URL.createObjectURL(new Blob(binaryData, { type: 'application/pdf' }))
+            // 证书创建完毕,动画结束
+            this.loadingCertificate = false
+            window.open(this.pdfUrl)
+          } else {
+            this.$notify({
+              title: 'Tips',
+              message: '证书获取失败,请稍后再试',
+              type: 'error',
+              duration: 2000
+            })
+            this.loadingCertificate = false
+          }
+        }).catch((res) => {
+          this.$notify({
+            title: 'Tips',
+            message: '证书获取失败,请稍后再试',
+            type: 'error',
+            duration: 2000
+          })
+          this.loadingCertificate = false
+        })
+      }
     },
     computed: {
       //是否通过考试

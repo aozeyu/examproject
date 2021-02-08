@@ -37,7 +37,7 @@
         </el-table-column>
 
 
-        <el-table-column label="公告内容">
+        <el-table-column label="公告内容" width="600px;">
           <template slot-scope="scope">
             <p v-html="scope.row.content"></p>
           </template>

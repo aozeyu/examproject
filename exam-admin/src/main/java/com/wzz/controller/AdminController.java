@@ -56,6 +56,14 @@ public class AdminController {
     //jackson
     ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * @param loginName 登录用户名
+     * @param trueName  用户真实姓名
+     * @param pageNo    查询页数
+     * @param pageSize  页面大小
+     * @return
+     * @throws InterruptedException
+     */
     @GetMapping("/getUser")
     @ApiOperation("获取用户信息,可分页 ----> 查询条件(可无)(username,trueName),必须有的(pageNo,pageSize)")
     public CommonResult<List<User>> getUser(@RequestParam(required = false) String loginName,
@@ -73,6 +81,11 @@ public class AdminController {
         return new CommonResult<>(200, "success", users);
     }
 
+    /**
+     * @param type    操作类型
+     * @param userIds 操作用户的id的字符串,以逗号分隔
+     * @return
+     */
     @GetMapping("/handleUser/{type}")
     @ApiOperation("管理员操作用户: type=1(启用) 2(禁用) 3(删除) userIds(需要操作的用户id)")
     public CommonResult<String> handleUser(@PathVariable("type") Integer type, String userIds) {
@@ -103,6 +116,11 @@ public class AdminController {
         } else return new CommonResult<>(233, "操作有误");
     }
 
+    /**
+     * @param user 用户实体
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
     @PostMapping("/addUser")
     @ApiOperation("管理员用户新增用户")
     public CommonResult<String> addUser(@RequestBody User user) throws NoSuchAlgorithmException {
@@ -131,6 +149,12 @@ public class AdminController {
         }
     }
 
+    /**
+     * @param content  公告内容模糊查询
+     * @param pageNo   查询页码
+     * @param pageSize 页面大小
+     * @return
+     */
     @GetMapping("/getAllNotice")
     @ApiOperation("获取系统发布的所有公告(分页 条件查询  二合一接口)")
     public CommonResult<List<Notice>> getAllNotice(@RequestParam(required = false, name = "noticeContent") String content,
@@ -146,6 +170,10 @@ public class AdminController {
         return new CommonResult<>(200, "查询所有公告信息", notices);
     }
 
+    /**
+     * @param notice 公告实体
+     * @return
+     */
     @PostMapping("/publishNotice")
     @ApiOperation("发布新公告")
     @Transactional
@@ -170,6 +198,10 @@ public class AdminController {
             throw new RuntimeException("发布公告状态有误");
     }
 
+    /**
+     * @param noticeIds 公告唯一id
+     * @return
+     */
     @GetMapping("/deleteNotice")
     @ApiOperation("批量删除公告")
     @Transactional
@@ -183,6 +215,10 @@ public class AdminController {
         return new CommonResult<>(200, "批量删除公告成功");
     }
 
+    /**
+     * @param notice 公告实体
+     * @return
+     */
     @PostMapping("/updateNotice")
     @ApiOperation("更新公告")
     @Transactional
@@ -211,7 +247,7 @@ public class AdminController {
             targetNotice.setStatus(notice.getStatus());
             boolean update = noticeService.update(targetNotice, wrapper);
             return update ? new CommonResult<>(200, "更新公告成功") :
-                new CommonResult<>(233, "更新公告失败");
+                    new CommonResult<>(233, "更新公告失败");
         } else
             throw new RuntimeException("公告状态有误");
     }

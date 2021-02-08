@@ -257,7 +257,8 @@
         this.$http.get(this.API.getCurrentNewNotice).then((resp) => {
           if (resp.data.code === 200) {
             this.$alert(resp.data.data, '最新公告', {
-              dangerouslyUseHTMLString: true
+              dangerouslyUseHTMLString: true,
+              closeOnPressEscape: true
             })
           } else {
             this.$notify({
@@ -515,6 +516,7 @@
 </script>
 
 <style scoped lang="scss">
+
   .el-container {
     width: 100%;
     height: 100%;

@@ -100,7 +100,9 @@ let API = {
     //批量删除公告
     deleteNotice: '/admin/deleteNotice',
     //更新公告
-    updateNotice: '/admin/updateNotice'
+    updateNotice: '/admin/updateNotice',
+    //获取专属证书
+    getCertificate: '/student/getCertificate'
   },
 }
 
