@@ -1,7 +1,7 @@
 # 追风考试系统 
-[![star](E:\Project\my_project\examSystem\preview\star.svg)](https://gitee.com/wzhouzhou/exam_system/stargazers)[![fork](E:\Project\my_project\examSystem\preview\fork.svg)](https://gitee.com/wzhouzhou/exam_system/members)
+[![star](https://gitee.com/wzhouzhou/exam_system/badge/star.svg?theme=dark)](https://gitee.com/wzhouzhou/exam_system/stargazers)[![fork](https://gitee.com/wzhouzhou/exam_system/badge/fork.svg?theme=white)](https://gitee.com/wzhouzhou/exam_system/members)
 
-[![Fork me on Gitee](E:\Project\my_project\examSystem\preview\widget_4.svg)](https://gitee.com/wzhouzhou/exam_system)
+[![Fork me on Gitee](https://gitee.com/wzhouzhou/exam_system/widgets/widget_4.svg?color=d716f0)](https://gitee.com/wzhouzhou/exam_system)
 
 追风考试系统是一个多角色在线培训考试系统，系统集成了用户管理、角色管理、题库管理、试
 
@@ -23,7 +23,7 @@
 
 - 2020/11/14 更新:
 
-- 1. 网易云音乐线上体验地址: [http://music.wzzz.fun](http://music.wzzz.fun/)
+    1. 网易云音乐线上体验地址: [http://music.wzzz.fun](http://music.wzzz.fun/)
     2. 博客系统线上体验地址: [http://blog.wzzz.fun](http://blog.wzzz.fun/)   (账号:wzz 密码:111)
     3. 考试系统线上体验地址: [http://exam.wzzz.fun](http://exam.wzzz.fun/)  (账号:wzz 密码:12345)
 
@@ -33,19 +33,19 @@
 
 - `2021/02/07更新:`
 
-- 1. 注册验证码校验
+    1. 注册验证码校验
     2. 主页面小屏样式更改
     3. 题库训练弹窗在小屏样式调整
     4. 修复添加考试时选择需要密码权限时,密码为空的情况
     5. 修复更新考试时选择需要密码权限时,密码为空的情况
-    6. `新增公告功能(管理员可改,其他用户可以查看公告)`
+    6. >新增**公告功能**(管理员可改,其他用户可以查看公告)
     7. 修复考试提交试卷业务逻辑BUG
 
 ------
 
 - 2021/02/08更新:
 
-- 1. `新增测验通过之后的发放证书功能 (我的成绩模块中)`
+    1. >新增测验通过之后的**发放证书**功能 (我的成绩模块中)
     2.  考试多选题结果数据过滤逻辑优化
 
 ## 技术栈
@@ -106,11 +106,11 @@
 
 ### 证书发放功能
 
-![image-20210208141529320](E:\Project\my_project\examSystem\preview\image-20210208141529320.png)
+![image-20210208141529320](./preview/image-20210208141529320.png)
 
 ### 公告功能
 
-![image-20210208141451977](E:\Project\my_project\examSystem\preview\image-20210208141451977.png)
+![image-20210208141451977](./preview/image-20210208141451977.png)
 
 ### 登录页
 
