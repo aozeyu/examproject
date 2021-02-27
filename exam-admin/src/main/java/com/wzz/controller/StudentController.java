@@ -14,6 +14,8 @@ import com.wzz.entity.User;
 import com.wzz.service.impl.*;
 import com.wzz.vo.CommonResult;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Date 2020/11/7 19:44
@@ -78,7 +78,13 @@ public class StudentController {
      */
     @GetMapping("/getMyGrade")
     @ApiOperation("获取个人成绩(分页 根据考试名查询)")
-    public CommonResult<List<ExamRecord>> getMyGrade(String username, Integer pageNo, Integer pageSize,
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "系统唯一用户名", required = true, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "pageNo", value = "当前页面数", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "pageSize", value = "当前页面大小", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "examId", value = "考试唯一id", required = false, dataType = "int", paramType = "query")
+    })
+    public CommonResult<Object> getMyGrade(String username, Integer pageNo, Integer pageSize,
                                                      @RequestParam(required = false) Integer examId) {
         User user = userService.getOne(new QueryWrapper<User>().eq("username", username));
         //参数一是当前页，参数二是每页个数
@@ -89,8 +95,12 @@ public class StudentController {
         if (examId != null) wrapper.eq("exam_id", examId);
 
         IPage<ExamRecord> page = examRecordService.page(examRecordPage, wrapper);
-        List<ExamRecord> records = page.getRecords();
-        return new CommonResult<>(200, "查询成绩成功", records);
+        List<ExamRecord> examRecords = page.getRecords();
+        // 创建分页结果集
+        Map<Object, Object> result = new HashMap<>();
+        result.put("examRecords", examRecords);
+        result.put("total", examRecordPage.getTotal());
+        return new CommonResult<>(200, "查询成绩成功", result);
     }
 
     @GetMapping("/getCurrentNewNotice")
@@ -116,6 +126,10 @@ public class StudentController {
      */
     @GetMapping("/getCertificate")
     @ApiOperation("生成证书接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "examName", value = "考试名称", required = true, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "examRecordId", value = "考试记录id", required = true, dataType = "int", paramType = "query")
+    })
     public void getCertificate(HttpServletResponse response, @RequestParam(name = "examName") String examName,
                                @RequestParam(name = "examRecordId") Integer examRecordId) throws IOException, DocumentException, URISyntaxException {
         log.info("执行了===>StudentController中getCertificate的方法");
@@ -128,7 +142,7 @@ public class StudentController {
         User user = userService.getOne(new QueryWrapper<User>().eq("id", userId));
 
 
-        // windows下用如下路径
+        // ****windows下用如下路径****
         // 获取证书背景图片路径
         String backgroundImage = Objects.requireNonNull(PDFUtil.class.getClassLoader().getResource("static/images/certificateBg.png")).getPath();
         // 获取发放证书的项目Logo

@@ -68,7 +68,7 @@
                      @size-change="handleSizeChange"
                      @current-change="handleCurrentChange"
                      :current-page="queryInfo.pageNo"
-                     :page-sizes="[10, 2, 30, 50]"
+                     :page-sizes="[10, 20, 30, 50]"
                      :page-size="queryInfo.pageSize"
                      layout="total, sizes, prev, pager, next, jumper"
                      :total="total">
@@ -136,14 +136,14 @@
     },
     created () {
       this.getBankInfo()
-      this.getBankTotal()
     },
     methods: {
       //获取所有的题库信息
       getBankInfo () {
         this.$http.get(this.API.getBankHaveQuestionSumByType, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.questionBankInfo = resp.data.data
+            this.questionBankInfo = resp.data.data.bankHaveQuestionSums
+            this.total = resp.data.data.total
             this.loading = false
           } else {
             this.$notify({
@@ -158,7 +158,6 @@
       //查询内容变化
       contentChange () {
         this.getBankInfo()
-        this.getBankTotal()
       },
       //操作选项的被触发
       operationChange (val) {
@@ -182,7 +181,6 @@
                   duration: 2000
                 })
                 this.getBankInfo()
-                this.getBankTotal()
               } else {
                 this.$notify({
                   title: 'Tips',
@@ -214,26 +212,6 @@
         this.queryInfo.pageNo = val
         this.getBankInfo()
       },
-      //获取总数量
-      getBankTotal () {
-        let data = JSON.parse(JSON.stringify(this.queryInfo))
-        data.pageNo = 1
-        data.pageSize = 9999
-        this.$http.get(this.API.getBankHaveQuestionSumByType, {
-          params: data
-        }).then((resp) => {
-          if (resp.data.code === 200) {
-            this.total = resp.data.data.length
-          } else {
-            this.$notify({
-              title: 'Tips',
-              message: resp.data.message,
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
-      },
       //添加题库
       addQuestionBank () {
         this.$refs['addForm'].validate((valid) => {
@@ -241,7 +219,6 @@
             this.$http.post(this.API.addQuestionBank, this.addForm).then((resp) => {
               if (resp.data.code === 200) {
                 this.getBankInfo()
-                this.getBankTotal()
                 this.$notify({
                   title: 'Tips',
                   message: resp.data.message,

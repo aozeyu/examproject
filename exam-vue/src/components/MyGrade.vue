@@ -7,7 +7,7 @@
       <!--操作的下拉框-->
       <el-select @change="operation" clearable v-model="queryInfo.examId"
                  placeholder="请选择考试" style="margin-bottom: 25px;">
-        <el-option v-for="(item,index) in allExamInfo" :key="index" :value="parseInt(item.examId)">
+        <el-option v-for="(item,index) in allExamInfo" :key="index" :label="item.examName" :value="parseInt(item.examId)">
           <span style="float: left">{{ item.examName }}</span>
         </el-option>
       </el-select>
@@ -177,21 +177,10 @@
       getMyGrade () {
         this.$http.get(this.API.getMyGrade, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.grade = resp.data.data
+            this.grade = resp.data.data.examRecords
+            this.total = resp.data.data.total
             this.getAllExamInfo()
-            this.getGradeTotal()
             this.loading = false
-          }
-        })
-      },
-      //查询成绩总数
-      getGradeTotal () {
-        let data = JSON.parse(JSON.stringify(this.queryInfo))
-        data.pageNo = 1
-        data.pageSize = 9999
-        this.$http.get(this.API.getMyGrade, { params: data }).then((resp) => {
-          if (resp.data.code === 200) {
-            this.total = resp.data.data.length
           }
         })
       },

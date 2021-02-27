@@ -29,7 +29,10 @@ public class CheckToken {
                 System.out.println(userService);
                 User user = userService.getOne(wrapper);
                 //校验token是否合法 并且是否过期
-                if (tokenVo != null && user != null && user.getRoleId() == Integer.parseInt(tokenVo.getRoleId()) && Objects.equals(user.getPassword(), tokenVo.getPassword()) && user.getStatus() == 1) {
+                if (tokenVo != null && user != null
+                        && user.getRoleId() == Integer.parseInt(tokenVo.getRoleId())
+                        && Objects.equals(user.getPassword(), tokenVo.getPassword())
+                        && user.getStatus() == 1) {
                     return tokenVo;
                 } else {//非法token
                     return null;

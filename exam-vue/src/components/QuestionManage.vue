@@ -646,9 +646,9 @@
       getQuestionInfo () {
         this.$http.get(this.API.getQuestion, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.questionInfo = resp.data.data
+            this.questionInfo = resp.data.data.questions;
+            this.total = resp.data.data.total;
             this.loading = false
-            this.getQuestionTotal()
           } else {
             this.$notify({
               title: 'Tips',
@@ -707,26 +707,6 @@
       handleCurrentChange (val) {
         this.queryInfo.pageNo = val
         this.getQuestionInfo()
-      },
-      //查询所有题目的数据
-      getQuestionTotal () {
-        let data = JSON.parse(JSON.stringify(this.queryInfo))
-        data.pageNo = 1
-        data.pageSize = 9999
-        this.$http.get(this.API.getQuestion, {
-          params: data
-        }).then((resp) => {
-          if (resp.data.code === 200) {
-            this.total = resp.data.data.length
-          } else {
-            this.$notify({
-              title: 'Tips',
-              message: '获取题目失败',
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
       },
       //表单信息重置
       resetAddForm () {

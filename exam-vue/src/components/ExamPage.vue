@@ -406,6 +406,10 @@
             flag = false
           }
         }
+        // 如果用户所有答案的数组长度小于题目长度,这个时候也要将标志位置为false
+        if (this.userAnswer.length < this.questionInfo.length) {
+          flag = false
+        }
         //题目未做完
         if (!flag) {
           // if (this.userAnswer.some((item) => item === undefined)) {

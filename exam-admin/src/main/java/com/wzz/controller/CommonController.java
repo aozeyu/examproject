@@ -3,15 +3,10 @@ package com.wzz.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.itextpdf.text.DocumentException;
-import com.wzz.Util.CertificateUtil.ContentStyle;
-import com.wzz.Util.CertificateUtil.DateTimeUtil;
-import com.wzz.Util.CertificateUtil.PDFUtil;
 import com.wzz.Util.CheckToken;
 import com.wzz.Util.RedisUtil;
 import com.wzz.Util.SaltEncryption;
 import com.wzz.Util.TokenUtils;
-import com.wzz.entity.ExamRecord;
 import com.wzz.entity.User;
 import com.wzz.entity.UserRole;
 import com.wzz.service.impl.ExamRecordServiceImpl;
@@ -20,17 +15,15 @@ import com.wzz.service.impl.UserServiceImpl;
 import com.wzz.vo.CommonResult;
 import com.wzz.vo.TokenVo;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.net.URLDecoder;
+
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Objects;
@@ -76,6 +69,9 @@ public class CommonController {
      */
     @ApiOperation("用户注册接口")
     @PostMapping("/register")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "user", value = "系统用户实体", required = true, dataType = "user", paramType = "body")
+    })
     public CommonResult<String> Register(@RequestBody User user) throws NoSuchAlgorithmException {
         log.info("执行了===>CommonController中的register方法");
         //盐值
@@ -97,6 +93,9 @@ public class CommonController {
      */
     @GetMapping("/check/{username}")
     @ApiOperation("用户名合法查询接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "系统用户唯一用户名", required = true, dataType = "string", paramType = "path")
+    })
     public CommonResult<String> checkUsername(@PathVariable(value = "username") String username) {
         log.info("执行了===>CommonController中的checkUsername方法");
         QueryWrapper<User> wrapper = new QueryWrapper<>();
@@ -114,6 +113,10 @@ public class CommonController {
      */
     @PostMapping("/login")
     @ApiOperation("用户登录接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "系统用户唯一用户名", required = true, dataType = "string", paramType = "body"),
+            @ApiImplicitParam(name = "password", value = "系统用户密码", required = true, dataType = "string", paramType = "body"),
+    })
     public CommonResult<String> login(@RequestParam(value = "username") String username,
                                       @RequestParam(value = "password") String password) throws NoSuchAlgorithmException {
         log.info("执行了===>CommonController中的login方法");
@@ -203,6 +206,9 @@ public class CommonController {
      */
     @PostMapping("/updateCurrentUser")
     @ApiOperation("供给用户更改个人信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "user", value = "系统用户实体", required = true, dataType = "user", paramType = "body")
+    })
     public CommonResult<String> updateCurrentUser(HttpServletRequest request, @RequestBody User user) throws NoSuchAlgorithmException {
         log.info("执行了===>CommonController中的updateCurrentUser方法");
         //工具类验证token是否有效 有效返回tokenVo对象,否则返回null

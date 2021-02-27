@@ -182,14 +182,14 @@
     },
     created () {
       this.getBankInfo()
-      this.getBankTotal()
     },
     methods: {
       //获取所有的题库信息
       getBankInfo () {
         this.$http.get(this.API.getBankHaveQuestionSumByType, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.questionBankInfo = resp.data.data
+            this.questionBankInfo = resp.data.data.bankHaveQuestionSums;
+            this.total = resp.data.data.total;
             this.loading = false
           } else {
             this.$notify({
@@ -204,7 +204,6 @@
       //查询内容变化
       contentChange () {
         this.getBankInfo()
-        this.getBankTotal()
       },
       //操作选项的被触发
       operationChange (val) {
@@ -259,26 +258,6 @@
       handleCurrentChange (val) {
         this.queryInfo.pageNo = val
         this.getBankInfo()
-      },
-      //获取总数量
-      getBankTotal () {
-        let data = JSON.parse(JSON.stringify(this.queryInfo))
-        data.pageNo = 1
-        data.pageSize = 9999
-        this.$http.get(this.API.getBankHaveQuestionSumByType, {
-          params: data
-        }).then((resp) => {
-          if (resp.data.code === 200) {
-            this.total = resp.data.data.length
-          } else {
-            this.$notify({
-              title: 'Tips',
-              message: resp.data.message,
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
       },
       //显示练习对话框
       showTrainDialog (bankId) {

@@ -226,9 +226,9 @@
       getUserInfo () {
         this.$http.get(this.API.getUserInfo, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.userInfo = resp.data.data
-            this.getUserTotal()
-            this.loading = false
+            this.userInfo = resp.data.data.users;
+            this.total = resp.data.data.total;
+            this.loading = false;
           } else {
             this.$notify({
               title: 'Tips',
@@ -323,26 +323,6 @@
       handleCurrentChange (val) {
         this.queryInfo.pageNo = val
         this.getUserInfo()
-      },
-      //查询所有用户的数据
-      getUserTotal () {
-        let data = JSON.parse(JSON.stringify(this.queryInfo))
-        data.pageNo = 1
-        data.pageSize = 9999
-        this.$http.get(this.API.getUserInfo, {
-          params: data
-        }).then((resp) => {
-          if (resp.data.code === 200) {
-            this.total = resp.data.data.length
-          } else {
-            this.$notify({
-              title: 'Tips',
-              message: '获取信息失败',
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
       },
       //点击添加按钮
       showAddDialog () {

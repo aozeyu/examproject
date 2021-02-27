@@ -73,7 +73,7 @@ public class TokenUtils {//过期时间
     }
 
     public static void main(String[] args) {
-        String token = TokenUtils.createToken(new TokenVo("1","wzz","123"));
+        String token = TokenUtils.createToken(new TokenVo("3","wzz","9499273223c7aca5949e3055eaa57f6f"));
         System.out.println("token == " + token);
         TokenVo tokenVo = TokenUtils.verifyToken(token);
         System.out.println(tokenVo);

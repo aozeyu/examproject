@@ -225,29 +225,9 @@
       getNoticeInfo () {
         this.$http.get(this.API.getAllNotice, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.noticeInfo = resp.data.data
-            this.getNoticeTotal()
-            this.loading = false
-          } else {
-            this.$notify({
-              title: 'Tips',
-              message: '获取信息失败',
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
-      },
-      //查询所有用户的数据
-      getNoticeTotal () {
-        let data = JSON.parse(JSON.stringify(this.queryInfo))
-        data.pageNo = 1
-        data.pageSize = 9999
-        this.$http.get(this.API.getAllNotice, {
-          params: data
-        }).then((resp) => {
-          if (resp.data.code === 200) {
-            this.total = resp.data.data.length
+            this.noticeInfo = resp.data.data.notices;
+            this.total = resp.data.data.total;
+            this.loading = false;
           } else {
             this.$notify({
               title: 'Tips',

@@ -13,9 +13,12 @@ import com.wzz.entity.*;
 import com.wzz.service.impl.*;
 import com.wzz.vo.*;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -85,11 +88,18 @@ public class TeacherController {
      * @return
      */
     @GetMapping("/getQuestion")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "questionType", value = "问题类型", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "questionBank", value = "问题所属题库", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "questionContent", value = "问题内容", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "pageNo", value = "页面数", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "pageSize", value = "页面大小", required = true, dataType = "int", paramType = "query")
+    })
     @ApiOperation("获取题目信息,可分页 ----> 查询条件(可无)(questionType,questionBank,questionContent),必须有的(pageNo,pageSize)")
-    public CommonResult<List<Question>> getQuestion(@RequestParam(required = false) String questionType,
-                                                    @RequestParam(required = false) String questionBank,
-                                                    @RequestParam(required = false) String questionContent,
-                                                    Integer pageNo, Integer pageSize) {
+    public CommonResult<Object> getQuestion(@RequestParam(required = false) String questionType,
+                                            @RequestParam(required = false) String questionBank,
+                                            @RequestParam(required = false) String questionContent,
+                                            Integer pageNo, Integer pageSize) {
         log.info("执行了===>TeacherController中的getQuestion方法");
         //参数一是当前页，参数二是每页个数
         IPage<Question> questionPage = new Page<>(pageNo, pageSize);
@@ -100,9 +110,12 @@ public class TeacherController {
         if (!Objects.equals(questionContent, "")) wrapper.like("qu_content", questionContent);
 
         questionPage = questionService.page(questionPage, wrapper);
-
         List<Question> questions = questionPage.getRecords();
-        return new CommonResult<>(200, "success", questions);
+        // 创建分页结果集
+        Map<Object, Object> result = new HashMap<>();
+        result.put("questions", questions);
+        result.put("total", questionPage.getTotal());
+        return new CommonResult<>(200, "success", result);
     }
 
     /**
@@ -112,18 +125,27 @@ public class TeacherController {
      */
     @GetMapping("/deleteQuestion")
     @ApiOperation("根据id批量删除")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "questionIds", value = "问题id的字符串以逗号分隔", required = true, dataType = "string", paramType = "query")
+    })
+    @Transactional
     public CommonResult<String> deleteQuestion(String questionIds) throws InterruptedException {
         log.info("执行了===>TeacherController中的deleteQuestion方法");
         String[] ids = questionIds.split(",");
-        boolean flag = true;
+        Map<String, Object> map = new HashMap<>();
         for (String id : ids) {
-            if (!questionService.removeById(Integer.parseInt(id))) {
-                flag = false;
-            }
+            map.clear();
+            map.put("question_id", id);
+            // 1. 删除数据库的题目信息
+            questionService.removeById(Integer.parseInt(id));
+            //2. 删除答案表对应当前题目id的答案
+            answerService.removeByMap(map);
+            // 2. 移除redis缓存
+            redisUtil.del("questionVo:" + id);
         }
-        //清楚题库的缓存
+        // 清楚题库的缓存
         redisUtil.del("questionBanks");
-        return flag ? new CommonResult<>(200, "删除成功") : new CommonResult<>(233, "删除失败");
+        return new CommonResult<>(200, "删除成功");
     }
 
     /**
@@ -133,6 +155,10 @@ public class TeacherController {
      */
     @GetMapping("/addBankQuestion")
     @ApiOperation("将问题加入题库")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "questionIds", value = "问题id的字符串以逗号分隔", required = true, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "banks", value = "题库id的字符串以逗号分隔", required = true, dataType = "string", paramType = "query"),
+    })
     public CommonResult<String> addBankQuestion(String questionIds, String banks) {
         log.info("执行了===>TeacherController中的addBankQuestion方法");
         boolean flag = false;
@@ -186,6 +212,11 @@ public class TeacherController {
      */
     @GetMapping("/removeBankQuestion")
     @ApiOperation("将问题从题库移除")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "questionIds", value = "问题id的字符串以逗号分隔", required = true, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "banks", value = "题库id的字符串以逗号分隔", required = true, dataType = "string", paramType = "query"),
+    })
+    @Transactional
     public CommonResult<String> removeBankQuestion(String questionIds, String banks) {
         log.info("执行了===>TeacherController中的removeBankQuestion方法");
         boolean flag = false;
@@ -240,6 +271,9 @@ public class TeacherController {
      */
     @PostMapping("/uploadQuestionImage")
     @ApiOperation("接受前端上传的图片,返回上传图片地址")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "file", value = "图片文件", required = true, dataType = "file", paramType = "body"),
+    })
     public CommonResult<String> uploadQuestionImage(MultipartFile file) throws Exception {
         log.info("执行了===>TeacherController中的uploadQuestionImage方法");
         System.out.println(file.getOriginalFilename());
@@ -253,6 +287,9 @@ public class TeacherController {
      */
     @PostMapping("/addQuestion")
     @ApiOperation("添加试题")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "questionVo", value = "问题的vo视图对象", required = true, dataType = "questionVo", paramType = "body"),
+    })
     public CommonResult<String> addQuestion(@RequestBody QuestionVo questionVo) {
         log.info("执行了===>TeacherController中的addQuestion方法");
         //查询所有的问题,然后就可以设置当前问题的id了
@@ -330,6 +367,9 @@ public class TeacherController {
      */
     @GetMapping("/getQuestionById/{id}")
     @ApiOperation("根据id获取题目信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "问题id", required = true, dataType = "int", paramType = "path"),
+    })
     public CommonResult<Object> getQuestionById(@PathVariable("id") Integer id) {
         log.info("执行了===>TeacherController中的getQuestionById方法");
         if (redisUtil.get("questionVo:" + id) != null) {
@@ -403,6 +443,9 @@ public class TeacherController {
      */
     @PostMapping("/updateQuestion")
     @ApiOperation("更新试题")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "questionVo", value = "问题的vo视图对象", required = true, dataType = "questionVo", paramType = "body"),
+    })
     public CommonResult<String> updateQuestion(@RequestBody QuestionVo questionVo) {
         log.info("执行了===>TeacherController中的updateQuestion方法");
         Question question = new Question();
@@ -478,7 +521,13 @@ public class TeacherController {
      */
     @GetMapping("/getBankHaveQuestionSumByType")
     @ApiOperation("获取题库中所有题目类型的数量")
-    public CommonResult<Object> getBankHaveQuestionSumByType(@RequestParam(required = false) String bankName, Integer pageNo, Integer pageSize) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "bankName", value = "题库名称", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "pageNo", value = "页面数", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "pageSize", value = "页面大小", required = true, dataType = "int", paramType = "query"),
+    })
+    public CommonResult<Object> getBankHaveQuestionSumByType(@RequestParam(required = false) String bankName,
+                                                             Integer pageNo, Integer pageSize) {
         log.info("执行了===>TeacherController中的getBankHaveQuestionSumByType方法");
 
         //参数一是当前页，参数二是每页个数
@@ -511,7 +560,11 @@ public class TeacherController {
             //加入list中
             bankHaveQuestionSums.add(bankHaveQuestionSum);
         }
-        return new CommonResult<>(200, "查询题库和所属题目信息成功", bankHaveQuestionSums);
+        // 创建分页结果集
+        Map<Object, Object> result = new HashMap<>();
+        result.put("bankHaveQuestionSums", bankHaveQuestionSums);
+        result.put("total", iPage.getTotal());
+        return new CommonResult<>(200, "查询题库和所属题目信息成功", result);
     }
 
     /**
@@ -520,6 +573,9 @@ public class TeacherController {
      */
     @GetMapping("/deleteQuestionBank")
     @ApiOperation("删除题库并去除所有题目中的包含此题库的信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ids", value = "删除题库的id字符串逗号分隔", required = true, dataType = "string", paramType = "query")
+    })
     public CommonResult<String> deleteQuestionBank(String ids) {
         log.info("执行了===>TeacherController中的deleteQuestionBank方法");
         String[] bankId = ids.split(",");
@@ -578,6 +634,9 @@ public class TeacherController {
      */
     @PostMapping("/addQuestionBank")
     @ApiOperation("添加题库信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "questionBank", value = "题库的实体对象", required = true, dataType = "questionBank", paramType = "body")
+    })
     public CommonResult<String> addQuestionBank(@RequestBody QuestionBank questionBank) {
         log.info("执行了===>TeacherController中的addQuestionBank方法");
         boolean flag = questionBankService.save(questionBank);
@@ -590,6 +649,9 @@ public class TeacherController {
      */
     @GetMapping("/getBankById")
     @ApiOperation("通过题库id获取题库信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "题库id", required = true, dataType = "int", paramType = "query")
+    })
     public CommonResult<QuestionBank> getBankById(Integer id) {
         log.info("执行了===>TeacherController中的getBankById方法");
         return new CommonResult<>(200, "查询题库信息成功", questionBankService.getById(id));
@@ -601,6 +663,9 @@ public class TeacherController {
      */
     @GetMapping("/getQuestionByBank")
     @ApiOperation("根据题库获取所有的题目信息(单选,多选,判断题)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "bankId", value = "题库id", required = true, dataType = "int", paramType = "query")
+    })
     public CommonResult<Object> getQuestionByBank(Integer bankId) {
         log.info("执行了===>TeacherController中的getQuestionByBank方法");
         if (redisUtil.get("questionBankQuestion:" + bankId) != null) {//查询缓存
@@ -665,6 +730,10 @@ public class TeacherController {
      */
     @GetMapping("/getQuestionByBankIdAndType")
     @ApiOperation("根据题库id和题目类型获取题目信息 type(1单选 2多选 3判断)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "bankId", value = "题库id", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "type", value = "题目类型", required = true, dataType = "int", paramType = "query"),
+    })
     public CommonResult<List<QuestionVo>> getQuestionByBankIdAndType(Integer bankId, Integer type) {
         log.info("执行了===>TeacherController中的getQuestionByBankIdAndType方法");
         //调用根据题库查询所有题目信息的方法
@@ -681,6 +750,9 @@ public class TeacherController {
      */
     @PostMapping("/getExamInfo")
     @ApiOperation("根据信息查询考试的信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "examQueryVo", value = "考试信息查询vo对象", required = true, dataType = "examQueryVo", paramType = "body")
+    })
     public CommonResult<List<Exam>> getExamInfo(@RequestBody ExamQueryVo examQueryVo) {
         log.info("执行了===>TeacherController中的getExamInfo方法");
         System.out.println(examQueryVo);
@@ -711,6 +783,10 @@ public class TeacherController {
      */
     @GetMapping("/operationExam/{type}")
     @ApiOperation("操作考试的信息表(type 1启用 2禁用 3删除)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "type", value = "操作类型", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "ids", value = "操作的考试id集合", required = true, dataType = "string", paramType = "query"),
+    })
     public CommonResult<String> operationExam(@PathVariable("type") Integer type, String ids) {
         log.info("执行了===>TeacherController中的operationExam方法");
         String[] id = ids.split(",");
@@ -744,6 +820,9 @@ public class TeacherController {
      */
     @PostMapping("/addExamByBank")
     @ApiOperation("根据题库添加考试")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "addExamByBankVo", value = "根据题库添加考试vo对象", required = true, dataType = "addExamByBankVo", paramType = "body")
+    })
     public CommonResult<String> addExamByBank(@RequestBody AddExamByBankVo addExamByBankVo) {
         log.info("执行了===>TeacherController中的addExamByBank方法");
 
@@ -823,6 +902,10 @@ public class TeacherController {
      */
     @PostMapping("/addExamByQuestionList")
     @ApiOperation("根据题目列表添加考试")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "addExamByQuestionVo", value = "通过题目列表添加考试的vo对象", required = true, dataType = "addExamByQuestionVo",
+                    paramType = "body")
+    })
     public CommonResult<String> addExamByQuestionList(@RequestBody AddExamByQuestionVo addExamByQuestionVo) {
         log.info("执行了===>TeacherController中的addExamByQuestionList方法");
         Exam exam = new Exam();
@@ -865,6 +948,9 @@ public class TeacherController {
      */
     @GetMapping("/getExamInfoById")
     @ApiOperation("根据考试id查询考试的信息和题目列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "examId", value = "考试id", required = true, dataType = "int", paramType = "query")
+    })
     public CommonResult<Object> getExamInfoById(@RequestParam Integer examId) {
         log.info("执行了===>TeacherController中的getExamInfoById方法");
         if (redisUtil.get("examInfo:" + examId) != null) {
@@ -900,6 +986,10 @@ public class TeacherController {
      */
     @PostMapping("/updateExamInfo")
     @ApiOperation("更新考试的信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "addExamByQuestionVo", value = "通过题目列表添加考试的vo对象", required = true, dataType = "addExamByQuestionVo",
+                    paramType = "body")
+    })
     public CommonResult<String> updateExamInfo(@RequestBody AddExamByQuestionVo addExamByQuestionVo) {
         log.info("执行了===>TeacherController中的updateExamInfo方法");
         Exam exam = new Exam();
@@ -939,6 +1029,9 @@ public class TeacherController {
      */
     @PostMapping("/addExamRecord")
     @ApiOperation("保存考试记录信息,返回保存记录的id")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "examRecord", value = "考试记录实体对象", required = true, dataType = "examRecord", paramType = "body")
+    })
     public CommonResult<Integer> addExamRecord(@RequestBody ExamRecord examRecord, HttpServletRequest request) {
         log.info("执行了===>TeacherController中的addExamRecord方法");
         String token = request.getHeader("authorization");
@@ -1001,6 +1094,9 @@ public class TeacherController {
      */
     @GetMapping("/getExamRecordById/{recordId}")
     @ApiOperation("根据考试的记录id查询用户考试的信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "recordId", value = "考试记录id", required = true, dataType = "int", paramType = "query")
+    })
     public CommonResult<Object> getExamRecordById(@PathVariable Integer recordId) {
         log.info("执行了===>TeacherController中的getExamRecordById方法");
         if (redisUtil.get("examRecord:" + recordId) != null) {
@@ -1018,6 +1114,9 @@ public class TeacherController {
      */
     @GetMapping("/getExamQuestionByExamId/{examId}")
     @ApiOperation("根据考试id查询考试中的每一道题目id和分值")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "examId", value = "考试id", required = true, dataType = "int", paramType = "query")
+    })
     public CommonResult<Object> getExamQuestionByExamId(@PathVariable Integer examId) {
         log.info("执行了===>TeacherController中的getExamQuestionByExamId方法");
         if (redisUtil.get("examQuestion:" + examId) != null) {
@@ -1036,8 +1135,13 @@ public class TeacherController {
      */
     @GetMapping("/getExamRecord")
     @ApiOperation("获取考试记录信息,(pageNo,pageSize)")
-    public CommonResult<List<ExamRecord>> getExamRecord(@RequestParam(required = false) Integer examId,
-                                                        Integer pageNo, Integer pageSize) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "examId", value = "考试id", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "pageNo", value = "页面数", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "pageSize", value = "页面大小", required = true, dataType = "int", paramType = "query"),
+    })
+    public CommonResult<Object> getExamRecord(@RequestParam(required = false) Integer examId,
+                                              Integer pageNo, Integer pageSize) {
         log.info("执行了===>TeacherController中的getExamRecords方法");
         //参数一是当前页，参数二是每页个数
         IPage<ExamRecord> examRecordPage = new Page<>(pageNo, pageSize);
@@ -1047,8 +1151,12 @@ public class TeacherController {
 
         IPage<ExamRecord> page = examRecordService.page(examRecordPage, wrapper);
 
-        List<ExamRecord> records = page.getRecords();
-        return new CommonResult<>(200, "success", records);
+        List<ExamRecord> examRecords = page.getRecords();
+        // 构造结果集
+        Map<Object, Object> result = new HashMap<>();
+        result.put("examRecords", examRecords);
+        result.put("total", examRecordPage.getTotal());
+        return new CommonResult<>(200, "success", result);
     }
 
     /**
@@ -1057,6 +1165,9 @@ public class TeacherController {
      */
     @GetMapping("/getUserById/{userId}")
     @ApiOperation("根据用户id查询用户信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userId", value = "用户id", required = true, dataType = "int", paramType = "query")
+    })
     public CommonResult<Object> getUserById(@PathVariable Integer userId) {
         log.info("执行了===>TeacherController中的getUserById方法");
         if (redisUtil.get("user:" + userId) != null) {
@@ -1083,6 +1194,10 @@ public class TeacherController {
      */
     @GetMapping("/setObjectQuestionScore")
     @ApiOperation("设置考试记录的客观题得分,设置总分为逻辑得分+客观题")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "totalScore", value = "总成绩", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "examRecordId", value = "考试记录id", required = true, dataType = "int", paramType = "query")
+    })
     public CommonResult<String> setObjectQuestionScore(Integer totalScore, Integer examRecordId) {
         ExamRecord examRecord = examRecordService.getOne(new QueryWrapper<ExamRecord>().eq("record_id", examRecordId));
         examRecord.setTotalScore(totalScore);

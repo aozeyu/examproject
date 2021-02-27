@@ -14,6 +14,8 @@ import com.wzz.entity.UserRole;
 import com.wzz.service.impl.*;
 import com.wzz.vo.CommonResult;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,19 +68,23 @@ public class AdminController {
      */
     @GetMapping("/getUser")
     @ApiOperation("获取用户信息,可分页 ----> 查询条件(可无)(username,trueName),必须有的(pageNo,pageSize)")
-    public CommonResult<List<User>> getUser(@RequestParam(required = false) String loginName,
-                                            @RequestParam(required = false) String trueName,
-                                            Integer pageNo, Integer pageSize) throws InterruptedException {
+    public CommonResult<Object> getUser(@RequestParam(required = false) String loginName,
+                                        @RequestParam(required = false) String trueName,
+                                        Integer pageNo, Integer pageSize) throws InterruptedException {
         log.info("执行了===>AdminController中的getUser方法");
         //参数一是当前页，参数二是每页个数
         IPage<User> userPage = new Page<>(pageNo, pageSize);
         //查询条件(可选)
         QueryWrapper<User> wrapper = new QueryWrapper<>();
-        if (!Objects.equals(loginName, "")) wrapper.like("username", loginName);
-        if (!Objects.equals(trueName, "")) wrapper.like("true_name", trueName);
+        if (!Objects.equals(loginName, "") && loginName != null) wrapper.like("username", loginName);
+        if (!Objects.equals(trueName, "") && trueName != null) wrapper.like("true_name", trueName);
         userPage = userService.page(userPage, wrapper);
         List<User> users = userPage.getRecords();
-        return new CommonResult<>(200, "success", users);
+        // 创建分页结果集
+        Map<Object, Object> result = new HashMap<>();
+        result.put("users", users);
+        result.put("total", userPage.getTotal());
+        return new CommonResult<>(200, "success", result);
     }
 
     /**
@@ -123,6 +129,9 @@ public class AdminController {
      */
     @PostMapping("/addUser")
     @ApiOperation("管理员用户新增用户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "user", value = "系统用户实体", required = true, dataType = "user", paramType = "body")
+    })
     public CommonResult<String> addUser(@RequestBody User user) throws NoSuchAlgorithmException {
         log.info("执行了===>AdminController中的addUser方法");
         //盐值
@@ -157,17 +166,26 @@ public class AdminController {
      */
     @GetMapping("/getAllNotice")
     @ApiOperation("获取系统发布的所有公告(分页 条件查询  二合一接口)")
-    public CommonResult<List<Notice>> getAllNotice(@RequestParam(required = false, name = "noticeContent") String content,
-                                                   Integer pageNo, Integer pageSize) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "noticeContent", value = "搜索公告内容", required = false, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "pageNo", value = "查询结果分页当前页面", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "pageSize", value = "查询结果的页面条数大小", required = true, dataType = "int", paramType = "query")
+    })
+    public CommonResult<Object> getAllNotice(@RequestParam(required = false, name = "noticeContent") String content,
+                                             Integer pageNo, Integer pageSize) {
         log.info("执行了===>AdminController中的getAllNotice方法");
         //参数一是当前页，参数二是每页个数
         IPage<Notice> noticeIPage = new Page<>(pageNo, pageSize);
         //查询条件(可选)
         QueryWrapper<Notice> wrapper = new QueryWrapper<>();
-        if (!Objects.equals(content, "")) wrapper.like("content", content);
+        if (!Objects.equals(content, "") && content != null) wrapper.like("content", content);
         noticeIPage = noticeService.page(noticeIPage, wrapper);
         List<Notice> notices = noticeIPage.getRecords();
-        return new CommonResult<>(200, "查询所有公告信息", notices);
+        // 创建分页结果集
+        Map<Object, Object> result = new HashMap<>();
+        result.put("notices", notices);
+        result.put("total", noticeIPage.getTotal());
+        return new CommonResult<>(200, "查询所有公告信息", result);
     }
 
     /**
@@ -176,6 +194,9 @@ public class AdminController {
      */
     @PostMapping("/publishNotice")
     @ApiOperation("发布新公告")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "notice", value = "通知实体对象", required = true, dataType = "notice", paramType = "body")
+    })
     @Transactional
     public CommonResult<String> publishNotice(@RequestBody Notice notice) {
         log.info("执行了===>AdminController中的publishNotice方法");
@@ -204,6 +225,9 @@ public class AdminController {
      */
     @GetMapping("/deleteNotice")
     @ApiOperation("批量删除公告")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "noticeIds", value = "系统公告id", required = true, dataType = "string", paramType = "query")
+    })
     @Transactional
     public CommonResult<String> deleteNotice(@RequestParam(name = "ids") String noticeIds) {
         log.info("执行了===>AdminController中的deleteNotice方法");
@@ -221,6 +245,9 @@ public class AdminController {
      */
     @PostMapping("/updateNotice")
     @ApiOperation("更新公告")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "notice", value = "通知实体对象", required = true, dataType = "notice", paramType = "body")
+    })
     @Transactional
     public CommonResult<String> updateNotice(@RequestBody Notice notice) {
         log.info("执行了===>AdminController中的updateNotice方法");
