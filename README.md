@@ -170,7 +170,7 @@ npm run serve #启动项目服务
 
 ## 致谢
 
-本项目基于或参考以下项目：
+本项目UI样式参考以下项目：
 
 1. [云帆考试系统](https://gitee.com/davz/yf-exam-lite)
 
