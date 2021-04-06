@@ -2,6 +2,13 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import axios from 'axios'
 
+import NProgress from 'nprogress' // Progress 进度条
+import 'nprogress/nprogress.css'// Progress 进度条样式
+// 进度条配置项
+NProgress.configure({
+  showSpinner: false
+});
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -121,6 +128,7 @@ const router = new VueRouter({
   routes
 })
 router.beforeEach((to, from, next) => {
+  NProgress.start();
   const token = window.localStorage.getItem('authorization')
   //2个不用token的页面请求
   if (to.path === '/' || to.path === '/register') {
@@ -163,5 +171,9 @@ router.beforeEach((to, from, next) => {
   }
   next()
 })
+
+router.afterEach(() => {
+  NProgress.done() // 结束Progress
+});
 
 export default router

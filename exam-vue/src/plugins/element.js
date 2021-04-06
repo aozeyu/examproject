@@ -3,7 +3,7 @@ import {
   Button, Container, Main, Row, Footer, Card, FormItem, Form, Input, Message, MessageBox, Aside, MenuItemGroup,
   Menu, MenuItem,Submenu,Col,Header,Tooltip,Breadcrumb,BreadcrumbItem,Dropdown,DropdownItem,DropdownMenu,Notification,
   Tag,TableColumn,Table,Select,Option,Pagination,Dialog,Loading,Upload,Checkbox,CheckboxGroup,DatePicker,Step,Steps,
-  RadioGroup,Radio,Alert,InputNumber
+  RadioGroup,Radio,Alert,InputNumber,Scrollbar
 } from 'element-ui'
 
 Vue.prototype.$message = Message
@@ -14,6 +14,7 @@ Vue.prototype.$prompt = MessageBox.prompt
 Vue.prototype.$Loading = Loading
 
 Vue.use(Button)
+Vue.use(Scrollbar)
 Vue.use(InputNumber)
 Vue.use(Alert)
 Vue.use(RadioGroup)
