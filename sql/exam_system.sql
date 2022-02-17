@@ -12,6 +12,8 @@ File Encoding         : 65001
 
 Date: 2021-02-08 14:17:55
 */
+create database exam_system;
+use exam_system;
 
 SET FOREIGN_KEY_CHECKS=0;
 
