@@ -1,10 +1,24 @@
 let API = {
   //应用表
   api: {
-    // 查询应用列表
-    register: '/common/register',
+    //查询考试信息
+    getExamInfo: '/public/getExamInfo',
+    //根据考试id查询考试信息和题目信息
+    getExamInfoById: '/public/getExamInfoById',
+    //查询所有的考试信息
+    allExamInfo: '/public/allExamInfo',
+    //查询所有题库信息和里面含有的题目类型的数量
+    getBankHaveQuestionSumByType: '/public/getBankHaveQuestionSumByType',
+    //根据题库id查询各种类型的题目
+    getQuestionByBankIdAndType: '/public/getQuestionByBankIdAndType',
+    //根据题库id查询题库中所有单选 多选 判断题
+    getQuestionByBank: '/public/getQuestionByBank',
+    //获取最新的系统公告
+    getCurrentNewNotice: '/public/getCurrentNewNotice',
     //查询当前的验证码
     getCode: '/util/getCode',
+    // 查询应用列表
+    register: '/common/register',
     //校验用户名
     checkUsername: '/common/check',
     //登陆接口
@@ -41,28 +55,16 @@ let API = {
     getQuestionById: '/teacher/getQuestionById',
     //根据题目id更新题目信息
     updateQuestion: '/teacher/updateQuestion',
-    //查询所有题库信息和里面含有的题目类型的数量
-    getBankHaveQuestionSumByType: '/teacher/getBankHaveQuestionSumByType',
     //删除题库及去除所有包含题库信息的题目
     deleteQuestionBank: '/teacher/deleteQuestionBank',
     //添加题库信息
     addQuestionBank: '/teacher/addQuestionBank',
-    //根据题库id查询题库信息
-    getBankById: '/teacher/getBankById',
-    //根据题库id查询题库中所有单选 多选 判断题
-    getQuestionByBank: '/teacher/getQuestionByBank',
-    //根据题库id查询各种类型的题目
-    getQuestionByBankIdAndType: '/teacher/getQuestionByBankIdAndType',
-    //查询考试信息
-    getExamInfo: '/teacher/getExamInfo',
     //对考试信息操作
     operationExam: '/teacher/operationExam',
     //根据题库添加考试
     addExamByBank: '/teacher/addExamByBank',
     //根据题目列表添加考试
     addExamByQuestionList: '/teacher/addExamByQuestionList',
-    //根据考试id查询考试信息和题目信息
-    getExamInfoById: '/teacher/getExamInfoById',
     //更新考试的规则信息
     updateExamInfo: '/teacher/updateExamInfo',
     //新增考试记录
@@ -77,8 +79,6 @@ let API = {
     getExamById: '/teacher/getExamById',
     //教师用户根据用户id查询用户
     getUserById: '/teacher/getUserById',
-    //查询所有的考试信息
-    allExamInfo: '/teacher/allExamInfo',
     //批阅试卷的客观题
     setObjectQuestionScore: '/teacher/setObjectQuestionScore',
     //查询当前用户的信息
@@ -93,8 +93,6 @@ let API = {
     getExamNumbers: '/teacher/getExamNumbers',
     //获取所有系统公告信息
     getAllNotice: '/admin/getAllNotice',
-    //获取最新的系统公告
-    getCurrentNewNotice: '/student/getCurrentNewNotice',
     //发布公告
     publishNotice: '/admin/publishNotice',
     //批量删除公告

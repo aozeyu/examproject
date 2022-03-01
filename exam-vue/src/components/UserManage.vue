@@ -121,293 +121,277 @@
 </template>
 
 <script>
-  export default {
-    name: 'UserManage',
-    data () {
-      //自定义用户名校验规则
-      var validateUsername = (rule, value, callback) => {
-        this.$http.get(this.API.checkUsername + '/' + this.addForm.username).then((resp) => {
-          if (resp.data.code === 200) {
-            callback()
-          } else {
-            callback(new Error('用户名已存在'))
-          }
-        })
-      }
-      return {
-        //查询用户的参数
-        queryInfo: {
-          'loginName': '',
-          'trueName': '',
-          'pageNo': 1,
-          'pageSize': 10
+export default {
+  name: 'UserManage',
+  data () {
+    //自定义用户名校验规则
+    var validateUsername = (rule, value, callback) => {
+      this.$http.get(this.API.checkUsername + '/' + this.addForm.username).then((resp) => {
+        if (resp.data.data) {
+          callback()
+        } else {
+          callback(new Error('用户名已存在'))
+        }
+      })
+    }
+    return {
+      //查询用户的参数
+      queryInfo: {
+        'loginName': '',
+        'trueName': '',
+        'pageNo': 1,
+        'pageSize': 10
+      },
+      //用户信息
+      userInfo: [],
+      //下拉选择框的数据
+      optionInfo: [
+        {
+          'label': '启用',
+          'desc': 'on'
         },
-        //用户信息
-        userInfo: [],
-        //下拉选择框的数据
-        optionInfo: [
+        {
+          'label': '禁用',
+          'desc': 'off'
+        },
+        {
+          'label': '删除',
+          'desc': 'delete'
+        }
+      ],
+      //下拉框所选择的数据
+      selected: '',
+      //被选择的表格中的行数据
+      selectedInTable: [],
+      //所有用户的条数
+      total: 0,
+      //添加用户的对话框是否显示
+      addTableVisible: false,
+      //添加用户的表单信息
+      addForm: {
+        'username': '',
+        'password': '',
+        'roleId': '',
+        'trueName': ''
+      },
+      //添加用户表单的验证规则
+      addFormRules: {
+        username: [
           {
-            'label': '启用',
-            'desc': 'on'
+            required: true,
+            message: '请输入登录用户名',
+            trigger: 'blur'
           },
           {
-            'label': '禁用',
-            'desc': 'off'
-          },
-          {
-            'label': '删除',
-            'desc': 'delete'
+            validator: validateUsername,
+            trigger: 'blur'
           }
         ],
-        //下拉框所选择的数据
-        selected: '',
-        //被选择的表格中的行数据
-        selectedInTable: [],
-        //所有用户的条数
-        total: 0,
-        //添加用户的对话框是否显示
-        addTableVisible: false,
-        //添加用户的表单信息
-        addForm: {
-          'username': '',
-          'password': '',
-          'roleId': '',
-          'trueName': ''
-        },
-        //添加用户表单的验证规则
-        addFormRules: {
-          username: [
-            {
-              required: true,
-              message: '请输入登录用户名',
-              trigger: 'blur'
-            },
-            {
-              validator: validateUsername,
-              trigger: 'blur'
-            }
-          ],
-          password: [
-            {
-              required: true,
-              message: '请输入密码',
-              trigger: 'blur'
-            },
-            {
-              min: 5,
-              message: '密码必须5位以上',
-              trigger: 'blur'
-            }
-          ],
-          trueName: [
-            {
-              required: true,
-              message: '请输入用户真实姓名',
-              trigger: 'blur'
-            },
-          ],
-          roleId: [
-            {
-              required: true,
-              message: '请选择用户权限',
-              trigger: 'blur'
-            },
-          ],
-        },
-        //表格信息加载
-        loading: true
-      }
+        password: [
+          {
+            required: true,
+            message: '请输入密码',
+            trigger: 'blur'
+          },
+          {
+            min: 5,
+            message: '密码必须5位以上',
+            trigger: 'blur'
+          }
+        ],
+        trueName: [
+          {
+            required: true,
+            message: '请输入用户真实姓名',
+            trigger: 'blur'
+          },
+        ],
+        roleId: [
+          {
+            required: true,
+            message: '请选择用户权限',
+            trigger: 'blur'
+          },
+        ],
+      },
+      //表格信息加载
+      loading: true
+    }
+  },
+  created () {
+    this.getUserInfo()
+  },
+  methods: {
+    //获取用户信息
+    getUserInfo () {
+      this.$http.get(this.API.getUserInfo, { params: this.queryInfo }).then((resp) => {
+        if (resp.data.code === 200) {
+          this.userInfo = resp.data.data.data
+          this.total = resp.data.data.total
+          this.loading = false
+        } else {
+          this.$notify({
+            title: 'Tips',
+            message: '获取信息失败',
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
     },
-    created () {
-      this.getUserInfo()
+    //表格某一行被选中
+    handleSelectionChange (val) {
+      this.selectedInTable = val
     },
-    methods: {
-      //获取用户信息
-      getUserInfo () {
-        this.$http.get(this.API.getUserInfo, { params: this.queryInfo }).then((resp) => {
+    //功能下拉框被选择
+    selectChange (val) {
+      //清空上一次的操作
+      this.selected = ''
+      //表格中所选中的用户的id
+      let userIds = []
+      this.selectedInTable.map(item => {
+        userIds.push(item.id)
+      })
+      if (val === 'on') {//状态设置为正常
+        this.$http.get(this.API.handleUser + '/' + 1, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
           if (resp.data.code === 200) {
-            this.userInfo = resp.data.data.users;
-            this.total = resp.data.data.total;
-            this.loading = false;
+            //删除成功后,回调更新用户数据
+            this.getUserInfo()
+            this.$notify({
+              title: 'Tips',
+              message: '操作成功',
+              type: 'success',
+              duration: 2000
+            })
           } else {
             this.$notify({
               title: 'Tips',
-              message: '获取信息失败',
+              message: '操作失败',
               type: 'error',
               duration: 2000
             })
           }
         })
-      },
-      //表格某一行被选中
-      handleSelectionChange (val) {
-        this.selectedInTable = val
-      },
-      //功能下拉框被选择
-      selectChange (val) {
-        //清空上一次的操作
-        this.selected = ''
-        //表格中所选中的用户的id
-        let userIds = []
-        this.selectedInTable.map(item => {
-          userIds.push(item.id)
-        })
-        if (val === 'on') {//状态设置为正常
-          this.$http.get(this.API.handleUser + '/' + 1, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
-            if (resp.data.code === 200) {
-              //删除成功后,回调更新用户数据
-              this.getUserInfo()
-              this.$notify({
-                title: 'Tips',
-                message: '操作成功',
-                type: 'success',
-                duration: 2000
-              })
-            } else {
-              this.$notify({
-                title: 'Tips',
-                message: '操作失败',
-                type: 'error',
-                duration: 2000
-              })
-            }
-          })
-        } else if (val === 'off') {//禁用用户
-          this.$http.get(this.API.handleUser + '/' + 2, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
-            if (resp.data.code === 200) {
-              //删除成功后,回调更新用户数据
-              this.getUserInfo()
-              this.$notify({
-                title: 'Tips',
-                message: '操作成功',
-                type: 'success',
-                duration: 2000
-              })
-            } else {
-              this.$notify({
-                title: 'Tips',
-                message: '操作失败',
-                type: 'error',
-                duration: 2000
-              })
-            }
-          })
-        } else if (val === 'delete') {//删除用户
-          this.$http.get(this.API.handleUser + '/' + 3, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
-            if (resp.data.code === 200) {
-              //删除成功后,回调更新用户数据
-              this.getUserInfo()
-              this.$notify({
-                title: 'Tips',
-                message: '操作成功',
-                type: 'success',
-                duration: 2000
-              })
-            } else {
-              this.$notify({
-                title: 'Tips',
-                message: '操作失败',
-                type: 'error',
-                duration: 2000
-              })
-            }
-          })
-        }
-      },
-      //分页插件的大小改变
-      handleSizeChange (val) {
-        this.queryInfo.pageSize = val
-        this.getUserInfo()
-      },
-      //分页插件的页数
-      handleCurrentChange (val) {
-        this.queryInfo.pageNo = val
-        this.getUserInfo()
-      },
-      //点击添加按钮
-      showAddDialog () {
-        this.addTableVisible = true
-      },
-      //添加用户
-      addUser () {
-        this.$refs['addForm'].validate((valid) => {
-          if (valid) {
-            this.$http.post(this.API.addUser, this.addForm).then((resp) => {
-              if (resp.data.code === 200) {
-                this.getUserInfo()
-                this.$notify({
-                  title: 'Tips',
-                  message: resp.data.message,
-                  type: 'success',
-                  duration: 2000
-                })
-              } else {
-                this.$notify({
-                  title: 'Tips',
-                  message: resp.data.message,
-                  type: 'error',
-                  duration: 2000
-                })
-              }
-              this.addTableVisible = false
+      } else if (val === 'off') {//禁用用户
+        this.$http.get(this.API.handleUser + '/' + 2, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
+          if (resp.data.code === 200) {
+            //删除成功后,回调更新用户数据
+            this.getUserInfo()
+            this.$notify({
+              title: 'Tips',
+              message: '操作成功',
+              type: 'success',
+              duration: 2000
             })
           } else {
-            this.$message.error('请检查您所填写的信息是否有误')
-            return false
+            this.$notify({
+              title: 'Tips',
+              message: '操作失败',
+              type: 'error',
+              duration: 2000
+            })
           }
         })
-      },
-      //表单信息重置
-      resetAddForm () {
-        //清空表格数据
-        this.$refs['addForm'].resetFields()
+      } else if (val === 'delete') {//删除用户
+        this.$http.get(this.API.handleUser + '/' + 3, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
+          if (resp.data.code === 200) {
+            //删除成功后,回调更新用户数据
+            this.getUserInfo()
+            this.$notify({
+              title: 'Tips',
+              message: '操作成功',
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.$notify({
+              title: 'Tips',
+              message: '操作失败',
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
       }
+    },
+    //分页插件的大小改变
+    handleSizeChange (val) {
+      this.queryInfo.pageSize = val
+      this.getUserInfo()
+    },
+    //分页插件的页数
+    handleCurrentChange (val) {
+      this.queryInfo.pageNo = val
+      this.getUserInfo()
+    },
+    //点击添加按钮
+    showAddDialog () {
+      this.addTableVisible = true
+    },
+    //添加用户
+    addUser () {
+      this.$refs['addForm'].validate((valid) => {
+        if (valid) {
+          this.$http.post(this.API.addUser, this.addForm).then((resp) => {
+            if (resp.data.code === 200) {
+              this.getUserInfo()
+              this.$notify({
+                title: 'Tips',
+                message: resp.data.message,
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: 'Tips',
+                message: resp.data.message,
+                type: 'error',
+                duration: 2000
+              })
+            }
+            this.addTableVisible = false
+          })
+        } else {
+          this.$message.error('请检查您所填写的信息是否有误')
+          return false
+        }
+      })
+    },
+    //表单信息重置
+    resetAddForm () {
+      //清空表格数据
+      this.$refs['addForm'].resetFields()
     }
   }
+}
 </script>
 
 <style scoped lang="scss">
-  .el-container {
-    width: 100%;
-    height: 100%;
-  }
+.el-container {
+  width: 100%;
+  height: 100%;
+}
 
-  .el-input {
-    width: 200px;
-  }
+.el-input {
+  width: 200px;
+}
 
-  .el-container {
-    animation: leftMoveIn .7s ease-in;
-  }
+.el-container {
+  animation: leftMoveIn .7s ease-in;
+}
 
-  @keyframes leftMoveIn {
-    0% {
-      transform: translateX(-100%);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0%);
-      opacity: 1;
-    }
+@keyframes leftMoveIn {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
   }
+  100% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
 
-  .role {
-    color: #606266;
-  }
-
-  /deep/ .el-table thead {
-    color: rgb(85, 85, 85) !important;
-  }
-
-  /*表格的头部样式*/
-  /deep/ .has-gutter tr th {
-    background: rgb(242, 243, 244);
-    color: rgb(85, 85, 85);
-    font-weight: bold;
-    line-height: 32px;
-  }
-
-  .el-table {
-    box-shadow: 0 0 1px 1px gainsboro;
-  }
+.role {
+  color: #606266;
+}
 </style>

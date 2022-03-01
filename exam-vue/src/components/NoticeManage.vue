@@ -225,7 +225,7 @@
       getNoticeInfo () {
         this.$http.get(this.API.getAllNotice, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.noticeInfo = resp.data.data.notices;
+            this.noticeInfo = resp.data.data.data;
             this.total = resp.data.data.total;
             this.loading = false;
           } else {

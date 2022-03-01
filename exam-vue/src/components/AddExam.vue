@@ -165,11 +165,11 @@
           </el-form-item>
 
           <el-form-item label="及格分数" prop="passScore">
-            <el-input-number v-model="examInfo.passScore" :min="1"></el-input-number>
+            <el-input-number v-model="examInfo.passScore" :min="1" :max="parseInt(sumTotalScore)"></el-input-number>
           </el-form-item>
 
           <el-form-item label="考试时长(分钟)" prop="examDuration">
-            <el-input-number v-model="examInfo.examDuration" :min="1"></el-input-number>
+            <el-input-number v-model="examInfo.examDuration" :min="1" :max="120"></el-input-number>
           </el-form-item>
 
           <el-form-item label="考试开始时间" prop="startTime">
@@ -353,7 +353,7 @@
           'examId': '',
           'examDesc': '',
           'passScore': 0,
-          'examDuration': '',
+          'examDuration': 0,
           'startTime': '',
           'endTime': ''
         },
@@ -414,7 +414,7 @@
           }
         }).then((resp) => {
           if (resp.data.code === 200) {
-            this.allBank = resp.data.data.bankHaveQuestionSums
+            this.allBank = resp.data.data.data
           } else {
             this.$notify({
               title: 'Tips',
@@ -467,7 +467,7 @@
       getQuestionInfo () {
         this.$http.get(this.API.getQuestion, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.questionInfo = resp.data.data.questions;
+            this.questionInfo = resp.data.data.data;
             this.total = resp.data.data.total;
             this.loading = false
           } else {

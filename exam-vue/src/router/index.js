@@ -3,11 +3,11 @@ import VueRouter from 'vue-router'
 import axios from 'axios'
 
 import NProgress from 'nprogress' // Progress 进度条
-import 'nprogress/nprogress.css'// Progress 进度条样式
+import 'nprogress/nprogress.css' // Progress 进度条样式
 // 进度条配置项
 NProgress.configure({
   showSpinner: false
-});
+})
 
 Vue.use(VueRouter)
 
@@ -128,7 +128,7 @@ const router = new VueRouter({
   routes
 })
 router.beforeEach((to, from, next) => {
-  NProgress.start();
+  NProgress.start()
   const token = window.localStorage.getItem('authorization')
   //2个不用token的页面请求
   if (to.path === '/' || to.path === '/register') {
@@ -139,22 +139,36 @@ router.beforeEach((to, from, next) => {
   //属于超级管理员的功能
   if (to.path === '/userManage' || to.path === '/roleManage' || to.path === '/noticeManage') {
     axios.get('/common/checkToken').then((resp) => {
-      if (resp.data.code === 200 && resp.data.data.roleId === '3') {//当前用户携带的token信息正确并且是管理员
+      if (resp.data.code === 200 && resp.data.data.roleId === 3) {//当前用户携带的token信息正确并且是管理员
         next()
-      } else {
-        return next('/index')
       }
+    }).catch(err => {
+      this.$notify({
+        title: 'Tips',
+        message: err.response.data.errMsg,
+        type: 'error',
+        duration: 2000
+      })
+      localStorage.removeItem('authorization')
+      return next('/index')
     })
   }
   //属于超级管理员又属于老师
   if (to.path === '/questionManage' || to.path === '/questionBankMange' || to.path === '/examManage'
     || to.path === '/addExam' || to.name === 'updateExam' || to.path === '/markManage' || to.name === 'markExam') {
     axios.get('/common/checkToken').then((resp) => {
-      if (resp.data.code === 200 && resp.data.data.roleId === '3' || resp.data.data.roleId === '2') {
+      if (resp.data.code === 200 && resp.data.data.roleId === 3 || resp.data.data.roleId === 2) {
         next()
-      } else {
-        return next('/index')
       }
+    }).catch(err => {
+      this.$notify({
+        title: 'Tips',
+        message: err.response.data.errMsg,
+        type: 'error',
+        duration: 2000
+      })
+      localStorage.removeItem('authorization')
+      return next('/index')
     })
   }
 
@@ -162,11 +176,18 @@ router.beforeEach((to, from, next) => {
   if (to.path === '/myQuestionBank' || to.name === 'trainPage' || to.path === '/examOnline'
     || to.name === 'exam' || to.name === 'examResult' || to.path === '/myGrade') {
     axios.get('/common/checkToken').then((resp) => {
-      if (resp.data.code === 200 && resp.data.data.roleId !== '2') {
+      if (resp.data.code === 200 && resp.data.data.roleId !== 2) {
         next()
-      } else {
-        return next('/index')
       }
+    }).catch(err => {
+      this.$notify({
+        title: 'Tips',
+        message: err.response.data.errMsg,
+        type: 'error',
+        duration: 2000
+      })
+      localStorage.removeItem('authorization')
+      return next('/index')
     })
   }
   next()
@@ -174,6 +195,6 @@ router.beforeEach((to, from, next) => {
 
 router.afterEach(() => {
   NProgress.done() // 结束Progress
-});
+})
 
 export default router

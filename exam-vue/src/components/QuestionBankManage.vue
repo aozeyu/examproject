@@ -142,7 +142,7 @@
       getBankInfo () {
         this.$http.get(this.API.getBankHaveQuestionSumByType, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.questionBankInfo = resp.data.data.bankHaveQuestionSums
+            this.questionBankInfo = resp.data.data.data
             this.total = resp.data.data.total
             this.loading = false
           } else {
@@ -272,21 +272,5 @@
 
   .role {
     color: #606266;
-  }
-
-  /deep/ .el-table thead {
-    color: rgb(85, 85, 85) !important;
-  }
-
-  /*表格的头部样式*/
-  /deep/ .has-gutter tr th {
-    background: rgb(242, 243, 244);
-    color: rgb(85, 85, 85);
-    font-weight: bold;
-    line-height: 32px;
-  }
-
-  .el-table {
-    box-shadow: 0 0 1px 1px gainsboro;
   }
 </style>

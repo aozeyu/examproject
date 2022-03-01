@@ -78,6 +78,8 @@
 
         <el-table-column align="center" prop="passScore" label="及格分数"></el-table-column>
 
+        <el-table-column align="center" prop="duration" label="考试时长(分)"></el-table-column>
+
         <el-table-column align="center" label="状态">
           <template slot-scope="scope">
             {{ scope.row.status === 1 ? '启用' : '禁用' }}
@@ -211,24 +213,13 @@
       getExamInfo () {
         this.$http.post(this.API.getExamInfo, this.queryInfo).then((resp) => {
           if (resp.data.code === 200) {
-            resp.data.data.forEach(item => {
+            resp.data.data.data.forEach(item => {
               item.startTime = String(item.startTime).substring(0, 10)
               item.endTime = String(item.endTime).substring(0, 10)
             })
-            this.examInfo = resp.data.data
-            this.getExamTotal()
+            this.examInfo = resp.data.data.data
+            this.total = resp.data.data.total
             this.loading = false
-          }
-        })
-      },
-      //查询考试信息
-      getExamTotal () {
-        let data = JSON.parse(JSON.stringify(this.queryInfo))
-        data.pageNo = 1
-        data.pageSize = 9999
-        this.$http.post(this.API.getExamInfo, data).then((resp) => {
-          if (resp.data.code === 200) {
-            this.total = resp.data.data.length
           }
         })
       },

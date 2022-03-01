@@ -161,24 +161,13 @@
       getExamInfo () {
         this.$http.post(this.API.getExamInfo, this.queryInfo).then((resp) => {
           if (resp.data.code === 200) {
-            resp.data.data.forEach(item => {
+            resp.data.data.data.forEach(item => {
               item.startTime = String(item.startTime).substring(0, 10)
               item.endTime = String(item.endTime).substring(0, 10)
             })
-            this.examInfo = resp.data.data
-            this.getExamTotal()
+            this.examInfo = resp.data.data.data
+            this.total = resp.data.data.total
             this.loading = false
-          }
-        })
-      },
-      //查询考试信息
-      getExamTotal () {
-        let data = JSON.parse(JSON.stringify(this.queryInfo))
-        data.pageNo = 1
-        data.pageSize = 9999
-        this.$http.post(this.API.getExamInfo, data).then((resp) => {
-          if (resp.data.code === 200) {
-            this.total = resp.data.data.length
           }
         })
       },
@@ -251,22 +240,6 @@
       transform: translateX(0%);
       opacity: 1;
     }
-  }
-
-  /deep/ .el-table thead {
-    color: rgb(85, 85, 85) !important;
-  }
-
-  /*表格的头部样式*/
-  /deep/ .has-gutter tr th {
-    background: rgb(242, 243, 244);
-    color: rgb(85, 85, 85);
-    font-weight: bold;
-    line-height: 32px;
-  }
-
-  .el-table {
-    box-shadow: 0 0 1px 1px gainsboro;
   }
 
   span {

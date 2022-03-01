@@ -177,7 +177,7 @@
       getMyGrade () {
         this.$http.get(this.API.getMyGrade, { params: this.queryInfo }).then((resp) => {
           if (resp.data.code === 200) {
-            this.grade = resp.data.data.examRecords
+            this.grade = resp.data.data.data
             this.total = resp.data.data.total
             this.getAllExamInfo()
             this.loading = false
