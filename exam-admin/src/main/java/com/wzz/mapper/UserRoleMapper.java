@@ -5,10 +5,9 @@ import com.wzz.entity.UserRole;
 import org.springframework.stereotype.Repository;
 
 /**
- * @Date 2020/10/20 19:49
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/10/20 19:49
  */
-//在对应的mapper上面实现基本的接口
-@Repository//代表持久层
+@Repository
 public interface UserRoleMapper extends BaseMapper<UserRole> {
 }

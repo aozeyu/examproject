@@ -1,4 +1,4 @@
-package com.wzz.Util.CertificateUtil;
+package com.wzz.utils.CertificateUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

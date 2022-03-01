@@ -1,4 +1,4 @@
-package com.wzz.Util.CertificateUtil;
+package com.wzz.utils.CertificateUtil;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.BaseFont;
@@ -6,16 +6,12 @@ import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfWriter;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Date;
-import java.util.Objects;
 
 public class PDFUtil {
 
@@ -34,9 +30,6 @@ public class PDFUtil {
      * 开启创建PDF对象
      *
      * @param pafPath ： 生成pdf的磁盘路径
-     * @return
-     * @throws FileNotFoundException
-     * @throws DocumentException
      */
     public PDFUtil openDocument(String pafPath) throws FileNotFoundException, DocumentException, URISyntaxException, MalformedURLException {
         Document document = new Document();
@@ -51,10 +44,6 @@ public class PDFUtil {
      *
      * @param absoluteX ：左边距
      * @param absoluteY ：底边距
-     * @return
-     * @throws MalformedURLException
-     * @throws IOException
-     * @throws DocumentException
      */
     public PDFUtil addImage(String imagePath, float absoluteX, float absoluteY) throws MalformedURLException, IOException, DocumentException {
         Image tImgCover = Image.getInstance(imagePath);
@@ -83,9 +72,6 @@ public class PDFUtil {
      * @param x                  ：左边距
      * @param y                  ：底边距
      * @param contentStyle       ：中文内容的样式
-     * @return
-     * @throws DocumentException
-     * @throws IOException
      */
     public PDFUtil addContent(String certificateContent, float x, float y, ContentStyle contentStyle) throws DocumentException, IOException {
 
@@ -98,7 +84,7 @@ public class PDFUtil {
 //        BaseFont bf = BaseFont.createFont(contentStyle.getTTFPath(),BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
         // linux用这个
         BaseFont bf = BaseFont.createFont("STSong-Light",
-                        "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
+                "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
         Font secFont = new Font(bf, contentStyle.getFontSize(), contentStyle.getStyle(), contentStyle.getBaseColor());
         Phrase certificateContentPhrase = new Phrase(certificateContent, secFont);
         ColumnText.showTextAligned(canvas, contentStyle.getAlignment(), certificateContentPhrase, x, y, 0);
@@ -108,12 +94,8 @@ public class PDFUtil {
     /**
      * 添加日期内容
      *
-     * @param x            插入pdf左边距
-     * @param y            插入pdf底边距
-     * @param contentStyle
-     * @return
-     * @throws DocumentException
-     * @throws IOException
+     * @param x 插入pdf左边距
+     * @param y 插入pdf底边距
      */
     public PDFUtil addDateContent(float x, float y, ContentStyle contentStyle) throws DocumentException, IOException {
 
@@ -155,10 +137,6 @@ public class PDFUtil {
     /**
      * 第一种解决方案
      * 在不改变图片形状的同时，判断，如果h>w，则按h压缩，否则在w>h或w=h的情况下，按宽度压缩
-     *
-     * @param h
-     * @param w
-     * @return
      */
 
     public int getPercent(float h, float w) {

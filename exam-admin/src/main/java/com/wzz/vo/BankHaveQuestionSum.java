@@ -1,14 +1,13 @@
 package com.wzz.vo;
 
 import com.wzz.entity.QuestionBank;
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @Date 2020/10/28 20:01
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/10/28 20:01
  */
 @Data
 @AllArgsConstructor

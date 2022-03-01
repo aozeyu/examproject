@@ -2,14 +2,12 @@ package com.wzz.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.wzz.entity.ExamRecord;
-import com.wzz.entity.User;
 import org.springframework.stereotype.Repository;
 
 /**
- * @Date 2020/10/20 8:59
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/10/20 8:59
  */
-//在对应的mapper上面实现基本的接口
-@Repository//代表持久层
+@Repository
 public interface ExamRecordMapper extends BaseMapper<ExamRecord> {
 }

@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,8 +12,8 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * @Date 2020/11/2 15:13
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/11/2 15:13
  */
 @Data
 @AllArgsConstructor
@@ -31,9 +30,10 @@ public class ExamQuestion implements Serializable {
     @ApiModelProperty(value = "问题的id字符串", example = "1,2,3")
     private String questionIds;
 
-    @ApiModelProperty(value = "考试的id",example = "1")
+    @ApiModelProperty(value = "考试的id", example = "1")
     private Integer examId;
 
-    @ApiModelProperty(value = "考试中每一题的分数",example = "1,2,3")
+    @ApiModelProperty(value = "考试中每一题的分数", example = "1,2,3")
     private String scores;
+
 }

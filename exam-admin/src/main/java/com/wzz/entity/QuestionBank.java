@@ -10,8 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @Date 2020/10/24 15:18
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/10/24 15:18
  */
 @Data
 @AllArgsConstructor
@@ -20,10 +20,11 @@ import lombok.NoArgsConstructor;
 @TableName(value = "question_bank")
 public class QuestionBank {
 
-    @ApiModelProperty(value = "主键 题库id", example = "1")
     @TableId(type = IdType.AUTO)
+    @ApiModelProperty(value = "主键 题库id", example = "1")
     private Integer bankId;
 
     @ApiModelProperty(value = "题库名称", example = "小学数学")
     private String bankName;
+
 }

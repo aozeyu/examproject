@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 /**
- * @Date 2020/10/24 14:55
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/10/24 14:55
  */
 @Data
 @AllArgsConstructor
@@ -21,6 +21,8 @@ import java.util.Date;
 @ApiModel("题目实体")
 @TableName(value = "question")
 public class Question {
+
+    // 在新增试题的时候自己设置id,使用自增会影响
 //    @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "主键 题目id", example = "1")
     private Integer id;

@@ -5,8 +5,8 @@ import com.wzz.entity.QuestionBank;
 import org.springframework.stereotype.Repository;
 
 /**
- * @Date 2020/10/20 8:59
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/10/20 8:59
  */
 @Repository
 public interface QuestionBankMapper extends BaseMapper<QuestionBank> {

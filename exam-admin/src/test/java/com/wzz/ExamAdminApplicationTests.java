@@ -1,22 +1,13 @@
 package com.wzz;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wzz.Util.RedisUtil;
+import com.wzz.utils.RedisUtil;
 import com.wzz.entity.*;
 import com.wzz.service.impl.*;
-import com.wzz.vo.CommonResult;
-import com.wzz.vo.QuestionVo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 
-import java.io.Serializable;
 import java.util.*;
 
 @SpringBootTest

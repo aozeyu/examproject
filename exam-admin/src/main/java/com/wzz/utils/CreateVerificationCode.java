@@ -1,4 +1,4 @@
-package com.wzz.Util;
+package com.wzz.utils;
 
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -9,23 +9,18 @@ import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
- * @Date 2020/10/19 20:54
- * @created by wzz
- * 生成验证码
+ * @author by wzz
+ * @implNote 2020/10/19 20:54
  */
 @Data
 @Component
-public class createVerificationCode {
+public class CreateVerificationCode {
 
     private String code;
     private Graphics g;
 
     /**
      * 获取随机生成的颜色
-     *
-     * @param s
-     * @param e
-     * @return
      */
     public Color getRandColor(int s, int e) {
 
@@ -81,8 +76,8 @@ public class createVerificationCode {
 
         //输出由英文中文数字随机组成的验证码
         StringBuilder sRand = new StringBuilder();
-        String ctmp = "";
-        int itmp = 0;
+        String ctmp;
+        int itmp;
         for (int i = 0; i < 4; i++) {
             switch (random.nextInt(3)) {
                 case 1:

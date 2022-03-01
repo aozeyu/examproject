@@ -2,10 +2,23 @@ package com.wzz.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wzz.entity.Question;
+import com.wzz.vo.PageResponse;
+import com.wzz.vo.QuestionVo;
 
 /**
- * @Date 2020/10/20 9:04
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/10/20 9:04
  */
 public interface QuestionService extends IService<Question> {
+
+    PageResponse<Question> getQuestion(String questionType, String questionBank, String questionContent, Integer pageNo, Integer pageSize);
+
+    QuestionVo getQuestionVoById(Integer id);
+
+    void deleteQuestionByIds(String questionIds);
+
+    void addQuestion(QuestionVo questionVo);
+
+    void updateQuestion(QuestionVo questionVo);
+
 }

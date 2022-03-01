@@ -1,5 +1,7 @@
 package com.wzz.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
@@ -13,8 +15,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @Date 2020/11/5 11:01
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/11/5 11:01
  */
 @Data
 @AllArgsConstructor
@@ -22,6 +24,8 @@ import java.util.Date;
 @ApiModel("考试记录")
 @TableName(value = "exam_record")
 public class ExamRecord implements Serializable {
+
+    @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "主键 考试主键的id", example = "1")
     private Integer recordId;
 
@@ -53,4 +57,5 @@ public class ExamRecord implements Serializable {
 
     @ApiModelProperty(value = "考试错题id", example = "1,2,3")
     private String errorQuestionIds;
+
 }

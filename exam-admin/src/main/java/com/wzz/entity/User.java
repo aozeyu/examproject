@@ -3,20 +3,25 @@ package com.wzz.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.wzz.dto.UpdateUserInfoDto;
+import com.wzz.utils.SaltEncryption;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @Date 2020/10/20 8:57
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/10/20 8:57
  */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @ApiModel("用户实体")
@@ -37,15 +42,25 @@ public class User implements Serializable {
     @ApiModelProperty(value = "真实姓名", example = "wzz")
     private String trueName;
 
-    @ApiModelProperty(value = "密码", example = "wzzzz")
+    @ApiModelProperty(value = "密码", example = "12345")
     private String password;
 
-    @ApiModelProperty(value = "加密盐值", example = "afada")
+    @ApiModelProperty(value = "加密盐值", example = "salt")
     private String salt;
 
-    @ApiModelProperty(value = "用户状态",example = "1正常 2禁用")
+    @ApiModelProperty(value = "用户状态", example = "1正常 2禁用")
     private Integer status;
 
-    @ApiModelProperty(value = "用户创建时间",example = "2020-10-22 10:35:44")
+    @ApiModelProperty(value = "用户创建时间", example = "2020-10-22 10:35:44")
     private Date createDate;
+
+    public void updateFrom(UpdateUserInfoDto updateUserInfoDto) {
+        if (StringUtils.hasLength(updateUserInfoDto.getPassword())) {
+            String newPwd = SaltEncryption.saltEncryption(updateUserInfoDto.getPassword(), this.getSalt());
+            this.setPassword(newPwd);
+        }
+        if (StringUtils.hasLength(updateUserInfoDto.getTrueName())) {
+            this.setTrueName(updateUserInfoDto.getTrueName());
+        }
+    }
 }

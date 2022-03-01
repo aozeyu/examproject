@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,8 +13,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @Date 2020/11/1 16:05
- * @created by wzz
+ * @author by wzz
+ * @implNote 2020/11/1 16:05
  */
 @Data
 @AllArgsConstructor
@@ -24,6 +23,8 @@ import java.util.Date;
 @TableName(value = "exam")
 public class Exam implements Serializable {
 
+    // 不需要主键自增id type 后面需要手动配置id
+    @TableId
     @ApiModelProperty(value = "主键 考试id", example = "1")
     private Integer examId;
 
@@ -37,7 +38,7 @@ public class Exam implements Serializable {
     private Integer type;
 
     @ApiModelProperty(value = "考试密码,当type=2时候存在", example = "12345")
-    @TableField(strategy= FieldStrategy.IGNORED)
+    @TableField(strategy = FieldStrategy.IGNORED)
     private String password;
 
     @ApiModelProperty(value = "考试时间", example = "125(分钟)")
@@ -46,13 +47,13 @@ public class Exam implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @JsonFormat(pattern = "yyyy-MM-dd")
     @ApiModelProperty(value = "考试开始时间", example = "2020-11-01")
-    @TableField(strategy= FieldStrategy.IGNORED)
+    @TableField(strategy = FieldStrategy.IGNORED)
     private Date startTime;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @JsonFormat(pattern = "yyyy-MM-dd")
     @ApiModelProperty(value = "考试结束时间", example = "2020-12-01")
-    @TableField(strategy= FieldStrategy.IGNORED)
+    @TableField(strategy = FieldStrategy.IGNORED)
     private Date endTime;
 
     @ApiModelProperty(value = "考试总分", example = "100")
