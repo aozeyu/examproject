@@ -194,9 +194,9 @@
           ]
         },
         // 发布公告的富文本编辑器
-        publishEditor: new E('#publishEditor'),
+        publishEditor: null,
         // 更新公告的富文本编辑器
-        updateEditor: new E('#updateEditor'),
+        updateEditor: null,
         // 更新公告的对话框是否展示
         updateTableVisible: false,
         // 更新的表单
@@ -220,6 +220,10 @@
     },
     created () {
       this.getNoticeInfo()
+    },
+    mounted() {
+      this.publishEditor = new E('#publishEditor');
+      this.updateEditor = new E('#updateEditor');
     },
     methods: { //获取用户信息
       getNoticeInfo () {
