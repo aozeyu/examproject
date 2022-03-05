@@ -14,7 +14,7 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    component: () => import('../components/Login')
+    component: () => import('../views/auth/Login')
   },
   {
     path: '/register',
