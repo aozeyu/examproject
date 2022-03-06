@@ -19,5 +19,18 @@ export default {
       url: '/util/getCode',
       method: 'get'
     })
+  },
+  register (registerUser) {
+    return request({
+      url: '/common/register',
+      method: 'post',
+      data: registerUser
+    })
+  },
+  checkUsername (username) {
+    return request({
+      url: `/common/check/${username}`,
+      method: 'get'
+    })
   }
 }

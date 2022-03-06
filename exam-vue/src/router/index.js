@@ -18,7 +18,7 @@ const routes = [
   },
   {
     path: '/register',
-    component: () => import('../components/Register')
+    component: () => import('../views/auth/Register')
   },
   {
     path: '/index',

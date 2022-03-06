@@ -3,8 +3,8 @@ import Vue from 'vue'
 import router from '../router/index'
 
 // valid el form and invoke target method
-const validFormAndInvoke = (formEl, success, fail = function () {
-}, message = '信息有误') => {
+const validFormAndInvoke = (formEl, success, message = '信息有误', fail = function () {
+}) => {
   if (!formEl) {
     return
   }

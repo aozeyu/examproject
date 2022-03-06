@@ -1,13 +1,12 @@
+import router from '@/router'
 import auth from '@/api/auth'
 import utils from '@/utils/utils'
-import router from '../../router/index'
-import Vue from 'vue'
 
-// 登录表单数据信息
-const loginForm = {
+// 注册表单数据信息
+const registerForm = {
   username: '',
+  trueName: '',
   password: '',
-  // 验证码
   code: ''
 }
 // 自定义验证码校验规则
@@ -19,12 +18,34 @@ const validateCode = (rule, value, callback) => {
     callback()
   }
 }
+// 自定义用户名校验规则
+const validateUsername = (rule, value, callback) => {
+  auth.checkUsername(registerForm.username)
+    .then(resp => {
+      if (resp.data) {
+        callback()
+      } else {
+        callback(new Error('用户名已存在'))
+      }
+    })
+}
 // 登录表单的校验规则
-const loginFormRules = {
+const registerFormRules = {
   username: [
     {
       required: true,
       message: '请输入账号',
+      trigger: 'blur'
+    },
+    {
+      validator: validateUsername,
+      trigger: 'blur'
+    }
+  ],
+  trueName: [
+    {
+      required: true,
+      message: '请输入您的姓名',
       trigger: 'blur'
     },
   ],
@@ -52,6 +73,10 @@ const loginFormRules = {
     }
   ],
 }
+
+const toLoginPage = () => {
+  router.push('/')
+}
 // 后台的验证码
 let code = window.onload = () => getCode()
 // 获取后台验证码
@@ -66,44 +91,27 @@ const changeCode = () => {
   code.src = 'http://localhost:8888/util/getCodeImg?id=' + Math.random()
   code.onload = () => getCode()
 }
-const toRegisterPage = () => {
-  router.push('/register')
-}
-// 登录
-const login = (formEl) => {
+
+// 表单信息提交
+const register = (formEl) => {
   utils.validFormAndInvoke(formEl, () => {
-    auth.login(loginForm).then(resp => {
+    auth.register(registerForm).then(resp => {
       if (resp.code === 200) {
         localStorage.setItem('authorization', resp.data)
-        Vue.prototype.$notify({
-          title: 'Tips',
-          message: '登陆成功^_^',
-          type: 'success',
-          duration: 2000
-        })
         router.push('/index')
       }
-    }).catch(err => {
-      console.log(err)
-      //请求出错
-      changeCode()
-      getCode()
-      Vue.prototype.$notify({
-        title: 'Tips',
-        message: err.response.data.errMsg,
-        type: 'error',
-        duration: 2000
-      })
     })
-  })
+  }, '注册失败')
 }
 
 export default {
-  loginForm,
-  loginFormRules,
+  // data
   code,
+  registerForm,
+  registerFormRules,
+  // method
+  toLoginPage,
   getCode,
   changeCode,
-  toRegisterPage,
-  login
+  register
 }
