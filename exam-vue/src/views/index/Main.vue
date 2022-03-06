@@ -134,10 +134,16 @@
 </template>
 
 <script>
+import notice from '@/api/notice'
+import menu from '@/api/menu'
+import user from '@/api/user'
+import auth from '@/api/auth'
+import utils from '@/utils/utils'
+
 export default {
   name: 'Main',
   data () {
-    var validatePassword = (rule, value, callback) => {
+    const validatePassword = (rule, value, callback) => {
       if (value === '') {
         callback()
       } else if (value.length < 5) {
@@ -250,9 +256,9 @@ export default {
   methods: {
     //查看系统公告
     showSystemNotice () {
-      this.$http.get(this.API.getCurrentNewNotice).then((resp) => {
-        if (resp.data.code === 200) {
-          this.$alert(resp.data.data, '最新公告', {
+      notice.getCurrentNewNotice().then((resp) => {
+        if (resp.code === 200) {
+          this.$alert(resp.data, '最新公告', {
             dangerouslyUseHTMLString: true,
             closeOnPressEscape: true,
             lockScroll: false
@@ -269,9 +275,9 @@ export default {
     },
     //根据token后台判断用户权限,传递相对应的菜单
     getMenu () {
-      this.$http.get(this.API.getMenuInfo).then((resp) => {
-        if (resp.data.code === 200) {
-          this.menuInfo = JSON.parse(resp.data.data)
+      menu.getMenuInfo().then((resp) => {
+        if (resp.code === 200) {
+          this.menuInfo = JSON.parse(resp.data)
           //根据链接创建不存在的tag标签并高亮
           this.createHighlightTag()
         } else {//后台认证失败,跳转登录页面
@@ -292,7 +298,7 @@ export default {
     },
     //是否全屏显示
     fullShow () {
-      var docElm = document.documentElement
+      let docElm = document.documentElement
       const full = document.querySelector('#full')
       if (this.isFullScreen) {//退出全屏模式
         //切换图标样式
@@ -342,10 +348,10 @@ export default {
         this.logout()
       } else if (command === 'personInfo') {
         this.updateCurrentUserDialog = true
-        this.$http.get(this.API.getCurrentUser).then((resp) => {
-          if (resp.data.code === 200) {
-            resp.data.data.password = ''
-            this.currentUserInfo2 = resp.data.data
+        user.getCurrentUser().then((resp) => {
+          if (resp.code === 200) {
+            resp.data.password = ''
+            this.currentUserInfo2 = resp.data
           }
         })
       }
@@ -364,8 +370,8 @@ export default {
     },
     //检查token获取其中的用户信息
     getUserInfoByCheckToken () {
-      this.$http.get(this.API.checkToken).then(resp => {
-        this.currentUserInfo = resp.data.data
+      auth.checkToken().then(resp => {
+        this.currentUserInfo = resp.data
         localStorage.setItem('username', this.currentUserInfo.username)
       }).catch(err => {
         this.$notify({
@@ -490,22 +496,18 @@ export default {
     },
     //更新当前用户
     updateCurrentUser () {
-      this.$refs['updateUserForm'].validate((valid) => {
-        if (valid) {
-          this.$http.post(this.API.updateCurrentUser, this.currentUserInfo2).then((resp) => {
-            if (resp.data.code === 200) {
-              this.$notify({
-                title: 'Tips',
-                message: resp.data.message,
-                type: 'success',
-                duration: 2000
-              })
-              this.logout()
-            }
-          })
-        } else {
-          return false
-        }
+      utils.validFormAndInvoke(this.$refs['updateUserForm'], () => {
+        user.updateCurrentUser(this.currentUserInfo2).then((resp) => {
+          if (resp.code === 200) {
+            this.$notify({
+              title: 'Tips',
+              message: resp.message,
+              type: 'success',
+              duration: 2000
+            })
+            this.logout()
+          }
+        })
       })
     }
   }
@@ -513,53 +515,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import "../../assets/css/index/main";
 
-.el-container {
-  width: 100%;
-  height: 100%;
-
-  .el-menu {
-    height: 100% !important;
-  }
-}
-
-.el-main, .el-header {
-  padding: 0;
-}
-
-/*  右侧面板根据左侧的宽度变化而变化,侧边栏缩小,右侧面板变大,反之同理*/
-#aside {
-  transition: width .3s;
-}
-
-.el-breadcrumb {
-  display: inline-block;
-}
-
-/*右上角的个人信息字体*/
-.el-dropdown-link {
-  font-weight: 500;
-  font-size: 18px;
-}
-
-.el-tag {
-  border: none;
-  border-radius: 0;
-  box-shadow: 0 0 .5px .5px gray;
-  color: black;
-  font-weight: 400;
-  text-align: center;
-  margin-left: 10px;
-  cursor: pointer;
-}
-
-/deep/ .el-card__body {
-  padding: 10px;
-}
-
-/*  tag的高亮*/
-.active {
-  background-color: rgb(66, 185, 131);
-  color: white;
-}
 </style>

@@ -22,7 +22,7 @@ const routes = [
   },
   {
     path: '/index',
-    component: () => import('../components/Main'),
+    component: () => import('../views/index/Main'),
     redirect: '/dashboard',
     children: [
       //仪表盘介绍(all)
