@@ -78,7 +78,7 @@
 
         <div class="btn-item el-col el-col-10" style="padding-left: 10px; padding-right: 10px;" @click="toTrainPage(1)">
           <div class="img-btn">
-            <img src="../assets/imgs/order.png">
+            <img src="../../assets/imgs/order.png">
             <div>
               顺序练习
             </div>
@@ -87,7 +87,7 @@
 
         <div class="btn-item el-col el-col-10" style="padding-left: 10px; padding-right: 10px;" @click="toTrainPage(2)">
           <div class="img-btn">
-            <img src="../assets/imgs/random.png">
+            <img src="../../assets/imgs/random.png">
             <div>
               随机训练
             </div>
@@ -101,7 +101,7 @@
         <div class="btn-item el-col el-col-7" style="margin-left: 18px;padding-left: 10px; padding-right: 10px;"
              @click="questionBankInfo[currentBankIndex].singleChoice> 0 ? toTrainPage(3) : $message.warning('当前类型题库暂未收录o(╥﹏╥)o')">
           <div class="img-btn">
-            <img src="../assets/imgs/single.png">
+            <img src="../../assets/imgs/single.png">
             <div>
               单选题({{ questionBankInfo[currentBankIndex].singleChoice }}题)
             </div>
@@ -111,7 +111,7 @@
         <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;"
              @click="questionBankInfo[currentBankIndex].multipleChoice > 0 ? toTrainPage(4) : $message.warning('当前类型题库暂未收录o(╥﹏╥)o')">
           <div class="img-btn">
-            <img src="../assets/imgs/multiple.png">
+            <img src="../../assets/imgs/multiple.png">
             <div>
               多选题({{ questionBankInfo[currentBankIndex].multipleChoice }}题)
             </div>
@@ -121,7 +121,7 @@
         <div class="btn-item el-col el-col-7" style="padding-left: 10px; padding-right: 10px;"
              @click="questionBankInfo[currentBankIndex].judge> 0 ? toTrainPage(5) : $message.warning('当前类型题库暂未收录o(╥﹏╥)o')">
           <div class="img-btn">
-            <img src="../assets/imgs/judge.png">
+            <img src="../../assets/imgs/judge.png">
             <div>
               判断题({{ questionBankInfo[currentBankIndex].judge }}题)
             </div>
@@ -136,6 +136,8 @@
 </template>
 
 <script>
+import questionBank from '@/api/questionBank'
+
 export default {
   name: 'MyQuestionBank',
   data () {
@@ -188,15 +190,15 @@ export default {
   methods: {
     //获取所有的题库信息
     getBankInfo () {
-      this.$http.get(this.API.getBankHaveQuestionSumByType, { params: this.queryInfo }).then((resp) => {
-        if (resp.data.code === 200) {
-          this.questionBankInfo = resp.data.data.data
-          this.total = resp.data.data.total
+      questionBank.getBankHaveQuestionSumByType(this.queryInfo).then((resp) => {
+        if (resp.code === 200) {
+          this.questionBankInfo = resp.data.data
+          this.total = resp.data.total
           this.loading = false
         } else {
           this.$notify({
             title: 'Tips',
-            message: resp.data.message,
+            message: resp.message,
             type: 'error',
             duration: 2000
           })
@@ -206,46 +208,6 @@ export default {
     //查询内容变化
     contentChange () {
       this.getBankInfo()
-    },
-    //操作选项的被触发
-    operationChange (val) {
-      if (val === 'delete') {
-        this.$confirm('此操作将永久删除该题库, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          let ids = []
-          this.selectedTable.map(item => {
-            ids.push(item.questionBank.bankId)
-          })
-          //发起删除请求
-          this.$http.get(this.API.deleteQuestionBank, { params: { 'ids': ids.join(',') } }).then((resp) => {
-            if (resp.data.code === 200) {
-              this.$notify({
-                title: 'Tips',
-                message: resp.data.message,
-                type: 'success',
-                duration: 2000
-              })
-              this.getBankInfo()
-              this.getBankTotal()
-            } else {
-              this.$notify({
-                title: 'Tips',
-                message: resp.data.message,
-                type: 'error',
-                duration: 2000
-              })
-            }
-          })
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          })
-        })
-      }
     },
     //表格部分行被选中
     handleTableSectionChange (row) {
@@ -284,73 +246,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.el-container {
-  width: 100%;
-  height: 100%;
-}
-
-.el-input {
-  width: 200px;
-}
-
-.el-container {
-  animation: leftMoveIn .7s ease-in;
-}
-
-@keyframes leftMoveIn {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0%);
-    opacity: 1;
-  }
-}
-
-.role {
-  color: #606266;
-}
-
-h1 {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.btn-item {
-  border: 1px solid rgb(239, 239, 239);
-  margin-bottom: 10px;
-  margin-left: 35px;
-  padding: 8px;
-  cursor: pointer;
-}
-
-.btn-item:hover {
-  background-color: rgb(239, 239, 239);
-}
-
-.btn-item:first-child {
-  margin-left: 86px;
-}
-
-.img-btn {
-  position: relative;
-  margin-left: 27%;
-
-  img {
-    width: 40px;
-    height: 40px;
-    display: inline-block;
-  }
-
-  div {
-    display: inline-block;
-    position: absolute;
-    top: 6px;
-    margin-left: 10px;
-    font-size: 18px;
-    font-weight: bold;
-  }
-}
+@import "../../assets/css/student/myQuestionBank";
 </style>
 

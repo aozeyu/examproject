@@ -40,8 +40,10 @@
 
         <el-table-column align="center" label="考试时间">
           <template slot-scope="scope">
-            {{ scope.row.startTime !== 'null' && scope.row.endTime !== 'null' ?
-            scope.row.startTime + ' ~' + scope.row.endTime : '不限时'}}
+            {{
+              scope.row.startTime !== 'null' && scope.row.endTime !== 'null' ?
+                scope.row.startTime + ' ~' + scope.row.endTime : '不限时'
+            }}
           </template>
         </el-table-column>
 
@@ -113,139 +115,116 @@
 </template>
 
 <script>
-  export default {
-    name: 'ExamOnline',
-    data () {
-      return {
-        queryInfo: {
-          'examType': null,
-          'startTime': null,
-          'endTime': null,
-          'examName': null,
-          'pageNo': 0,
-          'pageSize': 10
+import exam from '@/api/exam'
+
+export default {
+  name: 'ExamOnline',
+  data () {
+    return {
+      queryInfo: {
+        'examType': null,
+        'startTime': null,
+        'endTime': null,
+        'examName': null,
+        'pageNo': 0,
+        'pageSize': 10
+      },
+      //表格是否在加载
+      loading: true,
+      //考试类型信息
+      examType: [
+        {
+          info: '公开考试',
+          type: 1
         },
-        //表格是否在加载
-        loading: true,
-        //考试类型信息
-        examType: [
-          {
-            info: '公开考试',
-            type: 1
-          },
-          {
-            info: '需要密码',
-            type: 2
-          }
-        ],
-        //考试信息
-        examInfo: [],
-        //查询到的考试总数
-        total: 0,
-        //开始考试的提示框
-        startExamDialog: false,
-        //当前选中的考试的信息
-        currentSelectedExam: {}
-      }
-    },
-    created () {
+        {
+          info: '需要密码',
+          type: 2
+        }
+      ],
+      //考试信息
+      examInfo: [],
+      //查询到的考试总数
+      total: 0,
+      //开始考试的提示框
+      startExamDialog: false,
+      //当前选中的考试的信息
+      currentSelectedExam: {}
+    }
+  },
+  created () {
+    this.getExamInfo()
+  },
+  methods: {
+    //考试类型搜索
+    typeChange (val) {
+      this.queryInfo.examType = val
       this.getExamInfo()
     },
-    methods: {
-      //考试类型搜索
-      typeChange (val) {
-        this.queryInfo.examType = val
-        this.getExamInfo()
-      },
-      //查询考试信息
-      getExamInfo () {
-        this.$http.post(this.API.getExamInfo, this.queryInfo).then((resp) => {
-          if (resp.data.code === 200) {
-            resp.data.data.data.forEach(item => {
-              item.startTime = String(item.startTime).substring(0, 10)
-              item.endTime = String(item.endTime).substring(0, 10)
-            })
-            this.examInfo = resp.data.data.data
-            this.total = resp.data.data.total
-            this.loading = false
-          }
-        })
-      },
-      //分页页面大小改变
-      handleSizeChange (val) {
-        this.queryInfo.pageSize = val
-        this.getExamInfo()
-      },
-      //分页插件的页数
-      handleCurrentChange (val) {
-        this.queryInfo.pageNo = val
-        this.getExamInfo()
-      },
-      //去考试准备页面
-      toStartExam (row) {
-        if (row.type === 2) {
-          this.$prompt('请提供考试密码', 'Tips', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-          }).then(({ value }) => {
-            if (value === row.password) {
-              this.startExamDialog = true
-              this.currentSelectedExam = row
-            } else {
-              this.$message.error('密码错误o(╥﹏╥)o')
-            }
-          }).catch(() => {
+    //查询考试信息
+    getExamInfo () {
+      exam.getExamInfo(this.queryInfo).then((resp) => {
+        if (resp.code === 200) {
+          resp.data.data.forEach(item => {
+            item.startTime = String(item.startTime).substring(0, 10)
+            item.endTime = String(item.endTime).substring(0, 10)
           })
-        } else {
-          this.startExamDialog = true
-          this.currentSelectedExam = row
+          this.examInfo = resp.data.data
+          this.total = resp.data.total
+          this.loading = false
         }
-      }
+      })
     },
-    computed: {
-      //检查考试的合法性
-      checkExam (row) {
-        return (row) => {
-          let date = new Date()
-          if (row.status === 2) return false
-          if (row.startTime === 'null' && row.endTime === 'null') {
-            return true
-          } else if (row.startTime === 'null') {
-            return date < new Date(row.endTime)
-          } else if (row.endTime === 'null') {
-            return date > new Date(row.startTime)
-          } else if (date > new Date(row.startTime) && date < new Date(row.endTime)) return true
-        }
+    //分页页面大小改变
+    handleSizeChange (val) {
+      this.queryInfo.pageSize = val
+      this.getExamInfo()
+    },
+    //分页插件的页数
+    handleCurrentChange (val) {
+      this.queryInfo.pageNo = val
+      this.getExamInfo()
+    },
+    //去考试准备页面
+    toStartExam (row) {
+      if (row.type === 2) {
+        this.$prompt('请提供考试密码', 'Tips', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+        }).then(({ value }) => {
+          if (value === row.password) {
+            this.startExamDialog = true
+            this.currentSelectedExam = row
+          } else {
+            this.$message.error('密码错误o(╥﹏╥)o')
+          }
+        }).catch(() => {
+        })
+      } else {
+        this.startExamDialog = true
+        this.currentSelectedExam = row
+      }
+    }
+  },
+  computed: {
+    //检查考试的合法性
+    checkExam (row) {
+      return (row) => {
+        let date = new Date()
+        if (row.status === 2) return false
+        if (row.startTime === 'null' && row.endTime === 'null') {
+          return true
+        } else if (row.startTime === 'null') {
+          return date < new Date(row.endTime)
+        } else if (row.endTime === 'null') {
+          return date > new Date(row.startTime)
+        } else if (date > new Date(row.startTime) && date < new Date(row.endTime)) return true
       }
     }
   }
+}
 </script>
 
 <style scoped lang="scss">
-  .el-container {
-    width: 100%;
-    height: 100%;
-  }
-
-  .el-container {
-    animation: leftMoveIn .7s ease-in;
-  }
-
-  @keyframes leftMoveIn {
-    0% {
-      transform: translateX(-100%);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0%);
-      opacity: 1;
-    }
-  }
-
-  span {
-    font-weight: 500;
-    display: inline-block;
-    font-size: 16px;
-    padding: 10px !important;
-  }
+@import "../../assets/css/student/examOnline";
 </style>

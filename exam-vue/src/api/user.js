@@ -13,5 +13,11 @@ export default {
       method: 'post',
       data: updateUser
     })
+  },
+  getUserById (userId) {
+    return request({
+      url: `/teacher/getUserById/${userId}`,
+      method: 'get'
+    })
   }
 }

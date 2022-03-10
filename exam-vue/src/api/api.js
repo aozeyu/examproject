@@ -52,7 +52,7 @@ let API = {
     //添加题目
     addQuestion: '/teacher/addQuestion',
     //根据题目id查询题目信息
-    getQuestionById: '/teacher/getQuestionById',
+    getQuestionById: '/student/getQuestionById',
     //根据题目id更新题目信息
     updateQuestion: '/teacher/updateQuestion',
     //删除题库及去除所有包含题库信息的题目
@@ -67,12 +67,10 @@ let API = {
     addExamByQuestionList: '/teacher/addExamByQuestionList',
     //更新考试的规则信息
     updateExamInfo: '/teacher/updateExamInfo',
-    //新增考试记录
-    addExamRecord: '/teacher/addExamRecord',
     //根据考试记录的id查询考试记录信息
-    getExamRecordById: '/teacher/getExamRecordById',
+    getExamRecordById: '/student/getExamRecordById',
     //根据考试id查询考试中的每一道题目id和分值
-    getExamQuestionByExamId: '/teacher/getExamQuestionByExamId',
+    getExamQuestionByExamId: '/student/getExamQuestionByExamId',
     //根据考试记录id查询考试的信息
     getExamRecord: '/teacher/getExamRecord',
     //根据考试id单纯的查询考试对象信息
@@ -87,6 +85,8 @@ let API = {
     updateCurrentUser: '/common/updateCurrentUser',
     //获取我的成绩(根据username)
     getMyGrade: '/student/getMyGrade',
+    //新增考试记录
+    addExamRecord: '/student/addExamRecord',
     //获取考试通过率(echarts绘图)
     getExamPassRate: '/teacher/getExamPassRate',
     //获取考试的次数(echarts绘图)

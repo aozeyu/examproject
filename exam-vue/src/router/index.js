@@ -28,7 +28,7 @@ const routes = [
       //仪表盘介绍(all)
       {
         path: '/dashboard',
-        component: () => import('../components/Dashboard')
+        component: () => import('../views/index/Dashboard')
       },
       //用户管理(超级管理员)
       {
@@ -43,28 +43,28 @@ const routes = [
       //题库管理(老师和超级管理员)
       {
         path: '/questionManage',
-        component: () => import('../components/QuestionManage')
+        component: () => import('../views/teacher/QuestionManage')
       },
       //题库管理(老师和超级管理员)
       {
         path: '/questionBankMange',
-        component: () => import('../components/QuestionBankManage')
+        component: () => import('../views/teacher/QuestionBankManage')
       },
       //我的题库(all)
       {
         path: '/myQuestionBank',
-        component: () => import('../components/MyQuestionBank')
+        component: () => import('../views/student/MyQuestionBank')
       },
       //题库训练页(学生和管理员)
       {
         path: '/train/:bankId/:trainType',
         name: 'trainPage',
-        component: () => import('../components/TrainPage')
+        component: () => import('../views/student/TrainPage')
       },
       //考试管理(老师和超级管理员)
       {
         path: '/examManage',
-        component: () => import('../components/ExamManage')
+        component: () => import('../views/teacher/ExamManage')
       },
       //添加考试(老师和超级管理员)
       {
@@ -80,18 +80,18 @@ const routes = [
       //在线考试页面选择考试(学生和超级管理员)
       {
         path: '/examOnline',
-        component: () => import('../components/ExamOnline')
+        component: () => import('../views/student/ExamOnline')
       },
       //考试结果页(学生和超级管理员)
       {
         path: '/examResult/:recordId',
         name: 'examResult',
-        component: () => import('../components/ExamResult')
+        component: () => import('../views/student/ExamResult')
       },
       //阅卷管理页面(老师和超级管理员)
       {
         path: '/markManage',
-        component: () => import('../components/MarkManage')
+        component: () => import('../views/teacher/MarkManage')
       },
       //批阅试卷(老师和管理员)
       {
@@ -102,7 +102,7 @@ const routes = [
       //我的成绩(学生和管理员)
       {
         path: '/myGrade',
-        component: () => import('../components/MyGrade')
+        component: () => import('../views/student/MyGrade')
       },
       //统计总览页面(老师和管理员)
       {
@@ -120,7 +120,7 @@ const routes = [
   {
     path: '/exam/:examId',
     name: 'exam',
-    component: () => import('../components/ExamPage')
+    component: () => import('../views/student/ExamPage')
   }
 ]
 
