@@ -24,10 +24,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .mvcMatchers("/public/*").hasAnyAuthority("student", "teacher", "admin")
-                .mvcMatchers("/student/*").hasAnyAuthority("student", "admin")
-                .mvcMatchers("/teacher/*").hasAnyAuthority("teacher", "admin")
-                .mvcMatchers("/admin/*").hasAnyAuthority("admin")
+                .mvcMatchers("/public/**").hasAnyAuthority("student", "teacher", "admin")
+                .mvcMatchers("/student/**").hasAnyAuthority("student", "admin")
+                .mvcMatchers("/teacher/**").hasAnyAuthority("teacher", "admin")
+                .mvcMatchers("/admin/**").hasAnyAuthority("admin")
 
                 .anyRequest().authenticated()
 

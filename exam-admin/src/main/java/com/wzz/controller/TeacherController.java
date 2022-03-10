@@ -1,12 +1,10 @@
 package com.wzz.controller;
 
-import com.wzz.entity.ExamQuestion;
 import com.wzz.entity.ExamRecord;
 import com.wzz.entity.Question;
 import com.wzz.entity.QuestionBank;
 import com.wzz.service.*;
 import com.wzz.utils.OSSUtil;
-import com.wzz.utils.RedisUtil;
 import com.wzz.vo.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -18,7 +16,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -40,15 +37,9 @@ public class TeacherController {
 
     private final QuestionService questionService;
 
-    private final ExamQuestionService examQuestionService;
-
     private final ExamRecordService examRecordService;
 
     private final QuestionBankService questionBankService;
-
-    private final AnswerService answerService;
-
-    private final RedisUtil redisUtil;
 
     @GetMapping("/getQuestionBank")
     @ApiOperation("获取所有题库信息")
@@ -134,18 +125,6 @@ public class TeacherController {
         return CommonResult.<Void>builder().build();
     }
 
-    // TODO 优化成多id一次查询
-    @GetMapping("/getQuestionById/{id}")
-    @ApiOperation("根据id获取题目信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "问题id", required = true, dataType = "int", paramType = "path")
-    })
-    public CommonResult<QuestionVo> getQuestionById(@PathVariable("id") Integer id) {
-        return CommonResult.<QuestionVo>builder()
-                .data(questionService.getQuestionVoById(id))
-                .build();
-    }
-
     @PostMapping("/updateQuestion")
     @ApiOperation("更新试题")
     @ApiImplicitParams({
@@ -221,39 +200,6 @@ public class TeacherController {
     public CommonResult<Void> updateExamInfo(@RequestBody AddExamByQuestionVo addExamByQuestionVo) {
         examService.updateExamInfo(addExamByQuestionVo);
         return CommonResult.<Void>builder()
-                .build();
-    }
-
-    @PostMapping("/addExamRecord")
-    @ApiOperation("保存考试记录信息,返回保存记录的id")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "examRecord", value = "考试记录实体对象", required = true, dataType = "examRecord", paramType = "body")
-    })
-    public CommonResult<Integer> addExamRecord(@RequestBody ExamRecord examRecord, HttpServletRequest request) {
-        return CommonResult.<Integer>builder()
-                .data(examRecordService.addExamRecord(examRecord, request))
-                .build();
-    }
-
-    @GetMapping("/getExamRecordById/{recordId}")
-    @ApiOperation("根据考试的记录id查询用户考试的信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "recordId", value = "考试记录id", required = true, dataType = "int", paramType = "query")
-    })
-    public CommonResult<ExamRecord> getExamRecordById(@PathVariable Integer recordId) {
-        return CommonResult.<ExamRecord>builder()
-                .data(examRecordService.getExamRecordById(recordId))
-                .build();
-    }
-
-    @GetMapping("/getExamQuestionByExamId/{examId}")
-    @ApiOperation("根据考试id查询考试中的每一道题目id和分值")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "examId", value = "考试id", required = true, dataType = "int", paramType = "query")
-    })
-    public CommonResult<ExamQuestion> getExamQuestionByExamId(@PathVariable Integer examId) {
-        return CommonResult.<ExamQuestion>builder()
-                .data(examQuestionService.getExamQuestionByExamId(examId))
                 .build();
     }
 
