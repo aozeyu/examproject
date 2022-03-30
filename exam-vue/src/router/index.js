@@ -33,12 +33,12 @@ const routes = [
       //用户管理(超级管理员)
       {
         path: '/userManage',
-        component: () => import('../components/UserManage')
+        component: () => import('../views/admin/UserManage')
       },
       //角色信息(超级管理员)
       {
         path: '/roleManage',
-        component: () => import('../components/RoleManage')
+        component: () => import('../views/admin/RoleManage')
       },
       //题库管理(老师和超级管理员)
       {
@@ -69,13 +69,13 @@ const routes = [
       //添加考试(老师和超级管理员)
       {
         path: '/addExam',
-        component: () => import('../components/AddExam')
+        component: () => import('../views/teacher/AddExam')
       },
       //修改考试信息(老师和超级管理员)
       {
         path: '/updateExam/:examId',
         name: 'updateExam',
-        component: () => import('../components/UpdateExam')
+        component: () => import('../views/teacher/UpdateExam')
       },
       //在线考试页面选择考试(学生和超级管理员)
       {
@@ -97,7 +97,7 @@ const routes = [
       {
         path: '/markExam/:recordId',
         name: 'markExam',
-        component: () => import('../components/MarkExamPage')
+        component: () => import('../views/teacher/MarkExamPage')
       },
       //我的成绩(学生和管理员)
       {
@@ -107,12 +107,12 @@ const routes = [
       //统计总览页面(老师和管理员)
       {
         path: '/staticOverview',
-        component: () => import('../components/StatisticOverview')
+        component: () => import('../views/teacher/StatisticOverview')
       },
       // 公告管理(管理员)
       {
         path: '/noticeManage',
-        component: () => import('../components/NoticeManage')
+        component: () => import('../views/admin/NoticeManage')
       }
     ]
   },

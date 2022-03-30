@@ -42,16 +42,37 @@ export default {
       data: data
     })
   },
-  getExamRecordById(recordId){
+  getExamRecordById (recordId) {
     return request({
       url: `/student/getExamRecordById/${recordId}`,
       method: 'get'
     })
   },
-  getExamQuestionByExamId(examId){
+  getExamQuestionByExamId (examId) {
     return request({
       url: `/student/getExamQuestionByExamId/${examId}`,
       method: 'get'
+    })
+  },
+  addExamByBank (data) {
+    return request({
+      url: `/teacher/addExamByBank`,
+      method: 'post',
+      data: data
+    })
+  },
+  addExamByQuestionList (data) {
+    return request({
+      url: '/teacher/addExamByQuestionList',
+      method: 'post',
+      data: data
+    })
+  },
+  updateExamInfo(data){
+    return request({
+      url: '/teacher/updateExamInfo',
+      method: 'post',
+      data: data
     })
   }
 }

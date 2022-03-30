@@ -121,6 +121,9 @@
 </template>
 
 <script>
+import user from '@/api/user'
+import utils from '@/utils/utils'
+
 export default {
   name: 'UserManage',
   data () {
@@ -224,10 +227,10 @@ export default {
   methods: {
     //获取用户信息
     getUserInfo () {
-      this.$http.get(this.API.getUserInfo, { params: this.queryInfo }).then((resp) => {
-        if (resp.data.code === 200) {
-          this.userInfo = resp.data.data.data
-          this.total = resp.data.data.total
+      user.getUserInfo(this.queryInfo).then((resp) => {
+        if (resp.code === 200) {
+          this.userInfo = resp.data.data
+          this.total = resp.data.total
           this.loading = false
         } else {
           this.$notify({
@@ -253,8 +256,8 @@ export default {
         userIds.push(item.id)
       })
       if (val === 'on') {//状态设置为正常
-        this.$http.get(this.API.handleUser + '/' + 1, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
-          if (resp.data.code === 200) {
+        user.handlerUser(1, { 'userIds': userIds.join(',') }).then((resp) => {
+          if (resp.code === 200) {
             //删除成功后,回调更新用户数据
             this.getUserInfo()
             this.$notify({
@@ -273,8 +276,8 @@ export default {
           }
         })
       } else if (val === 'off') {//禁用用户
-        this.$http.get(this.API.handleUser + '/' + 2, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
-          if (resp.data.code === 200) {
+        user.handlerUser(2, { 'userIds': userIds.join(',') }).then((resp) => {
+          if (resp.code === 200) {
             //删除成功后,回调更新用户数据
             this.getUserInfo()
             this.$notify({
@@ -293,8 +296,8 @@ export default {
           }
         })
       } else if (val === 'delete') {//删除用户
-        this.$http.get(this.API.handleUser + '/' + 3, { params: { 'userIds': userIds.join(',') } }).then((resp) => {
-          if (resp.data.code === 200) {
+        user.handlerUser(3, { 'userIds': userIds.join(',') }).then((resp) => {
+          if (resp.code === 200) {
             //删除成功后,回调更新用户数据
             this.getUserInfo()
             this.$notify({
@@ -330,32 +333,27 @@ export default {
     },
     //添加用户
     addUser () {
-      this.$refs['addForm'].validate((valid) => {
-        if (valid) {
-          this.$http.post(this.API.addUser, this.addForm).then((resp) => {
-            if (resp.data.code === 200) {
-              this.getUserInfo()
-              this.$notify({
-                title: 'Tips',
-                message: resp.data.message,
-                type: 'success',
-                duration: 2000
-              })
-            } else {
-              this.$notify({
-                title: 'Tips',
-                message: resp.data.message,
-                type: 'error',
-                duration: 2000
-              })
-            }
-            this.addTableVisible = false
-          })
-        } else {
-          this.$message.error('请检查您所填写的信息是否有误')
-          return false
-        }
-      })
+      utils.validFormAndInvoke(this.$refs['addForm'], () => {
+        user.addUser(this.addForm).then((resp) => {
+          if (resp.code === 200) {
+            this.getUserInfo()
+            this.$notify({
+              title: 'Tips',
+              message: resp.message,
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.$notify({
+              title: 'Tips',
+              message: resp.message,
+              type: 'error',
+              duration: 2000
+            })
+          }
+          this.addTableVisible = false
+        })
+      }, '请检查您所填写的信息是否有误')
     },
     //表单信息重置
     resetAddForm () {
@@ -367,31 +365,5 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.el-container {
-  width: 100%;
-  height: 100%;
-}
-
-.el-input {
-  width: 200px;
-}
-
-.el-container {
-  animation: leftMoveIn .7s ease-in;
-}
-
-@keyframes leftMoveIn {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0%);
-    opacity: 1;
-  }
-}
-
-.role {
-  color: #606266;
-}
+@import "../../assets/css/admin/userManage";
 </style>

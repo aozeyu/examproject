@@ -292,340 +292,305 @@
 </template>
 
 <script>
-  export default {
-    name: 'AddExam',
-    data () {
-      return {
-        //查询题目的参数
-        queryInfo: {
-          //题目类型下拉款所选的内容
-          'questionType': '',
-          'questionBank': '',
-          'questionContent': '',
-          'pageNo': 1,
-          'pageSize': 10
+import questionBankApi from '@/api/questionBank'
+import question from '@/api/question'
+import utils from '@/utils/utils'
+import examApi from '@/api/exam'
+
+export default {
+  name: 'AddExam',
+  data () {
+    return {
+      //查询题目的参数
+      queryInfo: {
+        //题目类型下拉款所选的内容
+        'questionType': '',
+        'questionBank': '',
+        'questionContent': '',
+        'pageNo': 1,
+        'pageSize': 10
+      },
+      //题目类型
+      questionType: [
+        {
+          id: 1,
+          name: '单选题',
         },
-        //题目类型
-        questionType: [
+        {
+          id: 2,
+          name: '多选题',
+        },
+        {
+          id: 3,
+          name: '判断题',
+        },
+        {
+          id: 4,
+          name: '简答题',
+        },
+      ],
+      //当前的步骤
+      curStep: 1,
+      //组卷模式
+      makeModel: 1,
+      //添加考试题目信息(makeModel = 1的时候)
+      addExamQuestion: [],
+      //所有题库信息
+      allBank: [],
+      //添加考试题目信息(makeModel = 2 的时候)
+      addExamQuestion2: [],
+      //所有题目的对话框
+      showQuestionDialog: false,
+      //对话框中题目表格的加载
+      loading: true,
+      //所有题目的信息
+      questionInfo: [],
+      //所有题目的对话框中表格被选中
+      selectedTable: [],
+      //所有题目总数
+      total: 0,
+      //考试权限(1公开, 2密码)
+      examAuthority: 1,
+      //考试密码(权限为2时的密码)
+      examPassword: '',
+      //补充的考试信息
+      examInfo: {
+        'examId': '',
+        'examDesc': '',
+        'passScore': 0,
+        'examDuration': 0,
+        'startTime': '',
+        'endTime': ''
+      },
+      //补充的考试信息的表单验证
+      examInfoRules: {
+        examName: [
           {
-            id: 1,
-            name: '单选题',
-          },
-          {
-            id: 2,
-            name: '多选题',
-          },
-          {
-            id: 3,
-            name: '判断题',
-          },
-          {
-            id: 4,
-            name: '简答题',
-          },
+            required: true,
+            message: '请输入考试名称',
+            trigger: 'blur'
+          }
         ],
-        //当前的步骤
-        curStep: 1,
-        //组卷模式
-        makeModel: 1,
-        //添加考试题目信息(makeModel = 1的时候)
-        addExamQuestion: [],
-        //所有题库信息
-        allBank: [],
-        //添加考试题目信息(makeModel = 2 的时候)
-        addExamQuestion2: [],
-        //所有题目的对话框
-        showQuestionDialog: false,
-        //对话框中题目表格的加载
-        loading: true,
-        //所有题目的信息
-        questionInfo: [],
-        //所有题目的对话框中表格被选中
-        selectedTable: [],
-        //所有题目总数
-        total: 0,
-        //考试权限(1公开, 2密码)
-        examAuthority: 1,
-        //考试密码(权限为2时的密码)
-        examPassword: '',
-        //补充的考试信息
-        examInfo: {
-          'examId': '',
-          'examDesc': '',
-          'passScore': 0,
-          'examDuration': 0,
-          'startTime': '',
-          'endTime': ''
-        },
-        //补充的考试信息的表单验证
-        examInfoRules: {
-          examName: [
-            {
-              required: true,
-              message: '请输入考试名称',
-              trigger: 'blur'
-            }
-          ],
-          passScore: [
-            {
-              required: true,
-              message: '请输入通过分数',
-              trigger: 'blur'
-            }
-          ],
-          examDuration: [
-            {
-              required: true,
-              message: '请输入考试时长',
-              trigger: 'blur'
-            }
-          ],
-        },
-      }
-    },
-    props: ['tagInfo'],
-    created () {
-      //一创建就改变头部的面包屑
-      this.$emit('giveChildChangeBreakInfo', '添加考试', '添加考试')
-      this.createTagsInParent()
-      this.getBankInfo()
-    },
-    methods: {
-      //向父组件中添加头部的tags标签
-      createTagsInParent () {
-        let flag = false
-        this.tagInfo.map(item => {
-          //如果tags全部符合
-          if (item.name === '添加考试' && item.url === this.$route.path) {
-            flag = true
-          } else if (item.name === '添加考试' && item.url !== this.$route.path) {
-            this.$emit('updateTagInfo', '添加考试', this.$route.path)
-            flag = true
-          }
-        })
-        if (!flag) this.$emit('giveChildAddTag', '添加考试', this.$route.path)
-      },
-      //获取所有的题库信息
-      getBankInfo () {
-        this.$http.get(this.API.getBankHaveQuestionSumByType, {
-          params: {
-            'pageNo': 1,
-            'pageSize': 9999
-          }
-        }).then((resp) => {
-          if (resp.data.code === 200) {
-            this.allBank = resp.data.data.data
-          } else {
-            this.$notify({
-              title: 'Tips',
-              message: resp.data.message,
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
-      },
-      //删除当前需要去除的题库
-      delBank (bankId) {
-        this.addExamQuestion.forEach((item, index) => {
-          if (item.bankId === bankId) this.addExamQuestion.splice(index, 1)
-        })
-      },
-      //添加题库组卷中的题库
-      addBank () {
-        this.addExamQuestion.push(
+        passScore: [
           {
-            'bankName': '',
-            'singleScore': 1,
-            'multipleScore': 1,
-            'judgeScore': 1,
-            'shortScore': 1
+            required: true,
+            message: '请输入通过分数',
+            trigger: 'blur'
+          }
+        ],
+        examDuration: [
+          {
+            required: true,
+            message: '请输入考试时长',
+            trigger: 'blur'
+          }
+        ],
+      },
+    }
+  },
+  props: ['tagInfo'],
+  created () {
+    //一创建就改变头部的面包屑
+    this.$emit('giveChildChangeBreakInfo', '添加考试', '添加考试')
+    this.createTagsInParent()
+    this.getBankInfo()
+  },
+  methods: {
+    //向父组件中添加头部的tags标签
+    createTagsInParent () {
+      let flag = false
+      this.tagInfo.map(item => {
+        //如果tags全部符合
+        if (item.name === '添加考试' && item.url === this.$route.path) {
+          flag = true
+        } else if (item.name === '添加考试' && item.url !== this.$route.path) {
+          this.$emit('updateTagInfo', '添加考试', this.$route.path)
+          flag = true
+        }
+      })
+      if (!flag) this.$emit('giveChildAddTag', '添加考试', this.$route.path)
+    },
+    //获取所有的题库信息
+    getBankInfo () {
+      questionBankApi.getBankHaveQuestionSumByType({
+          'pageNo': 1,
+          'pageSize': 9999
+        }).then((resp) => {
+        if (resp.code === 200) {
+          this.allBank = resp.data.data
+        } else {
+          this.$notify({
+            title: 'Tips',
+            message: resp.message,
+            type: 'error',
+            duration: 2000
           })
-      },
-      //自由组卷时添加试题
-      showAddDialog () {
-        this.showQuestionDialog = true
-        this.getQuestionInfo()
-      },
-      //自由组卷时删除试题
-      delQuestion (questionId) {
-        this.addExamQuestion2.forEach((item, index) => {
-          if (item.questionId === questionId) this.addExamQuestion2.splice(index, 1)
+        }
+      })
+    },
+    //删除当前需要去除的题库
+    delBank (bankId) {
+      this.addExamQuestion.forEach((item, index) => {
+        if (item.bankId === bankId) this.addExamQuestion.splice(index, 1)
+      })
+    },
+    //添加题库组卷中的题库
+    addBank () {
+      this.addExamQuestion.push(
+        {
+          'bankName': '',
+          'singleScore': 1,
+          'multipleScore': 1,
+          'judgeScore': 1,
+          'shortScore': 1
         })
-      },
-      //题目类型变化
-      typeChange (val) {
-        this.queryInfo.questionType = val
-        this.getQuestionInfo()
-      },
-      //题库变化
-      bankChange (val) {
-        this.queryInfo.questionBank = val
-        this.getQuestionInfo()
-      },
-      //获取题目信息
-      getQuestionInfo () {
-        this.$http.get(this.API.getQuestion, { params: this.queryInfo }).then((resp) => {
-          if (resp.data.code === 200) {
-            this.questionInfo = resp.data.data.data;
-            this.total = resp.data.data.total;
-            this.loading = false
-          } else {
-            this.$notify({
-              title: 'Tips',
-              message: '获取题库信息失败',
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
-      },
-      //处理表格被选中
-      handleTableSectionChange (val) {
-        this.selectedTable = val
-      },
-      //分页页面大小改变
-      handleSizeChange (val) {
-        this.queryInfo.pageSize = val
-        this.getQuestionInfo()
-      },
-      //分页插件的页数
-      handleCurrentChange (val) {
-        this.queryInfo.pageNo = val
-        this.getQuestionInfo()
-      },
-      //自由组卷中选中的题目添加进去
-      addQuToFree () {
-        this.selectedTable.forEach(item => {
-          if (!this.addExamQuestion2.some(i2 => {
-            return i2.questionId === item.id
-          })) {//不存在有当前题目
-            this.addExamQuestion2.push({
-              'questionId': item.id,
-              'questionContent': item.quContent,
-              'questionType': item.quType,
-              'score': 1
-            })
-          }
-        })
-        this.showQuestionDialog = false
-      },
-      //组卷模式变化
-      makeModelChange () {
-        this.$confirm('此操作将丢失当前组卷数据, 是否继续?', 'Tips', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.makeModel === 1 ? this.addExamQuestion2 = [] : this.addExamQuestion = []
-        }).catch(() => {
-        })
-      },
-      //添加考试
-      addExam () {
-        this.$refs['examInfoForm'].validate((valid) => {
-          if (valid && (this.addExamQuestion.length !== 0 || this.addExamQuestion2.length !== 0)) {
-            //构造数据对象(考试信息)
-            let exam = this.examInfo
-            exam.totalScore = this.sumTotalScore
-            exam.status = 1
-            //权限id设置
-            exam.type = this.examAuthority
-            if (this.examAuthority === 2) {//考试密码
-              if (this.examPassword === '') {// 当前用户选择了需要密码权限,但是密码为空
-                this.$message.error('当前权限为需要密码,但是密码为空');
-                return false;
-              }
-              exam.password = this.examPassword
+    },
+    //自由组卷时添加试题
+    showAddDialog () {
+      this.showQuestionDialog = true
+      this.getQuestionInfo()
+    },
+    //自由组卷时删除试题
+    delQuestion (questionId) {
+      this.addExamQuestion2.forEach((item, index) => {
+        if (item.questionId === questionId) this.addExamQuestion2.splice(index, 1)
+      })
+    },
+    //题目类型变化
+    typeChange (val) {
+      this.queryInfo.questionType = val
+      this.getQuestionInfo()
+    },
+    //题库变化
+    bankChange (val) {
+      this.queryInfo.questionBank = val
+      this.getQuestionInfo()
+    },
+    //获取题目信息
+    getQuestionInfo () {
+      question.getQuestion(this.queryInfo).then((resp) => {
+        if (resp.code === 200) {
+          this.questionInfo = resp.data.data
+          this.total = resp.data.total
+          this.loading = false
+        } else {
+          this.$notify({
+            title: 'Tips',
+            message: '获取题库信息失败',
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    //处理表格被选中
+    handleTableSectionChange (val) {
+      this.selectedTable = val
+    },
+    //分页页面大小改变
+    handleSizeChange (val) {
+      this.queryInfo.pageSize = val
+      this.getQuestionInfo()
+    },
+    //分页插件的页数
+    handleCurrentChange (val) {
+      this.queryInfo.pageNo = val
+      this.getQuestionInfo()
+    },
+    //自由组卷中选中的题目添加进去
+    addQuToFree () {
+      this.selectedTable.forEach(item => {
+        if (!this.addExamQuestion2.some(i2 => {
+          return i2.questionId === item.id
+        })) {//不存在有当前题目
+          this.addExamQuestion2.push({
+            'questionId': item.id,
+            'questionContent': item.quContent,
+            'questionType': item.quType,
+            'score': 1
+          })
+        }
+      })
+      this.showQuestionDialog = false
+    },
+    //组卷模式变化
+    makeModelChange () {
+      this.$confirm('此操作将丢失当前组卷数据, 是否继续?', 'Tips', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.makeModel === 1 ? this.addExamQuestion2 = [] : this.addExamQuestion = []
+      }).catch(() => {
+      })
+    },
+    //添加考试
+    addExam () {
+      utils.validFormAndInvoke(this.$refs['examInfoForm'], () => {
+        if (this.addExamQuestion.length !== 0 || this.addExamQuestion2.length !== 0) {
+          //构造数据对象(考试信息)
+          let exam = this.examInfo
+          exam.totalScore = this.sumTotalScore
+          exam.status = 1
+          //权限id设置
+          exam.type = this.examAuthority
+          if (this.examAuthority === 2) {//考试密码
+            if (this.examPassword === '') {// 当前用户选择了需要密码权限,但是密码为空
+              this.$message.error('当前权限为需要密码,但是密码为空')
+              return false
             }
-            //题库组卷模式
-            if (this.makeModel === 1 && !this.addExamQuestion.some(item => item.bankId === '')) {
-              console.log(this.addExamQuestion)
-              let bankNames = []
-              this.addExamQuestion.forEach(item => bankNames.push(item.bankName))
-              exam.bankNames = bankNames.join(',')
-              exam.singleScore = this.addExamQuestion[0].singleScore
-              exam.multipleScore = this.addExamQuestion[0].multipleScore
-              exam.judgeScore = this.addExamQuestion[0].judgeScore
-              exam.shortScore = this.addExamQuestion[0].shortScore
-              this.$http.post(this.API.addExamByBank, exam).then((resp) => {
-                if (resp.data.code === 200) this.$router.push('/examManage')
-              })
-            } else if (this.makeModel === 2) {//自由组卷模式
-              //题目id数组
-              let questionIds = []
-              //题目成绩数组
-              let scores = []
-              this.addExamQuestion2.forEach(item => {
-                questionIds.push(item.questionId)
-                scores.push(item.score)
-              })
-              exam.questionIds = questionIds.join(',')
-              exam.scores = scores.join(',')
-              console.log(exam)
-              this.$http.post(this.API.addExamByQuestionList, exam).then((resp) => {
-                if (resp.data.code === 200) this.$router.push('/examManage')
-              })
-            } else {
-              this.$message.error('请检查考试规则设置是否完整')
-            }
+            exam.password = this.examPassword
+          }
+          //题库组卷模式
+          if (this.makeModel === 1 && !this.addExamQuestion.some(item => item.bankId === '')) {
+            console.log(this.addExamQuestion)
+            let bankNames = []
+            this.addExamQuestion.forEach(item => bankNames.push(item.bankName))
+            exam.bankNames = bankNames.join(',')
+            exam.singleScore = this.addExamQuestion[0].singleScore
+            exam.multipleScore = this.addExamQuestion[0].multipleScore
+            exam.judgeScore = this.addExamQuestion[0].judgeScore
+            exam.shortScore = this.addExamQuestion[0].shortScore
+            examApi.addExamByBank(exam).then((resp) => {
+              if (resp.code === 200) this.$router.push('/examManage')
+            })
+          } else if (this.makeModel === 2) {//自由组卷模式
+            //题目id数组
+            let questionIds = []
+            //题目成绩数组
+            let scores = []
+            this.addExamQuestion2.forEach(item => {
+              questionIds.push(item.questionId)
+              scores.push(item.score)
+            })
+            exam.questionIds = questionIds.join(',')
+            exam.scores = scores.join(',')
+            console.log(exam)
+            examApi.addExamByQuestionList(exam).then((resp) => {
+              if (resp.code === 200) this.$router.push('/examManage')
+            })
           } else {
             this.$message.error('请检查考试规则设置是否完整')
-            return false
           }
-        })
-      }
-    },
-    computed: {
-      //计算总分
-      sumTotalScore () {
-        if (this.makeModel === 2) {
-          let score = 0
-          this.addExamQuestion2.forEach(item => {
-            score += parseInt(item.score)
-          })
-          return score
         }
+      }, '请检查考试规则设置是否完整')
+    }
+  },
+  computed: {
+    //计算总分
+    sumTotalScore () {
+      if (this.makeModel === 2) {
+        let score = 0
+        this.addExamQuestion2.forEach(item => {
+          score += parseInt(item.score)
+        })
+        return score
       }
     }
   }
+}
 </script>
 
 <style scoped lang="scss">
-  .el-container {
-    width: 100%;
-    height: 100%;
-  }
-
-  .el-container {
-    animation: leftMoveIn .7s ease-in;
-  }
-
-  @keyframes leftMoveIn {
-    0% {
-      transform: translateX(-100%);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0%);
-      opacity: 1;
-    }
-  }
-
-
-  /deep/ .el-table thead {
-    color: rgb(85, 85, 85) !important;
-  }
-
-  /*表格的头部样式*/
-  /deep/ .has-gutter tr th {
-    background: rgb(242, 243, 244);
-    color: rgb(85, 85, 85);
-    font-weight: bold;
-    line-height: 32px;
-  }
-
-  .el-table {
-    box-shadow: 0 0 1px 1px gainsboro;
-  }
+@import "../../assets/css/teacher/addExam";
 </style>

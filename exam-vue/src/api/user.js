@@ -19,5 +19,26 @@ export default {
       url: `/teacher/getUserById/${userId}`,
       method: 'get'
     })
+  },
+  getUserInfo (params) {
+    return request({
+      url: '/admin/getUser',
+      method: 'get',
+      params: params
+    })
+  },
+  handlerUser (operateId, params) {
+    return request({
+      url: `/admin/handleUser/${operateId}`,
+      method: 'get',
+      params: params
+    })
+  },
+  addUser (data) {
+    return request({
+      url: '/admin/addUser',
+      method: 'post',
+      data: data
+    })
   }
 }
