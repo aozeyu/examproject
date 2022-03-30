@@ -28,6 +28,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .mvcMatchers("/student/**").hasAnyAuthority("student", "admin", "teacher")
                 .mvcMatchers("/teacher/**").hasAnyAuthority("teacher", "admin")
                 .mvcMatchers("/admin/**").hasAnyAuthority("admin")
+                // 配合下面的web.ignore 将下面所有的路径的校验都过滤掉了
+                .mvcMatchers("/util/**", "/common/**").permitAll()
 
                 .anyRequest().authenticated()
 
