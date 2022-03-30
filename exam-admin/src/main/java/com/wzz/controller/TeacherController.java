@@ -200,6 +200,7 @@ public class TeacherController {
     public CommonResult<Void> updateExamInfo(@RequestBody AddExamByQuestionVo addExamByQuestionVo) {
         examService.updateExamInfo(addExamByQuestionVo);
         return CommonResult.<Void>builder()
+                .message("更新成功")
                 .build();
     }
 

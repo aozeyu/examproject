@@ -111,6 +111,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamMapper, Exam> implements Ex
                     map.put("exam_id", Integer.parseInt(s));
                     examMapper.deleteByMap(map);
                     examQuestionMapper.deleteByMap(map);
+                    redisUtil.del("examInfo:" + s);
                 }
                 break;
             default:
