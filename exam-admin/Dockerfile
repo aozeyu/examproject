@@ -6,6 +6,8 @@ COPY ./target/exam-admin-0.0.1-SNAPSHOT.jar /opt/exam
 
 COPY run.sh /opt/exam/
 
+COPY src/main/resources/static /exam
+
 EXPOSE 8888
 
 WORKDIR /opt/exam

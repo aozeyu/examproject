@@ -96,9 +96,9 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
 
 
         //  ****linux服务器下用如下(地址对应服务器上文件路径)
-//         String backgroundImage = "/wzz/nginx_static_resources/certificateBg.png";
-//         String logo = "/wzz/nginx_static_resources/logo.png";
-//         String pdfFilePath = "/wzz/nginx_static_resources/templateCertificate.pdf";
+//         String backgroundImage = "/exam/images/certificateBg.png";
+//         String logo = "/exam/images/logo.png";
+//         String pdfFilePath = "/exam/templateCertificate.pdf";
 
         //  生成工具类
         PDFUtil pdfUtil = new PDFUtil();

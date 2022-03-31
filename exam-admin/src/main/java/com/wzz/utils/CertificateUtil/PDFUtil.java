@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.Date;
 
 public class PDFUtil {
@@ -18,20 +17,12 @@ public class PDFUtil {
     private Document document;
     private PdfWriter writer;
 
-    public void setDocument(Document document) {
-        this.document = document;
-    }
-
-    public void setWriter(PdfWriter writer) {
-        this.writer = writer;
-    }
-
     /**
      * 开启创建PDF对象
      *
      * @param pafPath ： 生成pdf的磁盘路径
      */
-    public PDFUtil openDocument(String pafPath) throws FileNotFoundException, DocumentException, URISyntaxException, MalformedURLException {
+    public PDFUtil openDocument(String pafPath) throws FileNotFoundException, DocumentException {
         Document document = new Document();
         writer = PdfWriter.getInstance(document, new FileOutputStream(pafPath));
         document.open();
@@ -45,7 +36,7 @@ public class PDFUtil {
      * @param absoluteX ：左边距
      * @param absoluteY ：底边距
      */
-    public PDFUtil addImage(String imagePath, float absoluteX, float absoluteY) throws MalformedURLException, IOException, DocumentException {
+    public PDFUtil addImage(String imagePath, float absoluteX, float absoluteY) throws IOException, DocumentException {
         Image tImgCover = Image.getInstance(imagePath);
         tImgCover.setAbsolutePosition(absoluteX, absoluteY);
         float heigth = tImgCover.getHeight();
@@ -59,7 +50,7 @@ public class PDFUtil {
         return this;
     }
 
-    public PDFUtil addLogo(String imagePath, float absoluteX, float absoluteY) throws MalformedURLException, IOException, DocumentException {
+    public PDFUtil addLogo(String imagePath, float absoluteX, float absoluteY) throws IOException, DocumentException {
         Image tImgCover = Image.getInstance(imagePath);
         tImgCover.setAbsolutePosition(absoluteX, absoluteY);
         tImgCover.scalePercent(20);// 表示是原来图像的比例;
