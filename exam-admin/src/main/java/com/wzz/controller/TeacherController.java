@@ -217,7 +217,6 @@ public class TeacherController {
                 .build();
     }
 
-    // TODO 改成ids查询
     @GetMapping("/getUserById/{userId}")
     @ApiOperation("根据用户id查询用户信息")
     @ApiImplicitParams({
@@ -226,6 +225,17 @@ public class TeacherController {
     public CommonResult<UserInfoVo> getUserById(@PathVariable Integer userId) {
         return CommonResult.<UserInfoVo>builder()
                 .data(userService.getUserInfoById(userId))
+                .build();
+    }
+
+    @GetMapping("/getUserByIds")
+    @ApiOperation("根据用户ids查询用户信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userIds", value = "用户ids", required = true, dataType = "int", paramType = "query")
+    })
+    public CommonResult<List<UserInfoVo>> getUserByIds(@RequestParam("userIds") List<Integer> userIds) {
+        return CommonResult.<List<UserInfoVo>>builder()
+                .data(userService.getUserInfoByIds(userIds))
                 .build();
     }
 

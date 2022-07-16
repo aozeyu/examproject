@@ -20,6 +20,13 @@ export default {
       method: 'get'
     })
   },
+  getUserByIds (userIds) {
+    return request({
+      url: `/teacher/getUserByIds`,
+      params: userIds,
+      method: 'get'
+    })
+  },
   getUserInfo (params) {
     return request({
       url: '/admin/getUser',

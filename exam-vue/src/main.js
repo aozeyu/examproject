@@ -3,7 +3,6 @@ import App from './App.vue'
 import router from './router'
 import './plugins/element.js'
 import axios from 'axios'
-import api from './api/api'
 // 引入echarts
 import echarts from 'echarts'
 import axiosService from '@/utils/request'
@@ -11,8 +10,6 @@ import axiosService from '@/utils/request'
 Vue.prototype.$request = axiosService
 Vue.prototype.$echarts = echarts
 
-//接口地址统一管理
-Vue.prototype.API = api.API.api
 //配置请求根路径
 axios.defaults.baseURL = 'http://localhost:8888/'
 //axios拦截器拦截每一个请求,有token就配置头信息的token

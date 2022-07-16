@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * @author by wzz
@@ -57,7 +58,6 @@ public class StudentController {
         return CommonResult.<Integer>builder().data(examRecordService.addExamRecord(examRecord, request)).build();
     }
 
-    // TODO 优化成多id一次查询
     @GetMapping("/getQuestionById/{id}")
     @ApiOperation("根据id获取题目信息")
     @ApiImplicitParams({
@@ -66,6 +66,17 @@ public class StudentController {
     public CommonResult<QuestionVo> getQuestionById(@PathVariable("id") Integer id) {
         return CommonResult.<QuestionVo>builder()
                 .data(questionService.getQuestionVoById(id))
+                .build();
+    }
+
+    @GetMapping("/getQuestionByIds")
+    @ApiOperation("根据id集合获取题目信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ids", value = "问题id集合", required = true, dataType = "int", paramType = "params")
+    })
+    public CommonResult<PageResponse<QuestionVo>> getQuestionById(@RequestParam("ids") List<Integer> ids) {
+        return CommonResult.<PageResponse<QuestionVo>>builder()
+                .data(questionService.getQuestionVoByIds(ids))
                 .build();
     }
 

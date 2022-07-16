@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.wzz.utils.CommonUtils.setEqualsQueryWrapper;
 import static com.wzz.utils.CommonUtils.setLikeWrapper;
@@ -64,59 +65,25 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     public QuestionVo getQuestionVoById(Integer id) {
         Question question = questionMapper.selectById(id);
         Answer answer = answerMapper.selectOne(new QueryWrapper<Answer>().eq("question_id", id));
-        QuestionVo questionVo = new QuestionVo();
-        // 设置字段
-        questionVo.setQuestionContent(question.getQuContent());
-        questionVo.setAnalysis(question.getAnalysis());
-        questionVo.setQuestionType(question.getQuType());
-        questionVo.setQuestionLevel(question.getLevel());
-        questionVo.setQuestionId(question.getId());
-        if (question.getImage() != null && !Objects.equals(question.getImage(), "")) {
-            questionVo.setImages(question.getImage().split(","));
-        }
-        questionVo.setCreatePerson(question.getCreatePerson());
-        // 设置所属题库
-        if (!Objects.equals(question.getQuBankId(), "")) {
-            String[] bids = question.getQuBankId().split(",");
-            Integer[] bankIds = new Integer[bids.length];
-            for (int i = 0; i < bids.length; i++) {
-                bankIds[i] = Integer.parseInt(bids[i]);
-            }
-            questionVo.setBankId(bankIds);
-        }
-        if (answer != null) {
-            String[] allOption = answer.getAllOption().split(",");
-            String[] imgs = answer.getImages().split(",");
-            QuestionVo.Answer[] qa = new QuestionVo.Answer[allOption.length];
-            if (question.getQuType() != 2) {
-                for (int i = 0; i < allOption.length; i++) {
-                    QuestionVo.Answer answer1 = new QuestionVo.Answer();
-                    answer1.setId(i);
-                    answer1.setAnswer(allOption[i]);
-                    if (i <= imgs.length - 1 && !Objects.equals(imgs[i], ""))
-                        answer1.setImages(new String[]{imgs[i]});
-                    if (i == Integer.parseInt(answer.getTrueOption())) {
-                        answer1.setIsTrue("true");
-                        answer1.setAnalysis(answer.getAnalysis());
-                    }
-                    qa[i] = answer1;
-                }
-            } else {// 多选
-                for (int i = 0; i < allOption.length; i++) {
-                    QuestionVo.Answer answer1 = new QuestionVo.Answer();
-                    answer1.setId(i);
-                    answer1.setAnswer(allOption[i]);
-                    answer1.setImages(imgs);
-                    if (i < answer.getTrueOption().split(",").length && i == Integer.parseInt(answer.getTrueOption().split(",")[i])) {
-                        answer1.setIsTrue("true");
-                        answer1.setAnalysis(answer.getAnalysis());
-                    }
-                    qa[i] = answer1;
-                }
-            }
-            questionVo.setAnswer(qa);
-        }
-        return questionVo;
+        return buildQuestionVoByQuestionAndAnswer(question, answer);
+    }
+
+    @Override
+    public PageResponse<QuestionVo> getQuestionVoByIds(List<Integer> ids) {
+        List<Question> questions = questionMapper.selectBatchIds(ids);
+        List<Answer> answers = answerMapper.selectList(new QueryWrapper<Answer>().in("question_id", ids));
+        List<QuestionVo> questionVos = questions.stream()
+                .map(question -> {
+                    Answer currentQuestionAnswer = answers.stream()
+                            .filter(answer -> answer.getQuestionId().equals(question.getId()))
+                            .findFirst()
+                            .orElse(null);
+                    return buildQuestionVoByQuestionAndAnswer(question, currentQuestionAnswer);
+                }).collect(Collectors.toList());
+        return PageResponse.<QuestionVo>builder()
+                .data(questionVos)
+                .total(questionVos.size())
+                .build();
     }
 
     @Override
@@ -265,4 +232,61 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         String bankIds = Arrays.toString(questionVo.getBankId());
         question.setQuBankId(bankIds.substring(1, bankIds.length() - 1).replaceAll(" ", ""));
     }
+
+    private QuestionVo buildQuestionVoByQuestionAndAnswer(Question question, Answer answer) {
+        QuestionVo questionVo = new QuestionVo();
+        // 设置字段
+        questionVo.setQuestionContent(question.getQuContent());
+        questionVo.setAnalysis(question.getAnalysis());
+        questionVo.setQuestionType(question.getQuType());
+        questionVo.setQuestionLevel(question.getLevel());
+        questionVo.setQuestionId(question.getId());
+        if (question.getImage() != null && !Objects.equals(question.getImage(), "")) {
+            questionVo.setImages(question.getImage().split(","));
+        }
+        questionVo.setCreatePerson(question.getCreatePerson());
+        // 设置所属题库
+        if (!Objects.equals(question.getQuBankId(), "")) {
+            String[] bids = question.getQuBankId().split(",");
+            Integer[] bankIds = new Integer[bids.length];
+            for (int i = 0; i < bids.length; i++) {
+                bankIds[i] = Integer.parseInt(bids[i]);
+            }
+            questionVo.setBankId(bankIds);
+        }
+        if (answer != null) {
+            String[] allOption = answer.getAllOption().split(",");
+            String[] imgs = answer.getImages().split(",");
+            QuestionVo.Answer[] qa = new QuestionVo.Answer[allOption.length];
+            if (question.getQuType() != 2) {
+                for (int i = 0; i < allOption.length; i++) {
+                    QuestionVo.Answer answer1 = new QuestionVo.Answer();
+                    answer1.setId(i);
+                    answer1.setAnswer(allOption[i]);
+                    if (i <= imgs.length - 1 && !Objects.equals(imgs[i], ""))
+                        answer1.setImages(new String[]{imgs[i]});
+                    if (i == Integer.parseInt(answer.getTrueOption())) {
+                        answer1.setIsTrue("true");
+                        answer1.setAnalysis(answer.getAnalysis());
+                    }
+                    qa[i] = answer1;
+                }
+            } else {// 多选
+                for (int i = 0; i < allOption.length; i++) {
+                    QuestionVo.Answer answer1 = new QuestionVo.Answer();
+                    answer1.setId(i);
+                    answer1.setAnswer(allOption[i]);
+                    answer1.setImages(imgs);
+                    if (i < answer.getTrueOption().split(",").length && i == Integer.parseInt(answer.getTrueOption().split(",")[i])) {
+                        answer1.setIsTrue("true");
+                        answer1.setAnalysis(answer.getAnalysis());
+                    }
+                    qa[i] = answer1;
+                }
+            }
+            questionVo.setAnswer(qa);
+        }
+        return questionVo;
+    }
+
 }

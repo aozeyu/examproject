@@ -162,9 +162,7 @@ export default {
           //获取单题的分值
           this.getQuestionScore(resp.data.examId)
           //获取所有题目信息
-          resp.data.questionIds.split(',').forEach(item => {
-            this.getQuestionInfoById(item)
-          })
+          this.getQuestionInfoByIds(resp.data.questionIds)
           //数据加载完毕
           this.loading.close()
         }
@@ -176,11 +174,11 @@ export default {
         if (resp.code === 200) this.examInfo = resp.data
       })
     },
-    //根据id查询题目信息
-    async getQuestionInfoById (questionId) {
-      await question.getQuestionById(questionId).then((resp) => {
+    //根据ids查询题目信息
+    async getQuestionInfoByIds (questionIds) {
+      await question.getQuestionByIds({ ids: questionIds }).then((resp) => {
         if (resp.code === 200) {
-          this.questionInfo.push(resp.data)
+          this.questionInfo = resp?.data?.data || []
           //重置问题的顺序 单选 多选 判断 简答
           this.questionInfo = this.questionInfo.sort(function (a, b) {
             return a.questionType - b.questionType

@@ -9,6 +9,8 @@ import com.wzz.entity.User;
 import com.wzz.vo.PageResponse;
 import com.wzz.vo.UserInfoVo;
 
+import java.util.List;
+
 /**
  * @author by wzz
  * @implNote 2020/10/20 9:04
@@ -33,4 +35,6 @@ public interface UserService extends IService<User> {
     void addUser(AddUserDto addUserDto);
 
     UserInfoVo getUserInfoById(Integer userId);
+
+    List<UserInfoVo> getUserInfoByIds(List<Integer> userIds);
 }

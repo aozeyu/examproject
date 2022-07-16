@@ -5,6 +5,8 @@ import com.wzz.entity.Question;
 import com.wzz.vo.PageResponse;
 import com.wzz.vo.QuestionVo;
 
+import java.util.List;
+
 /**
  * @author by wzz
  * @implNote 2020/10/20 9:04
@@ -14,6 +16,8 @@ public interface QuestionService extends IService<Question> {
     PageResponse<Question> getQuestion(String questionType, String questionBank, String questionContent, Integer pageNo, Integer pageSize);
 
     QuestionVo getQuestionVoById(Integer id);
+
+    PageResponse<QuestionVo> getQuestionVoByIds(List<Integer> ids);
 
     void deleteQuestionByIds(String questionIds);
 

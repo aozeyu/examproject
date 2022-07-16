@@ -273,17 +273,14 @@ export default {
     },
     //查询考试的题目信息
     async getQuestionInfo (ids) {
-      await ids.forEach((item, index) => {
-        question.getQuestionById(item).then((resp) => {
-          if (index === 0) this.questionInfo = []
-          if (resp.code === 200) {
-            this.questionInfo.push(resp.data)
-            //重置问题的顺序 单选 多选 判断 简答
-            this.questionInfo = this.questionInfo.sort(function (a, b) {
-              return a.questionType - b.questionType
-            })
-          }
-        })
+      await question.getQuestionByIds({ 'ids': ids.join(',') }).then(resp => {
+        if (resp.code === 200) {
+          this.questionInfo = resp?.data?.data || []
+          //重置问题的顺序 单选 多选 判断 简答
+          this.questionInfo = this.questionInfo.sort(function (a, b) {
+            return a.questionType - b.questionType
+          })
+        }
       })
       this.loading.close()
       this.show = true

@@ -74,7 +74,7 @@
           </div>
 
           <!--简答题的答案-->
-          <div style="margin-top: 25px" v-show="item.questionType === 4">
+          <div style="margin-top: 25px" v-if="item.questionType === 4">
             <div class="ques-analysis">
               <h3 style="font-weight: 400">我的回答：</h3>
               <p style="font-weight: 400;color: orange"> {{ userAnswer[index] }} </p>
@@ -105,8 +105,8 @@
 
 <script>
 import exam from '@/api/exam'
-import questionApi from '@/api/question'
 import markExam from '@/api/markExam'
+import question from '@/api/question'
 
 export default {
   name: 'MarkExamPage',
@@ -169,15 +169,12 @@ export default {
       await exam.getExamRecordById(this.$route.params.recordId).then((resp) => {
         if (resp.code === 200) {
           this.examRecord = resp.data
-          console.log(resp.data)
           this.getExamInfoById(resp.data.examId)
           this.userAnswer = resp.data.userAnswers.split('-')
           //获取单题的分值
           this.getQuestionScore(resp.data.examId)
           //获取所有题目信息
-          resp.data.questionIds.split(',').forEach(item => {
-            this.getQuestionInfoById(item)
-          })
+          this.getQuestionInfoByIds(resp.data.questionIds)
           //数据加载完毕
           this.loading.close()
         }
@@ -189,14 +186,16 @@ export default {
         if (resp.code === 200) this.examInfo = resp.data
       })
     },
-    //根据id查询题目信息
-    async getQuestionInfoById (questionId) {
-      await questionApi.getQuestionById(questionId).then((resp) => {
+    //根据ids查询题目信息
+    async getQuestionInfoByIds (questionIds) {
+      await question.getQuestionByIds({ ids: questionIds }).then((resp) => {
         if (resp.code === 200) {
-          if (resp.data.questionType === 4) {
-            resp.data.score = 0
-          }
-          this.questionInfo.push(resp.data)
+          this.questionInfo = resp?.data?.data || []
+          this.questionInfo.forEach(q => {
+            if (q.questionType === 4) {
+              q.score = 0
+            }
+          })
           //重置问题的顺序 单选 多选 判断 简答
           this.questionInfo = this.questionInfo.sort(function (a, b) {
             return a.questionType - b.questionType

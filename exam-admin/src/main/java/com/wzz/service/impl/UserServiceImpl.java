@@ -16,7 +16,6 @@ import com.wzz.mapper.UserMapper;
 import com.wzz.service.UserService;
 import com.wzz.utils.JwtUtils;
 import com.wzz.utils.SaltEncryption;
-import com.wzz.vo.CommonResult;
 import com.wzz.vo.PageResponse;
 import com.wzz.vo.UserInfoVo;
 import lombok.RequiredArgsConstructor;
@@ -153,6 +152,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public UserInfoVo getUserInfoById(Integer userId) {
         return fromUser(userMapper.selectById(userId));
+    }
+
+    @Override
+    public List<UserInfoVo> getUserInfoByIds(List<Integer> userIds) {
+        return userMapper.selectBatchIds(userIds).stream()
+                .map(UserInfoVo::fromUser)
+                .collect(Collectors.toList());
     }
 
     private void updateUserStatus(String[] ids, Integer status) {

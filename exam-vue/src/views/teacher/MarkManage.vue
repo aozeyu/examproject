@@ -95,15 +95,28 @@ export default {
   },
   methods: {
     async getExamRecords () {
-      await exam.getExamRecord(this.queryInfo).then((resp) => {
+      await exam.getExamRecord(this.queryInfo).then(async resp => {
         if (resp.code === 200) {
-          this.getAllExamInfo()
+          await this.getAllExamInfo()
+          let userIds = []
           resp.data.data.forEach(item => {
-            user.getUserById(item.userId).then((r) => {
-              item.trueName = r.data.trueName
-            })
+            if (userIds.every(id => id !== item.userId)) {
+              userIds.push(item.userId)
+            }
+          })
+          let userInfo = []
+          await user.getUserByIds({ 'userIds': userIds.join(',') }).then(resp => {
+            if (resp.code === 200) {
+              userInfo = resp.data
+            }
+          })
+          resp.data.data.forEach(item => {
+            const currentUserInfo = userInfo.find(u => u.id === item.userId)
+            item.trueName = currentUserInfo?.trueName
           })
           this.examRecords = resp.data.data
+          // 当examRecords和examInfo准备好之后处理
+          this.setExamName()
           this.total = resp.data.total
           this.loading = false
         }
@@ -113,7 +126,6 @@ export default {
       exam.allExamInfo().then((resp) => {
         if (resp.code === 200) {
           this.allExamInfo = resp.data
-          this.setExamName()
         }
       })
     },

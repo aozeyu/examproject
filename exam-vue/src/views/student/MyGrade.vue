@@ -221,12 +221,12 @@ export default {
       this.queryInfo.pageNo = val
       this.getMyGrade()
     },
-    //根据id查询题目信息
-    async getQuestionInfoById (questionId) {
-      await question.getQuestionById(questionId).then((resp) => {
+    //根据ids查询题目信息
+    async getQuestionInfoByIds (questionIds) {
+      await question.getQuestionByIds({ ids: questionIds }).then((resp) => {
         if (resp.code === 200) {
-          this.questionInfo.push(resp.data)
-          //重置问题的顺序 单选 多选 判断
+          this.questionInfo = resp?.data?.data || []
+          //重置问题的顺序 单选 多选 判断 简答
           this.questionInfo = this.questionInfo.sort(function (a, b) {
             return a.questionType - b.questionType
           })
@@ -238,9 +238,7 @@ export default {
         this.$message.warning('当前考试没有逻辑错题O(∩_∩)O~')
       } else {
         this.userAnswer = row.userAnswers.split('-')
-        row.errorQuestionIds.split(',').forEach(item => {
-          this.getQuestionInfoById(item)
-        })
+        this.getQuestionInfoByIds(row.errorQuestionIds)
         this.errorQuestionDialog = true
       }
     },

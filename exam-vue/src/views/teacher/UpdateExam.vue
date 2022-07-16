@@ -342,15 +342,22 @@ export default {
         if (resp.code === 200) {
           this.examInfo = resp.data
           let scores = resp.data.scores.split(',')
-          resp.data.questionIds.split(',').forEach((item, index) => {
-            question.getQuestionById(item).then((r) => {
-              this.updateExamQuestion.push({
-                'questionId': parseInt(item),
-                'questionType': r.data.questionType,
-                'questionContent': r.data.questionContent,
-                'score': scores[index]
+          const questionArr = resp.data.questionIds.split(',')
+          const questionScoreMap = new Map()
+          for (let i = 0; i < questionArr.length; i++) {
+            questionScoreMap.set(questionArr[i], scores[i])
+          }
+          question.getQuestionByIds({ 'ids': resp.data.questionIds }).then(resp => {
+            if (resp.code === 200) {
+              (resp?.data?.data || []).forEach(q => {
+                this.updateExamQuestion.push({
+                  'questionId': parseInt(q.questionId),
+                  'questionType': q.questionType,
+                  'questionContent': q.questionContent,
+                  'score': questionScoreMap.get(`${q.questionId}`)
+                })
               })
-            })
+            }
           })
           this.pageLoading = false
         }

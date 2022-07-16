@@ -7,6 +7,13 @@ export default {
       method: 'get'
     })
   },
+  getQuestionByIds (questionIds) {
+    return request({
+      url: `/student/getQuestionByIds`,
+      params: questionIds,
+      method: 'get'
+    })
+  },
   getQuestion (queryInfo) {
     return request({
       url: '/teacher/getQuestion',
