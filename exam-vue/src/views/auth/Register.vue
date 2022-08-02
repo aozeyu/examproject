@@ -25,7 +25,7 @@
             <el-form-item prop="code">
               <el-input class="code" prefix-icon="el-icon-chat-line-round" v-model="registerForm.code"
                         placeholder="验证码"></el-input>
-              <img src="http://localhost:8888/util/getCodeImg" @click="changeCode" id="code"
+              <img :src="`${captchaUrl}/util/getCodeImg`" @click="changeCode" id="code"
                    style="float: right;margin-top: 4px;cursor: pointer" title="看不清,点击刷新"
                    alt="验证码"/>
             </el-form-item>
@@ -53,7 +53,8 @@ export default {
   components: { Footer },
   data () {
     return {
-      ...RegisterFunc
+      ...RegisterFunc,
+      captchaUrl: process.env.VUE_APP_CAPTCHA_URL
     }
   },
   mounted () {

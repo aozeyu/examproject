@@ -88,7 +88,7 @@ const getCode = () => {
 // 点击图片刷新验证码
 const changeCode = () => {
   const code = document.querySelector('#code')
-  code.src = 'http://localhost:8888/util/getCodeImg?id=' + Math.random()
+  code.src = `${process.env.VUE_APP_CAPTCHA_URL}util/getCodeImg?id=` + Math.random()
   code.onload = () => getCode()
 }
 
