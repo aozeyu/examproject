@@ -1,10 +1,10 @@
 package com.example.examproject.Controller;
 
+import com.example.examproject.Pojo.CommonResult;
 import com.example.examproject.Utils.createVerificationCode;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -23,9 +23,11 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/util")
+@Api(tags = "工具类接口")
 public class UtilController {
 
 
+    static String CODE;
     /**
      * 生成随机验证码图片
      *
@@ -34,7 +36,8 @@ public class UtilController {
      * @throws IOException
      */
     @CrossOrigin
-    @RequestMapping("/getCode")
+    @GetMapping("/getCodeImg")
+    @ApiOperation(value = "获取验证码图片流")
     public void getIdentifyImage(@RequestParam(required = false) String id, HttpServletRequest request, HttpServletResponse response) throws IOException {
         //设置不缓存图片
         response.setHeader("Pragma", "No-cache");
@@ -45,9 +48,13 @@ public class UtilController {
         response.setContentType("image/jpeg");
         createVerificationCode code = new createVerificationCode();
         BufferedImage image = code.getIdentifyImg();
-        HttpSession session = request.getSession(true);
-        session.setAttribute("code", code.getCode());
         code.getG().dispose();
         ImageIO.write(image, "JPEG", response.getOutputStream());
+        CODE = code.getCode();
+    }
+    @GetMapping("/getCode")
+    @ApiOperation(value = "获取验证码")
+    public CommonResult<String> getCode() {
+        return new CommonResult<>(200, CODE);
     }
 }
