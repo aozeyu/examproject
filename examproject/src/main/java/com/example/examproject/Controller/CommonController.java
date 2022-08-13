@@ -1,6 +1,5 @@
 package com.example.examproject.Controller;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.examproject.Pojo.CommonResult;
 import com.example.examproject.Pojo.TokenVo;
@@ -18,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
@@ -115,5 +113,11 @@ public class CommonController {
         } else {
             return new CommonResult<>(233, "token无效");
         }
+    }
+    @GetMapping("/logout")
+    @ApiOperation(value = "用户主动退出登录")
+    public CommonResult<String> logout() {
+        log.info("执行了===>CommonController中的logout方法");
+        return new CommonResult<>(200,"退出成功");
     }
 }
