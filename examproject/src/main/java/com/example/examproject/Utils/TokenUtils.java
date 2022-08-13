@@ -32,9 +32,9 @@ public class TokenUtils {
      */
 
 
-    public static String createToken(TokenVo token, long expireDate) {
+    public static String createToken(TokenVo token) {
         try {
-            Date date = new Date(System.currentTimeMillis() + expireDate);
+            Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
             Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
             Map<String, Object> header = new HashMap<>(2);
             header.put("Type","Jwt");
@@ -56,7 +56,7 @@ public class TokenUtils {
      * @return
      */
 
-    public static String verifyToken(String token) {
+    public static TokenVo verifyToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
             JWTVerifier verifier = JWT.require(algorithm).build();
@@ -64,9 +64,16 @@ public class TokenUtils {
             String roleId = jwt.getClaim("roleId").asString();
             String username = jwt.getClaim("username").asString();
             String password = jwt.getClaim("password").asString();
-            return roleId + " == " + username + "==" + password;
+            return new TokenVo(roleId,username,password);
         }catch (Exception e) {
             return null;
         }
+    }
+
+    public static void main(String[] args) {
+        String token = TokenUtils.createToken(new TokenVo("1","wzz","123"));
+        System.out.println("token == " + token);
+        TokenVo tokenVo = TokenUtils.verifyToken(token);
+        System.out.println(tokenVo);
     }
  }
