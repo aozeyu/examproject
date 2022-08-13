@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -44,6 +45,8 @@ public class CommonController {
         String newPwd = SaltEncryption.saltEncryption(user.getPassword(), salt);
         user.setPassword(newPwd);
         user.setSalt(salt);
+
+        user.setCreateDate(new Date());
         //设置加密
         userService.save(user);
         //发放token令牌
@@ -71,17 +74,18 @@ public class CommonController {
         log.info("执行了===>CommonController中的login方法");
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("username", user.getUsername());
+        //user1 是匹配查出来的用户
         User user1 = userService.getOne(wrapper);
         if (user1 != null) {
             //对用户输入的密码加密后 对比数据库的密码
 //            String newPwd = SaltEncryption.saltEncryption(user1.getPassword(), user1.getSalt());
             String newPwd = user1.getPassword();
-            if (newPwd.equals(user1.getPassword())) {
+            if (newPwd.equals(user1.getPassword()) && user1.getStatus() == 1) {
                 //发放token令牌
                 String token = TokenUtils.createToken(new TokenVo(user1.getRoleId() + "", user1.getUsername(), newPwd));
                 return new CommonResult<>(200, "success", token);
             } else {//密码错误
-                return new CommonResult<>(233, "账号密码错误");
+                return new CommonResult<>(233, "账号密码错误,或账号被封");
             }
         } else return new CommonResult<>(233, "用户不存在");
     }
