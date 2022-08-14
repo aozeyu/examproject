@@ -4,6 +4,9 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+  redis:
+    host: localhost
+    port: 6379
   datasource:
     username: root
     password: yao601860186018
@@ -34,3 +37,5 @@ mybatis-plus:
   configuration:
     # 配置日志
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
