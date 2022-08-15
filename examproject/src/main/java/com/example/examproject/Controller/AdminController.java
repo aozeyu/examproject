@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.examproject.Pojo.CommonResult;
 import com.example.examproject.Pojo.User;
+import com.example.examproject.Pojo.UserRole;
+import com.example.examproject.Service.impl.UserRoleServiceImpl;
 import com.example.examproject.Service.impl.UserServiceImpl;
 import com.example.examproject.Utils.RedisUtil;
 import com.example.examproject.Utils.SaltEncryption;
@@ -17,10 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @program: examproject
@@ -36,6 +35,9 @@ import java.util.UUID;
 public class AdminController {
     @Autowired
     private UserServiceImpl userService;
+
+    @Autowired
+    private UserRoleServiceImpl userRoleService;
     @Autowired
     private RedisUtil redisUtil;
     ObjectMapper mapper = new ObjectMapper();
@@ -45,7 +47,7 @@ public class AdminController {
             @RequestParam(required = false) String loginName,
             @RequestParam(required = false) String trueName,
             Integer pageNo, Integer pageSize
-    ) {
+    ) throws InterruptedException{
         log.info("执行了===>AdminController中的getUser方法");
         //参数一是当前页，参数二是每页个数
         IPage<User> userPage = new Page<>(pageNo, pageSize);
@@ -99,5 +101,18 @@ public class AdminController {
         user.setCreateDate(new Date());
         boolean save = userService.save(user);
         return save ? new CommonResult<>(200,"操作成功") : new CommonResult<>(233,"操作失败");
+    }
+
+    @GetMapping("/getRole")
+    @ApiOperation("查询系统存在的所有角色信息")
+    public CommonResult<Object> getRole() {
+        if (redisUtil.get("userRole") != null ) {
+            return new CommonResult<>(200, "success", redisUtil.get("userRoles"));
+        }else {
+            List<UserRole> userRoles = userRoleService.list(new QueryWrapper<>());
+            //设置默认缓存时间(1天) + 随机缓存时间(0-5小时 )  来防止缓存雪崩和击穿
+            redisUtil.set("userRoles",userRoles,60 * 60 * 12 + new Random().nextInt(5) * 60 *60);
+            return new CommonResult<>(200, "success", userRoles);
+        }
     }
 }
