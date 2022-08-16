@@ -16,10 +16,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -188,5 +186,13 @@ public class TeacherController {
             flag = questionService.update(question, new UpdateWrapper<Question>().eq("id", question.getId()));
         }
         return flag ? new CommonResult<>(200, "移除题库成功") : new CommonResult<>(233, "移除题库失败");
+    }
+
+    @PostMapping("/uploadQuestionImage")
+    @ApiOperation("接受新增题目中上传的图片,返回上传图片地址")
+    public CommonResult<String> uploadQuestionImage(MultipartFile file)throws Exception{
+        System.out.println(file.getOriginalFilename());
+        String url = com.wzz.utils.OSSUtil.picOSS(file);
+        return new CommonResult<>(200, "上传成功", url);
     }
 }
