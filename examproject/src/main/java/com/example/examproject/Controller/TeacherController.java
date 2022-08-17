@@ -407,4 +407,46 @@ public class TeacherController {
         }
         return new CommonResult<>(200, "更新题目成功");
     }
+
+
+
+    @GetMapping("/getBankHaveQuestionSumByType")
+    @ApiOperation("获取题库中所有题目类型的数量")
+    public CommonResult<Object> getBankHaveQuestionSumByType(@RequestParam(required = false) String bankName, Integer pageNo, Integer pageSize) {
+        log.info("执行了===>TeacherController中的getBankHaveQuestionSumByType方法");
+
+        //参数一是当前页，参数二是每页个数
+        IPage<QuestionBank> questionBankIPage = new Page<>(pageNo, pageSize);
+        //查询条件(可选)
+        QueryWrapper<QuestionBank> wrapper = new QueryWrapper<>();
+        if (!Objects.equals(bankName, "") && bankName != null) wrapper.like("bank_name", bankName);
+        IPage<QuestionBank> iPage = questionBankService.page(questionBankIPage, wrapper);
+        List<QuestionBank> questionBanks = iPage.getRecords();
+
+        //封装成传给前端的数据类型
+        List<BankHaveQuestionSum> bankHaveQuestionSums = new ArrayList<>();
+        for (QuestionBank questionBank : questionBanks) {
+            //创建vo对象
+            BankHaveQuestionSum bankHaveQuestionSum = new BankHaveQuestionSum();
+            //设置属性
+            bankHaveQuestionSum.setQuestionBank(questionBank);
+            //设置单选题的数量
+            List<Question> singleQuestions = questionService.list(new QueryWrapper<Question>().eq("qu_type", 1).like("qu_bank_name", questionBank.getBankName()));
+            bankHaveQuestionSum.setSingleChoice(singleQuestions.size());
+            //设置多选题的数量
+            List<Question> multipleQuestions = questionService.list(new QueryWrapper<Question>().eq("qu_type", 2).like("qu_bank_name", questionBank.getBankName()));
+            bankHaveQuestionSum.setMultipleChoice(multipleQuestions.size());
+            //设置判断题的数量
+            List<Question> judgeQuestions = questionService.list(new QueryWrapper<Question>().eq("qu_type", 3).like("qu_bank_name", questionBank.getBankName()));
+            bankHaveQuestionSum.setJudge(judgeQuestions.size());
+            //设置简答题的数量
+            List<Question> shortAnswerQuestions = questionService.list(new QueryWrapper<Question>().eq("qu_type", 4).like("qu_bank_name", questionBank.getBankName()));
+            bankHaveQuestionSum.setShortAnswer(shortAnswerQuestions.size());
+            //加入list中
+            bankHaveQuestionSums.add(bankHaveQuestionSum);
+        }
+        return new CommonResult<>(200, "查询题库和所属题目信息成功", bankHaveQuestionSums);
+    }
+
+    
 }

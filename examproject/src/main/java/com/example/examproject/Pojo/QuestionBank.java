@@ -26,7 +26,8 @@ public class QuestionBank {
     @ApiModelProperty(value = "主键 id", example = "1")
     private Integer id;
 
-    @ApiModelProperty(value = "题库id", example = "1")
+    @ApiModelProperty(value = "主键 题库id", example = "1")
+    @TableId(type = IdType.AUTO)
     private Integer bankId;
 
     @ApiModelProperty(value = "题库名称", example = "小学数学")
