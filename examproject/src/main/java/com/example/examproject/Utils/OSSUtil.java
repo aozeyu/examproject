@@ -1,5 +1,7 @@
 package com.example.examproject.Utils;
 
+import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.model.ObjectMetadata;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
