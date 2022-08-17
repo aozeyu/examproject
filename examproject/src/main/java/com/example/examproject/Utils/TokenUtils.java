@@ -19,7 +19,7 @@ import java.util.Map;
  * @date: 2022-08-13 13:27
  **/
 public class TokenUtils {
-    private static final long EXPIRE_TIME = 15 * 60 * 1000;//默认15分钟
+    private static final long EXPIRE_TIME = 60 * 60 * 1000 * 5;//默认5小时
     //私钥
     private static final String TOKEN_SECRET = "yaozeyu";
 
