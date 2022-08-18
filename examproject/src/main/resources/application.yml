@@ -15,7 +15,7 @@ spring:
     port: 6379
   datasource:
     username: root
-    password: yao601860186018
+    password: 123456
     url: jdbc:mysql://localhost:3306/exam_system?useSSL=false&useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource

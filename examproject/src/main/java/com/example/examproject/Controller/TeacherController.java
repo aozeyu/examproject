@@ -448,5 +448,138 @@ public class TeacherController {
         return new CommonResult<>(200, "查询题库和所属题目信息成功", bankHaveQuestionSums);
     }
 
-    
+
+
+    @GetMapping("/deleteQuestionBank")
+    @ApiOperation("删除题库并去除所有题目中的包含此题库的信息")
+    public CommonResult<String> deleteQuestionBank(String ids) {
+        String[] bankId = ids.split(",");
+        for (String s : bankId) {
+            //找到题库
+            QuestionBank questionBank = questionBankService.getById(s);
+            //找到与此题库相关的所有问题信息
+            List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", questionBank.getBankName()));
+            //移除与此题库相关的信息
+            for (Question question : questions) {
+                String quBankName = question.getQuBankName();
+                String quBankId = question.getQuBankId();
+                String[] name = quBankName.split(",");
+                String[] id = quBankId.split(",");
+                //新的题库名
+                String[] newName = new String[name.length - 1];
+                //新的题库id数据
+                String[] newId = new String[id.length - 1];
+
+                for (int i = 0,j = 0; i < name.length; i++) {
+                    if (!name[i].equals(questionBank.getBankName())) {
+                        newName[j] = name[i];
+                        j++;
+                    }
+                }
+                for (int i = 0,j = 0; i < id.length; i++) {
+                    if (!id[i].equals(String.valueOf(questionBank.getBankId()))) {
+                        newId[j] = id[i];
+                        j++;
+                    }
+                }
+                String handleName = Arrays.toString(newName)
+                        .replaceAll(" ", "")
+                        .replaceAll("]", "")
+                        .replace("[", "");
+                String handleId = Arrays.toString(newId).replaceAll(" ", "")
+                        .replaceAll("]", "")
+                        .replace("[", "");
+                //设置删除题库后的新字段
+                question.setQuBankName(handleName);
+                question.setQuBankId(handleId);
+                //更新题目
+                questionService.update(question, new UpdateWrapper<Question>().eq("id", question.getId()));
+            }
+            //删除题库
+            questionBankService.removeById(Integer.parseInt(s));
+        }
+        return new CommonResult<>(200, "删除题库成功");
+    }
+
+    @PostMapping("/addQuestionBank")
+    @ApiOperation("添加题库信息")
+    public CommonResult<String> addQuestionBank(@RequestBody QuestionBank questionBank){
+        boolean flag = questionBankService.save(questionBank);
+        return flag ? new CommonResult<>(200,"添加题库成功") : new CommonResult<>(200,"添加题库失败");
+    }
+
+    @GetMapping("/getBankById")
+    @ApiOperation("通过题库id获取题库信息")
+    public CommonResult<QuestionBank> getBankById(Integer id){
+        return new CommonResult<>(200,"查询题库信息成功",questionBankService.getById(id));
+    }
+
+
+    @GetMapping("/getQuestionByBank")
+    @ApiOperation("根据题库获取所有的题目信息(单选,多选,判断题)")
+    public CommonResult<Object> getQuestionByBank(Integer bankId) {
+        if (redisUtil.get("questionBankQuestion:" + bankId) != null) {//查询缓存
+            return new CommonResult<>(200, "当前题库题目查询成功", redisUtil.get("questionBankQuestion:" + bankId));
+        } else {
+            QuestionBank bank = questionBankService.getById(1);
+            //在题库中的(单选,多选,判断题)题目
+            List<Question> questions = questionService.list(new QueryWrapper<Question>().like("qu_bank_name", bank.getBankName()).in("qu_type", 1,2,3));
+            //构造前端需要的vo对象
+            List<QuestionVo> questionVos = new ArrayList<>();
+            for (Question question : questions) {
+                QuestionVo questionVo = new QuestionVo();
+
+                questionVo.setQuestionId(question.getId());
+                questionVo.setQuestionLevel(question.getLevel());
+                if (question.getImage() != null && !question.getImage().equals("")) //防止没有图片对象
+                    questionVo.setImages(question.getImage().split(","));
+                questionVo.setCreatePerson(question.getCreatePerson());
+                questionVo.setAnalysis(question.getAnalysis());
+                questionVo.setQuestionContent(question.getQuContent());
+                questionVo.setQuestionType(question.getQuType());
+
+                Answer answer = answerService.getOne(new QueryWrapper<Answer>().eq("question_id", question.getId()));
+                //选项个数
+                String[] options = answer.getAllOption().split(",");
+                String[] images = answer.getImages().split(",");
+                //构造答案对象
+                QuestionVo.Answer[] handleAnswer = new QuestionVo.Answer[options.length];
+                //字段处理
+                for (int i = 0; i < options.length; i++) {
+                    QuestionVo.Answer answer1 = new QuestionVo.Answer();
+                    if (images.length-1 >= i && images[i] != null && !images[i].equals(""))
+                        answer1.setImages(new String[]{images[i]});
+                    answer1.setAnswer(options[i]);
+                    answer1.setId(i);
+                    answer1.setIsTrue("false");
+                    handleAnswer[i] = answer1;
+                }
+                if (question.getQuType() != 2) {//单选和判断
+                    int trueOption = Integer.parseInt(answer.getTrueOption());
+                    handleAnswer[trueOption].setIsTrue("true");
+                    handleAnswer[trueOption].setAnalysis(answer.getAnalysis());
+                } else {//多选
+                    String[] trueOptions = answer.getTrueOption().split(",");
+                    for (String trueOption : trueOptions) {
+                        handleAnswer[Integer.parseInt(trueOption)].setIsTrue("true");
+                        handleAnswer[Integer.parseInt(trueOption)].setAnalysis(answer.getAnalysis());
+                    }
+                }
+                questionVo.setAnswer(handleAnswer);
+                questionVos.add(questionVo);
+            }
+//            redisUtil.set("questionBankQuestion:" + bankId, questionVos, 60 * 5 + new Random().nextInt(2));
+            return new CommonResult<>(200, "当前题库题目查询成功", questionVos);
+        }
+    }
+
+    @GetMapping("/getQuestionByBankIdAndType")
+    @ApiOperation("根据题库id和题目类型获取题目信息 type(1单选 2多选 3判断)")
+    public CommonResult<List<QuestionVo>> getQuestionByBankIdAndType(Integer bankId,Integer type) {
+        CommonResult<Object> questionByBank =getQuestionByBank(bankId);
+        List<QuestionVo> questionVos = (List<QuestionVo>)questionByBank.getData();
+        //根据题目类型筛选题目
+        questionVos.removeIf(questionVo -> !Objects.equals(questionVo.getQuestionType(), type));
+        return new CommonResult<>(200,"根据题目类型查询成功",questionVos);
+    }
 }
