@@ -622,4 +622,11 @@ public class TeacherController {
         }
         return new CommonResult<>(200,"操作成功");
     }
+
+    @PostMapping("/addExam")
+    @ApiOperation("添加考试")
+    public CommonResult<String> addExam(@RequestBody AddExamVo addExamVo) {
+        System.out.println(addExamVo);
+        return  new CommonResult<>();
+    }
 }

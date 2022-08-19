@@ -3,12 +3,15 @@ package com.example.examproject.Pojo;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -23,7 +26,7 @@ import java.util.Date;
 @NoArgsConstructor
 @ApiModel("考试实体")
 @TableName(value = "exam")
-public class Exam {
+public class Exam implements Serializable {
     @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "主键 考试id", example = "1")
     private Integer examId;
@@ -32,7 +35,7 @@ public class Exam {
     private String name;
 
     @ApiModelProperty(value = "考试描述", example = "这是一场考试的描述")
-    private String desc;
+    private String examDesc;
 
     @ApiModelProperty(value = "考试类型1公开,2需密码", example = "1")
     private Integer type;
@@ -41,9 +44,14 @@ public class Exam {
     private String password;
     @ApiModelProperty(value = "考试时间", example = "125(分钟)")
     private Integer duration;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @ApiModelProperty(value = "考试开始时间", example = "2020-11-01")
     private Date startTime;
 
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @ApiModelProperty(value = "考试结束时间", example = "2020-12-01")
     private Date endTime;
 
